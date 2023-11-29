@@ -1,20 +1,20 @@
 namespace GameEngine.Util.Resources;
 
-public class Resource
+public class Resource : IDisposable
 {
-    private bool _disposed = false;
+    protected bool _disposed = false;
 
-    
     public virtual void Dispose() {
-        _disposed = true;
+        if (!_disposed)
+        {
+            _disposed = true;
+            GC.SuppressFinalize(this);
+        }
     }
 
     ~Resource()
     {
         Dispose();
-        if (_disposed)
-        {
-            // Alert of insecure dispose of the class
-        }
+        // Alert of insecure dispose of the class
     }
 }

@@ -5,7 +5,6 @@ namespace GameEngine.Util.Resources;
 
 public class Material : Resource
 {
-
     private uint _program;
 
     public Material() {}
@@ -55,10 +54,14 @@ public class Material : Resource
 
     public override void Dispose()
     {
-        Engine.gl.DeleteProgram(_program);
+        if (!_disposed) Engine.gl.DeleteProgram(_program);
         base.Dispose();
     }
 
+    public int ALocation(string name)
+    {
+        return Engine.gl.GetAttribLocation(_program, name);
+    }
     public int ULocation(string name)
     {
         return Engine.gl.GetUniformLocation(_program, name);

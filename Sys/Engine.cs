@@ -47,11 +47,19 @@ public class Engine
 
         gl.Enable(EnableCap.Multisample);
 
+        var b = new Pannel();
+        root.AddAsChild(b);
+        b.backgroundColor = new(30, 28, 255);
+        b.RunInit();
+
         var a = new Pannel();
         root.AddAsChild(a);
         a.backgroundColor = new(80, 58, 101);
         a.sizePercent.X = 0.25f;
         a.RunInit();
+
+        b.clipChildren = true;
+        b.AddAsChild(a);
     }
 
     private static void OnClose()
@@ -68,9 +76,15 @@ public class Engine
     {
         gl.Clear(ClearBufferMask.ColorBufferBit);
 
-        foreach (var i in root.children)
+        List<Node> toDraw = new();
+        toDraw.Add(root);
+
+        while (toDraw.Count > 0)
         {
-            i.RunDraw(deltaTime);
+            var children = toDraw[0].children;
+            toDraw[0].RunDraw(deltaTime);
+            toDraw.RemoveAt(0);
+            toDraw.AddRange(children);
         }
     }
 

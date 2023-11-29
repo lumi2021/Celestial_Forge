@@ -1,13 +1,24 @@
+using GameEngine.Sys;
+using GameEngine.Util.Interfaces;
+
 namespace GameEngine.Util.Nodes;
 
 public class Node
 {
     private bool _freeled = false;
 
+    public readonly uint RID = 0;
+
     public Node? parent;
     public List<Node> children = new();
 
     public string name = "";
+
+    public Node()
+    {
+        RID = ResourcesService.CreateNewResouce();
+        if (this is ICanvasItem) DrawService.CreateCanvasItem(RID);
+    }
 
     public void RunInit()
     {
@@ -58,16 +69,20 @@ public class Node
         return false;
     }
 
-    public virtual void Free() {
-        _freeled = true;
+    // TODO configure the correct node and children data dispose
+    public virtual void Free(bool fromGC=false)
+    {
+        if (!_freeled)
+        {
+            _freeled = true;
+
+            if (!fromGC) GC.SuppressFinalize(this);
+        }
     }
 
     ~Node()
     {
-        Free();
-        if (_freeled)
-        {
-            // Alert of insecure dispose of the class
-        }
+        Free(true);
+        // Alert of insecure dispose of the class
     }
 }

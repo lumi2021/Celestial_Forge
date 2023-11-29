@@ -1,36 +1,28 @@
 using System.ComponentModel;
 using System.Numerics;
 using GameEngine.Sys;
+using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.OpenGL;
 
 namespace GameEngine.Util.Nodes;
 
-public class Pannel : NodeUI
+public class Pannel : NodeUI, ICanvasItem
 {
 
     public Color backgroundColor = new(100, 100, 100, 0.8f);
 
-    private static uint _vao;
-    private static uint _vbo;
-    private static uint _ebo;
-
     private static Material mat = new();
     
-    protected override unsafe void Init_()
+    protected override void Init_()
     {
-        var gl = Engine.gl;
-
-        _vao = gl.GenVertexArray();
-        _vbo = gl.GenBuffer();
-        _ebo = gl.GenBuffer();
 
         const string vertexCode = @"
         #version 330 core
 
-        layout (location = 0) in vec2 aPosition;
-        layout (location = 1) in vec2 aTextureCoord;
+        in vec2 aPosition;
+        in vec2 aTextureCoord;
 
         uniform mat4 world;
         uniform mat4 proj;
@@ -58,48 +50,33 @@ public class Pannel : NodeUI
 
         mat.LoadShaders(vertexCode, fragmentCode);
 
-        gl.BindVertexArray(_vao);
-
-        float[] v = new float[] {
-            0.0f,0.0f, 0f,0f,
-            1.0f,0.0f, 1f,0f,
-            1.0f,1.0f, 1f,1f,
-            0.0f,1.0f, 0f,1f,
-        };
+        float[] v = new float[] { 0.0f,0.0f, 1.0f,0.0f, 1.0f,1.0f, 0.0f,1.0f };
+        float[] uv = new float[] { 0f,0f, 1f,0f, 1f,1f, 0f,1f };
         uint[] i = new uint[] {0,1,3, 1,2,3};
 
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
-        fixed (float* buf = v)
-        gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(v.Length * sizeof(float)), buf, BufferUsageARB.StaticDraw);
+        DrawService.CreateBuffer(RID, "aPosition");
+        DrawService.SetBufferData(RID, "aPosition", v, 2);
+
+        DrawService.CreateBuffer(RID, "aTextureCoord");
+        DrawService.SetBufferData(RID, "aTextureCoord", uv, 2);
+
+        DrawService.EnableAtributes(RID, mat);
             
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _ebo);
-        fixed (uint* buf = i)
-        gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(i.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
+        DrawService.SetElementBufferData(RID, i);
 
-        gl.EnableVertexAttribArray(0);
-        gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*) 0);
-
-        gl.EnableVertexAttribArray(1);
-        gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*) (2*sizeof(float)));
-
-        gl.BindVertexArray(0);
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
     }
 
     protected override unsafe void Draw(double deltaT)
     {
         var gl = Engine.gl;
 
-        if ( (parent is NodeUI)! && (parent as NodeUI)!.clipChildren)
+        if ((parent is NodeUI)! && (parent as NodeUI)!.clipChildren)
         {
             gl.Enable(EnableCap.ScissorTest);
-            int x = 0, y = 0;
-            uint w = 0, h = 0;
-            gl.Scissor(x, y, w, h);
+            var clippingRect = (parent as NodeUI)!.getClippingArea();
+            gl.Scissor((int)clippingRect.X, (int)clippingRect.Y, (uint)clippingRect.Width, (uint)clippingRect.Height);
         }
 
-        gl.BindVertexArray(_vao);
         mat.Use();
 
         var world = Matrix4x4.CreateScale(Size.X, Size.Y, 1);
@@ -113,7 +90,9 @@ public class Pannel : NodeUI
 
         gl.Uniform4(2, backgroundColor.GetAsNumerics());
 
-        gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (void*) 0);
+        DrawService.Draw(RID);
+
+        gl.Disable(EnableCap.ScissorTest);
     }
 
 }

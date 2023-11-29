@@ -36,8 +36,8 @@ public class NodeUI : Node
 
     public bool clipChildren = false;
 
-    protected Vector2<float> getClippingArea()
+    public Rect getClippingArea()
     {
-        return new Vector2<float>();
+        return new Rect(Position, new Vector2<float>(100f, 100f));
     }
 }
