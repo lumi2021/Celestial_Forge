@@ -22,6 +22,11 @@ public struct Vector2<T> where T : struct
         X = x;
         Y = y;
     }
+    public Vector2(System.Numerics.Vector2 numericsVector2)
+    {
+        X = (T)Convert.ChangeType(numericsVector2.X, typeof(T));
+        Y = (T)Convert.ChangeType(numericsVector2.Y, typeof(T));
+    }
 
     public Vector2<T> Normalized()
     {
@@ -174,4 +179,10 @@ public struct Vector2<T> where T : struct
             (T)Convert.ChangeType(y1/y2, typeof(T))
         );
     }
+
+    public override string ToString()
+    {
+        return string.Format("v2({0}, {1})", X, Y);
+    }
+
 }

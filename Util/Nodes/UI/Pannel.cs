@@ -70,12 +70,16 @@ public class Pannel : NodeUI, ICanvasItem
     {
         var gl = Engine.gl;
 
-        if ((parent is NodeUI)! && (parent as NodeUI)!.clipChildren)
+        /*
+        if ((parent is IClipChildren)! && (parent as IClipChildren)!.ClipChildren)
         {
             gl.Enable(EnableCap.ScissorTest);
-            var clippingRect = (parent as NodeUI)!.getClippingArea();
+            var clippingRect = (parent as NodeUI)!.GetClippingArea();
             gl.Scissor((int)clippingRect.X, (int)clippingRect.Y, (uint)clippingRect.Width, (uint)clippingRect.Height);
+        } else {
+            gl.Disable(EnableCap.ScissorTest);
         }
+        */
 
         mat.Use();
 
@@ -91,8 +95,6 @@ public class Pannel : NodeUI, ICanvasItem
         gl.Uniform4(2, backgroundColor.GetAsNumerics());
 
         DrawService.Draw(RID);
-
-        gl.Disable(EnableCap.ScissorTest);
     }
 
 }

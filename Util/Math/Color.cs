@@ -43,7 +43,7 @@ public struct Color
     public float A
     {
         get {return alpha;}
-        set {alpha = MathF.Min(MathF.Max(0, alpha), 1);}
+        set {alpha = MathF.Min(MathF.Max(0, value), 1);}
     }
 
     public Color() {}
@@ -52,13 +52,27 @@ public struct Color
         R = red;
         G = green;
         B = blue;
-        A = 1;
+        A = 1f;
+    }
+    public Color(float red, float green, float blue)
+    {
+        NormalR = red;
+        NormalG = green;
+        NormalB = blue;
+        A = 1f;
     }
     public Color(int red, int green, int blue, float alpha)
     {
         R = red;
         G = green;
         B = blue;
+        A = alpha;
+    }
+    public Color(float red, float green, float blue, float alpha)
+    {
+        NormalR = red;
+        NormalG = green;
+        NormalB = blue;
         A = alpha;
     }
 
@@ -83,5 +97,9 @@ public struct Color
     {
         return new Color(a.R / b.R, a.G / b.G, a.B / b.B, a.A / b.A);
     }
-    
+
+    public override string ToString()
+    {
+        return string.Format("Col(R {0}, G {1}, B {2}, A {3})", red, green, blue, alpha);
+    }
 }

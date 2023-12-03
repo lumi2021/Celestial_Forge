@@ -6,6 +6,7 @@ namespace GameEngine.Util.Nodes;
 public class Node
 {
     private bool _freeled = false;
+    private bool _isReady = false;
 
     public readonly uint RID = 0;
 
@@ -18,22 +19,29 @@ public class Node
     {
         RID = ResourcesService.CreateNewResouce();
         if (this is ICanvasItem) DrawService.CreateCanvasItem(RID);
+        Init_();
     }
 
-    public void RunInit()
+    public void RunProcess(double deltaT)
     {
-        Init_();
-        Ready();
+        if (!_isReady)
+        {
+            Ready();
+            _isReady = true;
+        }
+        Process(deltaT);
     }
     public void RunDraw(double deltaT)
     {
         Draw(deltaT);
     }
 
+
     protected virtual void Init_() {}
     protected virtual void Ready() {}
     protected virtual void Process(double deltaT) {}
     protected virtual void Draw(double deltaT) {}
+
 
     public void AddAsChild(Node node)
     {
