@@ -40,6 +40,13 @@ public struct Rect
         Width = width;
         Height = height;
     }
+    public Rect(float[] data)
+    {
+        Position.X = data[0];
+        Position.Y = data[1];
+        Size.Y = data[2];
+        Size.Y = data[3];
+    }
 
     // TODO intersection calculations
 

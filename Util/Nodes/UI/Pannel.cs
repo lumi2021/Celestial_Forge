@@ -11,7 +11,7 @@ namespace GameEngine.Util.Nodes;
 public class Pannel : NodeUI, ICanvasItem
 {
 
-    public Color backgroundColor = new(100, 100, 100, 0.8f);
+    public Color backgroundColor = new(100, 100, 100, 0.9f);
 
     private static Material mat = new();
     

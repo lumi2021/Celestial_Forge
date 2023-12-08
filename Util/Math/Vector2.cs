@@ -22,6 +22,11 @@ public struct Vector2<T> where T : struct
         X = x;
         Y = y;
     }
+    public Vector2(float[] data)
+    {
+        X = (T)Convert.ChangeType(data[0], typeof(T));
+        Y = (T)Convert.ChangeType(data[1], typeof(T));
+    }
     public Vector2(System.Numerics.Vector2 numericsVector2)
     {
         X = (T)Convert.ChangeType(numericsVector2.X, typeof(T));

@@ -10,10 +10,14 @@ public class Node
 
     public readonly uint RID = 0;
 
+    
     public Node? parent;
     public List<Node> children = new();
 
     public string name = "";
+
+
+    private Dictionary<string, object?> _fieldsToLoadWhenReady = new();
 
     public Node()
     {
@@ -27,6 +31,7 @@ public class Node
         if (!_isReady)
         {
             Ready();
+            OnReady();
             _isReady = true;
         }
         Process(deltaT);
@@ -42,6 +47,34 @@ public class Node
     protected virtual void Process(double deltaT) {}
     protected virtual void Draw(double deltaT) {}
 
+    private void OnReady()
+    {
+        foreach (var i in _fieldsToLoadWhenReady)
+        {
+            var field = GetType().GetField(i.Key);
+            if (field != null)
+            {
+                if (!field.FieldType.IsAssignableTo(typeof(Node)))
+                    field.SetValue(this, i.Value);
+                else {
+                    var node = GetChild((string)i.Value!);
+                    field.SetValue(this, node);
+                }
+                continue;
+            }
+            var prop = GetType().GetProperty(i.Key);
+            if (prop != null)
+            {
+                if (!prop.PropertyType.IsAssignableTo(typeof(Node)))
+                    prop.SetValue(this, i.Value);
+                else {
+                    var node = GetChild((string)i.Value!);
+                    prop.SetValue(this, node);
+                }
+                continue;
+            }
+        }
+    }
 
     public void AddAsChild(Node node)
     {
@@ -65,9 +98,21 @@ public class Node
 
         children.Add(node);
     }
-    public Node? GetChild(string name)
+    public Node? GetChild(string path)
+    { return GetChild(path.Split('/')); }
+    public Node? GetChild(string[] path)
     {
-        return children.Find(e => e.name == name);
+        if (path.Length > 1)
+        {
+            if (path[0] == "..")
+                return parent?.GetChild( path.Skip(1).ToArray() );
+            else
+            {
+                var a = children.Find(e => e.name == path[0]);
+                return a?.GetChild( path.Skip(1).ToArray() );
+            }
+        }
+        return children.Find(e => e.name == path[0]);
     }
 
     public bool IsOnRoot()
@@ -87,6 +132,12 @@ public class Node
             if (!fromGC) GC.SuppressFinalize(this);
         }
     }
+
+    public void AddToOnReady(string field, Object? value)
+    {
+        _fieldsToLoadWhenReady.Add(field, value);
+    }
+
 
     ~Node()
     {

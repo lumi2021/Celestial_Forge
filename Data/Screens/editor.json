@@ -1,0 +1,112 @@
+{
+    "NodeType" : "Pannel",
+    "Name" : "Screen",
+
+    "backgroundColor" : [15, 0, 51],
+
+    "Children" : 
+    [
+
+        {
+            "NodeType" : "Pannel",
+            "Name" : "TopBar",
+            
+            "backgroundColor" : [60, 42, 77],
+            "sizePercent" : [1, 0],
+            "sizePixels" : [0, 48],
+            "anchor" : 1
+        },
+
+        {
+            "NodeType" : "NodeUI",
+            "Name" : "Main",
+            
+            "sizePixels" : [0, -64],
+            "anchor" : 6,
+
+            "Children" :
+            [
+
+                {
+                    "NodeType" : "Pannel",
+                    "Name" : "LeftPannel",
+                    
+                    "backgroundColor" : [80, 58, 101],
+                    "sizePercent" : [0.2, 1],
+                    "anchor" : 6
+                },
+
+                {
+                    "NodeType" : "Pannel",
+                    "Name" : "RightPannel",
+                    
+                    "backgroundColor" : [80, 58, 101],
+                    "sizePercent" : [0.2, 1],
+                    "anchor" : 8
+                },
+
+                {
+                    "NodeType" : "NodeUI",
+                    "Name" : "Center",
+                    
+                    "sizePercent" : [0.6, 1],
+                    "sizePixels" : [-32, 0],
+                    "positionPercent" : [0.2, 0],
+                    "positionPixels" : [16, 0],
+                    "anchor" : 6,
+
+                    "Children" : 
+                    [
+                        {
+                            "NodeType" : "Pannel",
+                            "Name" : "Viewport",
+
+                            "backgroundColor" : [255, 255, 255],
+                            "sizePixels" : [0, -64],
+                            "anchor" : 1
+                        },
+
+                        {
+                            "NodeType" : "Pannel",
+                            "Name" : "BottomBar",
+
+                            "backgroundColor" : [60, 42, 77],
+                            "sizePercent" : [1, 0],
+                            "sizePixels" : [0, 48],
+                            "anchor" : 7
+                        }
+                    ]
+                },
+
+                {
+                    "NodeType" : "DragHandler",
+                    "Name" : "LeftHandler",
+
+                    "nodeA" : "../LeftPannel",
+                    "nodeB" : "../Center",
+
+                    "positionPercent" : [0.2, 0],
+                    "nodeBSizeMin" : 300,
+                    "defaultColor" : [255, 255, 255, 0],
+                    "holdingColor" : [255, 255, 255, 0.3]
+                },
+
+                {
+                    "NodeType" : "DragHandler",
+                    "Name" : "RightHandler",
+
+                    "nodeA" : "../Center",
+                    "nodeB" : "../RightPannel",
+
+                    "positionPercent" : [0.8, 0],
+                    "positionPixels" : [-16, 0],
+                    "nodeASizeMin" : 300,
+                    "defaultColor" : [255, 255, 255, 0],
+                    "holdingColor" : [255, 255, 255, 0.3]
+                }
+
+
+            ]
+        }
+    ]
+}

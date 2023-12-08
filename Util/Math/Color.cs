@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace GameEngine.Util.Values;
 
 public struct Color
@@ -47,6 +49,16 @@ public struct Color
     }
 
     public Color() {}
+    public Color(float[] data)
+    {
+        R = (int) data[0];
+        G = (int) data[1];
+        B = (int) data[2];
+
+        if (data.Length > 3) A = data[3];
+        else A = 1f;
+    }
+
     public Color(int red, int green, int blue)
     {
         R = red;
@@ -101,5 +113,10 @@ public struct Color
     public override string ToString()
     {
         return string.Format("Col(R {0}, G {1}, B {2}, A {3})", red, green, blue, alpha);
+    }
+
+    public float[] ToArray()
+    {
+        return new float[] {NormalR, NormalG, NormalB, A};
     }
 }
