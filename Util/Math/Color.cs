@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace GameEngine.Util.Values;
 
 public struct Color

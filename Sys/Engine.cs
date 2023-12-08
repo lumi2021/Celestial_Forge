@@ -25,7 +25,7 @@ public class Engine
             Samples = 4
         };
 
-        window = Window.Create(options);
+        window = Silk.NET.Windowing.Window.Create(options);
 
         window.Load += OnLoad;
         window.Closing += OnClose;
@@ -52,6 +52,9 @@ public class Engine
         var a = PackagedScene.Load("Data/Screens/editor.json").Instantiate();
         root.AddAsChild(a);
 
+        var b = new Util.Nodes.Window();
+        root.AddAsChild(b);
+
     }
 
     private static void OnClose()
@@ -76,7 +79,7 @@ public class Engine
 
     private static unsafe void OnRender(double deltaTime)
     {
-        gl.Clear(ClearBufferMask.ColorBufferBit);
+        gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         List<Node> toDraw = new();
         toDraw.Add(root);
