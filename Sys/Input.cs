@@ -7,7 +7,7 @@ namespace GameEngine.Sys;
 public static class Input
 {
 
-    private static readonly IInputContext _input;
+    private static IInputContext? _input;
 
     private static readonly List<Key> keysPressed = new();
     private static readonly List<Key> keysDowned = new();
@@ -21,7 +21,7 @@ public static class Input
     public static Vector2<float> mouseDelta;
     private static bool mouseMoved = false;
 
-    static Input()
+    public static void Start()
     {
         _input = Engine.window.CreateInput();
         for (int i = 0; i < _input.Keyboards.Count; i++)
@@ -73,7 +73,7 @@ public static class Input
 
     public static void SetCursorMode(CursorMode mode)
     {
-        for (int i = 0; i < _input.Mice.Count; i++)
+        for (int i = 0; i < _input!.Mice.Count; i++)
         {
             _input.Mice[i].Cursor.CursorMode = mode;
         }
