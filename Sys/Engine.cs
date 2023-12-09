@@ -1,7 +1,5 @@
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
-using GameEngine.Util.Values;
-using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
@@ -36,6 +34,16 @@ public class Engine
         mainWin.AddAsChild(scene);
 
         /*
+        START RUN
+        */
+        Run();
+    
+        gl.Dispose();
+    }
+
+    private void Run()
+    {
+        /*
         GAME LOOP PROCESS
         */
         while (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
@@ -53,7 +61,5 @@ public class Engine
             Input.CallProcess();
             WindowService.CallProcess();
         }
-    
-        gl.Dispose();
     }
 }
