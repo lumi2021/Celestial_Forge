@@ -1,6 +1,5 @@
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
-using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
@@ -17,89 +16,50 @@ public class Engine
 
     public Engine()
     {
-        WindowOptions options = WindowOptions.Default with
-        {
-            Title = "Game Engine",
-            Size = new Vector2D<int>(800, 600),
-            WindowState = WindowState.Maximized,
-            Samples = 4
-        };
+        var mainWin = new Util.Nodes.Window();
+        window = mainWin.window;
+        root.AddAsChild(mainWin);
 
-        window = Window.Create(options);
-
-        window.Load += OnLoad;
-        window.Closing += OnClose;
-        window.Update += OnUpdate;
-        window.Render += OnRender;
-        window.Resize += OnResize;
-
-        window.Run();
-    }
-
-    private static unsafe void OnLoad()
-    {
-        window.Center();
-
-        gl = window.CreateOpenGL();
-        gl.Viewport(window.Size);
-
+        mainWin.State = WindowState.Maximized;
+        mainWin.Title = "Game Engine";
         gl.ClearColor(1f, 1f, 1f, 1f);
 
         gl.Enable(EnableCap.Multisample);
         gl.Enable(EnableCap.Blend);
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-        var a = PackagedScene.Load("Data/Screens/editor.json").Instantiate();
-        root.AddAsChild(a);
+        Input.Start();
 
-    }
+        var scene = PackagedScene.Load("Data/Screens/editor.json").Instantiate();
+        mainWin.AddAsChild(scene);
 
-    private static void OnClose()
-    {
+        /*
+        START RUN
+        */
+        Run();
+    
         gl.Dispose();
     }
 
-    private static void OnUpdate(double deltaTime)
+    private void Run()
     {
-        List<Node> toUpdate = new() {root};
-
-        while (toUpdate.Count > 0)
+        /*
+        GAME LOOP PROCESS
+        */
+        while (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
         {
-            var children = toUpdate[0].children;
-            toUpdate[0].RunProcess(deltaTime);
-            toUpdate.RemoveAt(0);
-            toUpdate.AddRange(children);
+            foreach (var win in WindowService.windows.ToArray())
+            {
+                if (win.IsInitialized)
+                {
+                    win.DoEvents();
+                    win.DoUpdate();
+                    win.DoRender();
+                }
+            }
+
+            Input.CallProcess();
+            WindowService.CallProcess();
         }
-
-        Input.CallProcess();
     }
-
-    private static unsafe void OnRender(double deltaTime)
-    {
-        gl.Clear(ClearBufferMask.ColorBufferBit);
-
-        List<Node> toDraw = new();
-        toDraw.Add(root);
-
-        while (toDraw.Count > 0)
-        {
-            Node current = toDraw[0];
-            toDraw.RemoveAt(0);
-
-            current.RunDraw(deltaTime);
-
-            for (int i = current.children.Count - 1; i >= 0; i--)
-                toDraw.Insert(0,  current.children[i]);
-            
-
-        }
-    
-        gl.Disable(EnableCap.ScissorTest);
-    }
-
-    private static void OnResize(Vector2D<int> size)
-    {
-        gl.Viewport(size);
-    }
-
 }

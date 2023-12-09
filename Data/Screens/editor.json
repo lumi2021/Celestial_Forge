@@ -42,7 +42,21 @@
                     
                     "backgroundColor" : [80, 58, 101],
                     "sizePercent" : [0.2, 1],
-                    "anchor" : 8
+                    "anchor" : 8,
+
+                    "Children" :
+                    [
+
+                        {
+                            "NodeType" : "Pannel",
+                            "Name" : "NodeMananger",
+
+                            "backgroundColor" : [60, 42, 77],
+                            "anchor" : 4,
+                            "sizePixels" : [-32, -32]
+                        }
+
+                    ]
                 },
 
                 {

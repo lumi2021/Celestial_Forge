@@ -5,10 +5,13 @@ namespace GameEngine.Util.Nodes;
 
 public class Node
 {
+    /* System variables */
     private bool _freeled = false;
     private bool _isReady = false;
-
     public readonly uint RID = 0;
+
+    /* Script & load variables */
+    private Dictionary<string, object?> _fieldsToLoadWhenReady = new();
 
     
     public Node? parent;
@@ -16,8 +19,6 @@ public class Node
 
     public string name = "";
 
-
-    private Dictionary<string, object?> _fieldsToLoadWhenReady = new();
 
     public Node()
     {

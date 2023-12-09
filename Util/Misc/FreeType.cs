@@ -1,13 +1,15 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FreeTypeSharp.Native;
-using Silk.NET.SDL;
 
 namespace GameEngine;
 
-public class Character
+public struct Character
     {
-        public byte[] Texture { get; set; } = Array.Empty<byte>();
+
+    public Character() {}
+
+    public byte[] Texture { get; set; } = Array.Empty<byte>();
 
         public nint Advance { get; set; }
 
@@ -52,7 +54,7 @@ public class Font
         {
             Size = size;
             rSize = 48;
-            ResizeScale = size/24f;
+            ResizeScale = size/48f;
         }
         else
         {
@@ -73,9 +75,9 @@ public class Font
         ascender = (int) ((face.ascender >> 6) * ResizeScale);
         descender = (int) ((face.descender >> 6) * ResizeScale);
         fontheight = (int) (((face.height >> 6)*ResizeScale + descender + ascender) / 4);
-        yoffset = (int)((rSize - ascender) * ResizeScale);
-        lineheight = fontheight - descender;
-        baseCharacter = CreateChar('i');
+        yoffset = (int) (size- ascender);
+        lineheight = fontheight + yoffset;
+        baseCharacter = CreateChar('a');
 
     }
 
@@ -105,7 +107,7 @@ public class Font
             {
                 ch.Char = c;
                 buffer.Add(c, ch);
-                return(ch);
+                return ch;
             }
 
             if (c != ' ' && c != '\t')
@@ -130,6 +132,7 @@ public class Font
             }
             else
             {
+                ch.Advance = baseCharacter.Advance;
                 ch.Char = c;
                 buffer.Add(c, ch);
             }
@@ -151,4 +154,5 @@ public class Font
         
         return temp;
     }
+
 }
