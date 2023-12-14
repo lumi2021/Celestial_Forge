@@ -1,5 +1,6 @@
 using GameEngine.Sys;
 using GameEngine.Util.Interfaces;
+using static GameEngine.Util.Nodes.Window;
 
 namespace GameEngine.Util.Nodes;
 
@@ -19,6 +20,32 @@ public class Node
 
     public string name = "";
 
+    // FIXME optimaze these two if it's possible
+    // FIXME make _parentWin update when parent change
+    private Window? _parentWin;
+    protected Window? ParentWindow
+    {
+        get {
+            if (_parentWin == null)
+                if (this is Window)
+                    return (Window) this;
+                else if (parent != null)
+                    _parentWin = parent.ParentWindow;
+            
+            return _parentWin;
+        }
+    }
+    protected InputHandler Input
+    {
+        get {
+            var a = ParentWindow;
+            if (a != null)
+                return a.input;
+
+            else return new();
+        }
+    }
+
 
     public Node()
     {
@@ -27,6 +54,7 @@ public class Node
         Init_();
     }
 
+    #region vitual methods
     public void RunProcess(double deltaT)
     {
         if (!_isReady)
@@ -47,6 +75,7 @@ public class Node
     protected virtual void Ready() {}
     protected virtual void Process(double deltaT) {}
     protected virtual void Draw(double deltaT) {}
+    #endregion
 
     private void OnReady()
     {

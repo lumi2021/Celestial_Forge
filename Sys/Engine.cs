@@ -7,6 +7,7 @@ namespace GameEngine.Sys;
 
 public class Engine
 {
+
     #pragma warning disable CS8618
     public static IWindow window;
     public static GL gl;
@@ -26,9 +27,7 @@ public class Engine
 
         gl.Enable(EnableCap.Multisample);
         gl.Enable(EnableCap.Blend);
-        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
-        Input.Start();
+        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);;
 
         var scene = PackagedScene.Load("Data/Screens/editor.json").Instantiate();
         mainWin.AddAsChild(scene);
@@ -58,8 +57,8 @@ public class Engine
                 }
             }
 
-            Input.CallProcess();
             WindowService.CallProcess();
         }
     }
+
 }

@@ -33,7 +33,21 @@
                     
                     "backgroundColor" : [80, 58, 101],
                     "sizePercent" : [0.2, 1],
-                    "anchor" : 6
+                    "anchor" : 6,
+
+                    "Children" :
+                    [
+
+                        {
+                            "NodeType" : "Pannel",
+                            "Name" : "FileMananger",
+
+                            "backgroundColor" : [60, 42, 77],
+                            "anchor" : 4,
+                            "sizePixels" : [-32, -32]
+                        }
+
+                    ]
                 },
 
                 {
@@ -75,9 +89,20 @@
                             "NodeType" : "Pannel",
                             "Name" : "Viewport",
 
-                            "backgroundColor" : [255, 255, 255],
+                            "backgroundColor" : [0, 0, 0],
                             "sizePixels" : [0, -64],
-                            "anchor" : 1
+                            "anchor" : 1,
+
+                            "Children" :
+                            [
+                                {
+                                    "NodeType" : "WriteTextField",
+                                    "Name" : "CodeEditor",
+
+                                    "horisontalAligin" : 1,
+                                    "verticalAligin" : 1
+                                }
+                            ]
                         },
 
                         {

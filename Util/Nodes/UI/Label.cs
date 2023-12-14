@@ -1,7 +1,9 @@
 using System.Numerics;
 using GameEngine.Sys;
+using GameEngine.Text;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
+using GameEngine.Util.Values;
 using Silk.NET.OpenGL;
 
 namespace GameEngine.Util.Nodes;
@@ -16,16 +18,18 @@ public class Label : NodeUI, ICanvasItem
     };
 
     public string text = "";
+    public Color color = new(1f, 1f, 0, 1f);
     public Aligin horisontalAligin = Aligin.Start;
     public Aligin verticalAligin = Aligin.Start;
 
-    private static Material mat = new();
+    private Material mat = new();
 
-    private static uint _texture;
+    private uint _texture;
 
-    private static Font font = new Font("../../../Assets/Fonts/calibri-regular.ttf", 30);
+    private Font font = new Font("Assets/Fonts/calibri-regular.ttf", 30);
     protected override void Init_()
     {
+
         var gl = Engine.gl;
 
         const string vertexCode = @"
@@ -51,14 +55,14 @@ public class Label : NodeUI, ICanvasItem
 
         out vec4 out_color;
 
+        uniform vec4 fontColor;
         uniform sampler2D tex0;
 
         void main()
         {
-            vec4 fontColor = vec4(0,0,0,1);
-
             vec4 color = texture(tex0, UV);
             if (color.r < 0.5) discard;
+
             out_color = fontColor;
         }";
 
@@ -170,12 +174,14 @@ public class Label : NodeUI, ICanvasItem
             var world = Matrix4x4.CreateScale(j.SizeX, j.SizeY, 1);
             world *= Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
             world *= Matrix4x4.CreateTranslation(new Vector3(posX+j.OffsetX, posY+j.OffsetY, 0));
+            world *= Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0));
             world *= Matrix4x4.CreateTranslation(new Vector3(aliginPositionX, aliginPositionY, 0));
             world *= Matrix4x4.CreateScale(1, -1, 1);
             var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
 
             gl.UniformMatrix4(0, 1, true, (float*) &world);
             gl.UniformMatrix4(1, 1, true, (float*) &proj);
+            gl.Uniform4(3, color.GetAsNumerics());
 
             DrawService.Draw(RID);
 

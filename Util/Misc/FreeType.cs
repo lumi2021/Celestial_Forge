@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FreeTypeSharp.Native;
 
-namespace GameEngine;
+namespace GameEngine.Text;
 
 public struct Character
     {
@@ -25,7 +25,7 @@ public struct Character
         public char Char { get; set; }
     }
 
-public class Font
+public class FreeType_TtfGlyphLoader
 {
 
     private FT_FaceRec face;
@@ -46,7 +46,7 @@ public class Font
 
     private Dictionary <char, Character> buffer = new Dictionary <char, Character>();
 
-    public Font(string font, uint size)
+    public FreeType_TtfGlyphLoader(string font, uint size)
     {
         if (!File.Exists(font)) throw new FileNotFoundException("Failed to load font file:" + font);
         
