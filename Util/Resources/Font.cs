@@ -4,6 +4,8 @@ namespace GameEngine.Util.Resources;
 
 public class Font : Resource
 {
+    public delegate void FontUpdatedEventHandler();
+    public event FontUpdatedEventHandler? FontUpdated;
 
     private FreeType_TtfGlyphLoader glyphLoader = new("../../../Assets/Fonts/calibri-regular.ttf", 24);
     private uint _size = 0;
@@ -13,7 +15,6 @@ public class Font : Resource
         get {return _size;}
         set
         {
-            _size = value;
             LoadFont(_path, value);
         }
     }
@@ -37,11 +38,14 @@ public class Font : Resource
     public void LoadFont(string path, uint size)
     {
         _path = path;
+        _size = size;
         glyphLoader = new("../../../" + path, size);
         descender = glyphLoader.descender;
         fontheight = glyphLoader.fontheight;
         lineheight = glyphLoader.lineheight;
         ascender = glyphLoader.ascender;
+
+        FontUpdated?.Invoke();
     }
 
     public Character[] CreateStringTexture(string s)

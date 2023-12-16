@@ -36,7 +36,9 @@ public class Engine
         START RUN
         */
         Run();
-    
+
+        // End program
+        root.Free();
         gl.Dispose();
     }
 

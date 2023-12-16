@@ -154,9 +154,10 @@ public class Window : Node
             _input = win.CreateInput();
             for (int i = 0; i < _input.Keyboards.Count; i++)
             {
-                _input.Keyboards[i].KeyDown += KeyDown;
-                _input.Keyboards[i].KeyUp += KeyUp;
-                _input.Keyboards[i].KeyChar += CharInput;
+                var kboard = _input.Keyboards[i];
+                kboard.KeyDown += KeyDown;
+                kboard.KeyUp += KeyUp;
+                kboard.KeyChar += CharInput;
             }
             for (int i = 0; i < _input.Mice.Count; i++)
             {

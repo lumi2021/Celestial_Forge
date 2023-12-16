@@ -99,8 +99,10 @@
                                     "NodeType" : "WriteTextField",
                                     "Name" : "CodeEditor",
 
-                                    "horisontalAligin" : 1,
-                                    "verticalAligin" : 1
+                                    "horisontalAligin" : 0,
+                                    "verticalAligin" : 0,
+
+                                    "color" : [255, 255, 255]
                                 }
                             ]
                         },

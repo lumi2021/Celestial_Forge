@@ -76,7 +76,7 @@ public class FreeType_TtfGlyphLoader
         descender = (int) ((face.descender >> 6) * ResizeScale);
         fontheight = (int) (((face.height >> 6)*ResizeScale + descender + ascender) / 4);
         yoffset = (int) (size- ascender);
-        lineheight = fontheight + yoffset;
+        lineheight = fontheight + yoffset - (int)(descender*1.6f);
         baseCharacter = CreateChar('a');
 
     }
