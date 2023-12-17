@@ -9,8 +9,8 @@ public class WriteTextField : Label
 
     private uint caretLine = 0;
     private uint caretRow = 0;
-    private uint caretRowMax = 0;
-
+    //private uint caretRowMax = 0;
+    
     private Pannel caret = new();
 
     protected override void Init_()
@@ -35,7 +35,7 @@ public class WriteTextField : Label
             caretPosX += (int)charsList[caretLine][i].Advance;
         
         caret.positionPixels.X = caretPosX;
-        caret.positionPixels.Y = (int)(caretLine * font.lineheight);
+        caret.positionPixels.Y = (int)(caretLine * font.lineheight) + 2;
     }
 
     private void OnFontUpdate()

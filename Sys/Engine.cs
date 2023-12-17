@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
 using Silk.NET.OpenGL;
@@ -47,6 +48,10 @@ public class Engine
         /*
         GAME LOOP PROCESS
         */
+
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+
         while (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
         {
             foreach (var win in WindowService.windows.ToArray())
@@ -59,7 +64,13 @@ public class Engine
                 }
             }
 
+            double elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
+            double fps = 1.0 / elapsedSeconds;
+            stopwatch.Restart();
+
             WindowService.CallProcess();
+
+            Console.WriteLine(fps);
         }
     }
 
