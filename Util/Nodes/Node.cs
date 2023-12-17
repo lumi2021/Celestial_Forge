@@ -1,6 +1,7 @@
 using GameEngine.Sys;
 using GameEngine.Util.Interfaces;
 using static GameEngine.Util.Nodes.Window;
+using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
@@ -69,12 +70,16 @@ public class Node
     {
         Draw(deltaT);
     }
-
+    public void RunInputEvent(InputEvent e)
+    {
+        OnInputEvent(e);
+    }
 
     protected virtual void Init_() {}
     protected virtual void Ready() {}
     protected virtual void Process(double deltaT) {}
     protected virtual void Draw(double deltaT) {}
+    protected virtual void OnInputEvent(InputEvent e) {}
     #endregion
 
     private void OnReady()

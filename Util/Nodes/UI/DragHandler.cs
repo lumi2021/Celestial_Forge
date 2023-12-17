@@ -3,7 +3,7 @@ using GameEngine.Sys;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
-using Silk.NET.Input;
+using Silk.NET.GLFW;
 
 namespace GameEngine.Util.Nodes;
 
@@ -93,7 +93,7 @@ public class DragHandler : NodeUI, ICanvasItem
             if (Input.IsActionJustPressed(MouseButton.Left))
             {
                 holding = true;
-                Input.SetCursorShape(Silk.NET.GLFW.CursorShape.HResize);
+                Input.SetCursorShape(CursorShape.HResize);
             }
         }
         else {
@@ -151,6 +151,7 @@ public class DragHandler : NodeUI, ICanvasItem
                 nodeB.sizePixels.X -= (int) d;
             }
         }
+        
     }
 
     protected override unsafe void Draw(double deltaT)

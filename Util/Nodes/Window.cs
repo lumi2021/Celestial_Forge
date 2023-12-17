@@ -1,10 +1,10 @@
-using System.Numerics;
 using GameEngine.Sys;
 using GameEngine.Util.Values;
-using Silk.NET.Input;
+using Silk.NET.GLFW;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
@@ -57,7 +57,7 @@ public class Window : Node
         window.Render += OnRender;
         window.Resize += OnResize;
 
-        input.Start(window);
+        input.Start(window, OnInput);
 
         gl = Engine.gl;
 
@@ -114,21 +114,43 @@ public class Window : Node
         }
     }
 
+    private void OnInput(InputEvent e)
+    {
+        List<Node> toEvent = new();
+        toEvent.AddRange(children);
+
+        while (toEvent.Count > 0)
+        {
+            Node current = toEvent[0];
+            toEvent.RemoveAt(0);
+
+            if (current is Window) continue;
+
+            current.RunInputEvent(e);
+
+            for (int i = current.children.Count - 1; i >= 0; i--)
+                    toEvent.Insert(0,  current.children[i]);
+        }
+    }
+
     private void OnResize(Vector2D<int> size)
     {
         gl.Viewport(size);
     }
 
 
-    public class InputHandler
+    public unsafe class InputHandler
     {
 
-        private IInputContext? _input;
+        private delegate void InputEventHandler(InputEvent e);
+        private event InputEventHandler? InputEventSender;
+
+        private Glfw GLFW = GlfwProvider.GLFW.Value;
 
         #region key lists
-        private readonly List<Key> keysPressed = new();
-        private readonly List<Key> keysDowned = new();
-        private readonly List<Key> keysReleased = new();
+        private readonly List<Keys> keysPressed = new();
+        private readonly List<Keys> keysDowned = new();
+        private readonly List<Keys> keysReleased = new();
 
         private readonly List<MouseButton> mousePressed = new();
         private readonly List<MouseButton> mouseDowned = new();
@@ -136,7 +158,6 @@ public class Window : Node
 
         private readonly List<char> _inputedCharList = new();
         #endregion
-
         public string LastInputedChars
         {
             get
@@ -145,38 +166,31 @@ public class Window : Node
             }
         }
 
-        private Vector2<float> lastMousePosition;
-        public Vector2<float> mouseDelta;
+        private Vector2<int> lastMousePosition = new();
+        public Vector2<int> mouseDelta = new();
         private bool mouseMoved = false;
 
-        public void Start(IWindow win)
+        public void Start(IWindow win, Action<InputEvent> OnEvent)
         {
-            _input = win.CreateInput();
-            for (int i = 0; i < _input.Keyboards.Count; i++)
-            {
-                var kboard = _input.Keyboards[i];
-                kboard.KeyDown += KeyDown;
-                kboard.KeyUp += KeyUp;
-                kboard.KeyChar += CharInput;
-            }
-            for (int i = 0; i < _input.Mice.Count; i++)
-            {
-                _input.Mice[i].MouseDown += MouseDown;
-                _input.Mice[i].MouseUp += MouseUp;
-                _input.Mice[i].MouseMove += MouseMove;
-            }
+            GLFW.SetKeyCallback((WindowHandle*) win.Handle, KeyCallback);
+            GLFW.SetCharCallback((WindowHandle*) win.Handle, CharCallback);
+            GLFW.SetCursorPosCallback((WindowHandle*) win.Handle, CursorPosCallback);
+            GLFW.SetMouseButtonCallback((WindowHandle*) win.Handle, MouseButtonCallback);
+        
+            InputEventSender += new InputEventHandler(OnEvent);
         }
 
+        #region
         // KEYBOARD
-        public bool IsActionPressed(Key key)
+        public bool IsActionPressed(Keys key)
         {
             return keysPressed.Contains(key);
         }
-        public bool IsActionJustPressed(Key key)
+        public bool IsActionJustPressed(Keys key)
         {
             return keysDowned.Contains(key);
         }
-        public bool IsActionJustReleased(Key key)
+        public bool IsActionJustReleased(Keys key)
         {
             return keysReleased.Contains(key);
         }
@@ -194,24 +208,21 @@ public class Window : Node
         {
             return mouseReleased.Contains(btn);
         }
+        #endregion
         
-        
-        public Vector2<float> GetMousePosition()
+        public Vector2<int> GetMousePosition()
         {
             return lastMousePosition;
         }
 
-        public void SetCursorMode(CursorMode mode)
+        // FIXME
+        //public void SetCursorMode(CursorMode mode)
+        //{
+        //}
+        public unsafe void SetCursorShape(CursorShape shape)
         {
-            for (int i = 0; i < _input!.Mice.Count; i++)
-            {
-                _input.Mice[i].Cursor.CursorMode = mode;
-            }
-        }
-        public unsafe void SetCursorShape(Silk.NET.GLFW.CursorShape shape)
-        {
-            var cursor = Silk.NET.GLFW.GlfwProvider.GLFW.Value.CreateStandardCursor(shape);
-            Silk.NET.GLFW.GlfwProvider.GLFW.Value.SetCursor((Silk.NET.GLFW.WindowHandle*)Engine.window.Handle, cursor);
+            var cursor = GlfwProvider.GLFW.Value.CreateStandardCursor(shape);
+            GlfwProvider.GLFW.Value.SetCursor((WindowHandle*)Engine.window.Handle, cursor);
         }
 
         public void CallProcess()
@@ -224,47 +235,139 @@ public class Window : Node
             _inputedCharList.Clear();
         }
         
-        // KEYBOARD
-        private void KeyDown(IKeyboard keyboard, Key key, int keyCode)
+        // KEYBOARD INPUTS
+        private void KeyCallback(WindowHandle* window, Keys key, int scanCode, InputAction action, KeyModifiers mods)
         {
-            keysPressed.Add(key);
-            keysDowned.Add(key);
-        }
-        private void KeyUp(IKeyboard keyboard, Key key, int keyCode)
-        {
-            keysPressed.Remove(key);
-            keysReleased.Add(key);
-        }
-        private void CharInput(IKeyboard keyboard, char c)
-        {
-            _inputedCharList.Add(c);
-        }
-
-        // MOUSE
-        private void MouseDown(IMouse mouse, MouseButton button)
-        {
-            mousePressed.Add(button);
-            mouseDowned.Add(button);
-        }
-        private void MouseUp(IMouse mouse, MouseButton button)
-        {
-            mousePressed.Remove(button);
-            mouseReleased.Add(button);
-        }
-        private void MouseMove(IMouse mouse, Vector2 numericsPos)
-        {
-            if (!mouseMoved)
+            if (action == InputAction.Press)
             {
-                lastMousePosition = new(numericsPos);
-                mouseMoved = true;
+                keysPressed.Add(key);
+                keysDowned.Add(key);
+            }
+            else if (action == InputAction.Release)
+            {
+                keysReleased.Add(key);
+                keysPressed.Remove(key);
             }
 
-            Vector2<float> position = new(numericsPos);
+            var e = new KeyboardInputEvent(
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                action == InputAction.Repeat,
+                key, action
+            );
 
-            mouseDelta = position - lastMousePosition;
-
-            lastMousePosition = position;
+            InputEventSender?.Invoke(e);
         }
-    }
+        private void CharCallback(WindowHandle* window, uint codepoint)
+        {
+            _inputedCharList.Add(char.ConvertFromUtf32((int)codepoint)[0]);
+        }
+    
+        // MOUSE INPUTS
+        private void CursorPosCallback(WindowHandle* window, double x, double y)
+        {
+            var currentPos = new Vector2<int>((int)x, (int)y);
+            if (!mouseMoved)
+            {
+                lastMousePosition = currentPos;
+                mouseMoved = true;
+            }
+            mouseDelta = currentPos - lastMousePosition;
 
+            var e = new MouseMoveInputEvent(
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                currentPos, lastMousePosition, mouseDelta
+            );
+
+            lastMousePosition = currentPos;
+
+            InputEventSender?.Invoke(e);
+        }
+        private void MouseButtonCallback(WindowHandle* window, MouseButton button, InputAction action, KeyModifiers mods)
+        {
+            if (action == InputAction.Press)
+            {
+                mousePressed.Add(button);
+                mouseDowned.Add(button);
+            }
+            else if (action == InputAction.Release)
+            {
+                mousePressed.Remove(button);
+                mouseReleased.Add(button);
+            }
+            else return;
+
+            var e = new MouseBtnInputEvent(
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                button, action
+            );
+
+            InputEventSender?.Invoke(e);
+        }
+    
+
+        #region INNER CLASSES
+        public class InputEvent
+        {
+            public readonly long timestamp = 0;
+            public InputEvent(long timestamp)
+            {
+                this.timestamp = timestamp;
+            }
+        }
+        public class KeyboardInputEvent : InputEvent
+        {
+            public readonly bool repeating = false;
+            public readonly Keys key;
+            public readonly InputAction action;
+
+            public KeyboardInputEvent(
+                long timestamp,
+                bool repeating,
+                Keys key,
+                InputAction action
+            )
+            : base(timestamp)
+            {
+                this.repeating = repeating;
+                this.key = key;
+                this.action = action;
+            }
+        }
+        public class MouseInputEvent : InputEvent
+        {
+            public MouseInputEvent(long timestamp): base(timestamp) {}
+        }
+        public class MouseBtnInputEvent : MouseInputEvent
+        {
+            public readonly MouseButton button;
+            public readonly InputAction action;
+
+            public MouseBtnInputEvent(long timestamp, MouseButton button, InputAction action)
+            : base(timestamp)
+            {
+                this.button = button;
+                this.action = action;
+            }
+        }
+        public class MouseMoveInputEvent : MouseInputEvent
+        {
+            public readonly Vector2<int> position = new();
+            public readonly Vector2<int> lastPosition = new();
+            public readonly Vector2<int> positionDelta = new();
+
+            public MouseMoveInputEvent(
+                long timestamp,
+                Vector2<int> position,
+                Vector2<int> lastPosition,
+                Vector2<int> positionDelta
+            )
+            : base(timestamp)
+            {
+                this.position = position;
+                this.lastPosition = lastPosition;
+                this.positionDelta = positionDelta;
+            }
+        }
+        #endregion
+    }
 }

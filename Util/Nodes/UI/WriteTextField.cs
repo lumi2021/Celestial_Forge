@@ -1,4 +1,6 @@
+using Silk.NET.GLFW;
 using Silk.NET.Input;
+using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
@@ -7,6 +9,7 @@ public class WriteTextField : Label
 
     private uint caretLine = 0;
     private uint caretRow = 0;
+    private uint caretRowMax = 0;
 
     private Pannel caret = new();
 
@@ -24,27 +27,8 @@ public class WriteTextField : Label
 
     protected override void Process(double deltaT)
     {
-        Text += Input.LastInputedChars;
-        caretRow += (uint) Input.LastInputedChars.Length;
-
-        if (Input.IsActionJustPressed(Key.Enter))
-        {
-            Text += '\n';
-            caretLine++;
-            caretRow = 0;
-        }
-        if (Text.Length > 0 && Input.IsActionJustPressed(Key.Backspace))
-        {
-            caretRow -= 1;
-            Text = Text.Substring(0, Text.Length-1);
-        }
-
-        /*
-        if (Input.IsActionPressed(Key.Up))
-            font.Size += 1;
-        if (Input.IsActionPressed(Key.Down))
-            font.Size -= 1;
-        */
+        if (Input.LastInputedChars.Length > 0)
+            AppendBeforeCursor(Input.LastInputedChars);
 
         int caretPosX = 0;
         for (int i = 0; i < caretRow; i++)
@@ -59,4 +43,89 @@ public class WriteTextField : Label
         caret.sizePixels.Y = font.lineheight;
     }
 
+    protected override void OnInputEvent(InputEvent e)
+    {
+        if (e is KeyboardInputEvent && ((KeyboardInputEvent)e).action != InputAction.Release)
+        {
+            var kbdEvent = (KeyboardInputEvent) e;
+
+            if (kbdEvent.key == Keys.Enter)
+            {
+                AppendBeforeCursor("\n");
+                caretLine++;
+                caretRow = 0;
+            }
+
+            else if (kbdEvent.key == Keys.Backspace)
+            {
+                if (caretLine <= 0 && caretRow <= 0) return;
+
+                if (caretRow > 0)
+                {
+                    RemoveBeforeCursor(1);
+                }
+                else {
+                    caretLine--;
+                    caretRow = (uint) _textLines[caretLine].Length;
+                    Console.WriteLine(caretRow);
+                }
+            }
+        
+            else if (kbdEvent.key == Keys.Left)
+            {
+                if (caretRow > 0)
+                    caretRow--;
+                else if (caretLine > 0)
+                {
+                    caretLine--;
+                    caretRow = (uint) _textLines[caretLine].Length;
+                }
+            }
+            else if (kbdEvent.key == Keys.Right)
+            {
+                if (caretRow < _textLines[caretLine].Length)
+                    caretRow++;
+                else if (caretLine < _textLines.Length)
+                {
+                    caretLine++;
+                    caretRow = 0;
+                }
+            }
+            else if (kbdEvent.key == Keys.Up)
+            {
+                if (caretLine > 0)
+                {
+                    caretLine--;
+                    caretRow = (uint) _textLines[caretLine].Length;
+                }
+            }
+            else if (kbdEvent.key == Keys.Down)
+            {
+                if (caretLine < _textLines.Length-1)
+                {
+                    caretLine++;
+                    caretRow = (uint) _textLines[caretLine].Length;
+                }
+            }
+        }
+    }
+
+    protected void AppendBeforeCursor(string s)
+    {
+        var line =  _textLines[caretLine];
+        _textLines[caretLine] =
+        line[..(int)caretRow] + s + line[(int)caretRow..];
+        Text = string.Join('\n', _textLines);
+
+        caretRow += (uint) Input.LastInputedChars.Length;
+    }
+    protected void RemoveBeforeCursor(uint length)
+    {
+        var line =  _textLines[caretLine];
+        _textLines[caretLine] =
+        line[..(int)(caretRow - length)] + line[(int)caretRow..];
+        Text = string.Join('\n', _textLines);
+
+        caretRow -= length;
+    }
 }

@@ -18,7 +18,7 @@ public class Label : NodeUI, ICanvasItem
     };
 
     private string _text = "";
-    protected string[] _textLines = Array.Empty<string>();
+    protected string[] _textLines = new string[] {""};
     public string Text
     {
         get { return _text; }
@@ -73,9 +73,10 @@ public class Label : NodeUI, ICanvasItem
         void main()
         {
             vec4 color = texture(tex0, UV);
-            if (color.r < 0.5) discard;
+            //if (color.r < 0.5) discard;
 
-            out_color = fontColor;
+            out_color.rgb = fontColor.rgb;
+            out_color.a = color.r;
         }";
 
         mat.LoadShaders(vertexCode, fragmentCode);
