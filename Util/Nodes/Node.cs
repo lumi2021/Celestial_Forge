@@ -17,7 +17,10 @@ public class Node
 
     
     public Node? parent;
+    protected bool _isGhostChildren = false;
+
     public List<Node> children = new();
+    protected List<Node> ghostChildren = new();
 
     public string name = "";
 
@@ -119,6 +122,10 @@ public class Node
 
         node.parent = this;
 
+        //verify if name isn't empty
+        if (node.name == "")
+        node.name = node.GetType().Name + "_" + node.GetHashCode();
+
         // Verify if theres no other child with the ssame name
         var count = 0;
         while (true)
@@ -133,6 +140,29 @@ public class Node
 
         children.Add(node);
     }
+    protected void AddAsGhostChild(Node node)
+    {
+        // Remove the node from the old parent if it as one
+        if (node.parent != null)
+            node.parent.children.Remove(node);
+
+        node.parent = this;
+
+        // Verify if theres no other child with the same name
+        var count = 0;
+        while (true)
+        {
+            if (ghostChildren.Find(e => e.name == node.name + (count>0?("_" + count):"")) == null)
+            {
+                if (count>0) node.name += "_" + count; 
+                break;
+            }
+            count++;
+        }
+
+        ghostChildren.Add(node);
+    }
+   
     public Node? GetChild(string path)
     { return GetChild(path.Split('/')); }
     public Node? GetChild(string[] path)
@@ -148,6 +178,18 @@ public class Node
             }
         }
         return children.Find(e => e.name == path[0]);
+    }
+
+    protected Node? GetGhostChild(string path)
+    { return GetGhostChild(path.Split('/')); }
+    protected Node? GetGhostChild(string[] path)
+    {
+        if (path.Length > 1)
+        {
+            var a = ghostChildren.Find(e => e.name == path[0]);
+            return a?.GetChild( path.Skip(1).ToArray() );
+        }
+        return ghostChildren.Find(e => e.name == path[0]);
     }
 
     public bool IsOnRoot()

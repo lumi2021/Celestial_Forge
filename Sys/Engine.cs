@@ -33,6 +33,22 @@ public class Engine
         var scene = PackagedScene.Load("Data/Screens/editor.json").Instantiate();
         mainWin.AddAsChild(scene);
 
+        var fileMan = scene.GetChild("Main/LeftPannel/FileMananger");
+
+        var a = new TreeGraph();
+        fileMan!.AddAsChild(a);
+
+        a.AddItem("", "a");
+        a.AddItem("", "b");
+
+        a.AddItem("a", "a1");
+        a.AddItem("a", "a2");
+        a.AddItem("b", "b1");
+        a.AddItem("b", "b2");
+
+        Console.WriteLine(a.children.Count);
+
+
         /*
         START RUN
         */

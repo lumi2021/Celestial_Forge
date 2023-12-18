@@ -1,5 +1,4 @@
 using Silk.NET.GLFW;
-using Silk.NET.Input;
 using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
@@ -10,7 +9,7 @@ public class WriteTextField : Label
     private uint caretLine = 0;
     private uint caretRow = 0;
     //private uint caretRowMax = 0;
-    
+
     private Pannel caret = new();
 
     protected override void Init_()

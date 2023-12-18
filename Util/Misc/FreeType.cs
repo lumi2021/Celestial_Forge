@@ -132,7 +132,7 @@ public class FreeType_TtfGlyphLoader
             }
             else
             {
-                ch.Advance = baseCharacter.Advance;
+                ch.Advance = c != '\t' ? baseCharacter.Advance : baseCharacter.Advance * 4;
                 ch.Char = c;
                 buffer.Add(c, ch);
             }
