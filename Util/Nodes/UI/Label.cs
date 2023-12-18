@@ -38,6 +38,9 @@ public class Label : NodeUI, ICanvasItem
 
     private uint _texture;
 
+    private uint vPos = 0;
+    private uint vUv = 0;
+
     public Font font = new Font("Assets/Fonts/DroidSansMono-regular.ttf", 24);
     protected override void Init_()
     {
@@ -93,11 +96,18 @@ public class Label : NodeUI, ICanvasItem
 
         #endregion
 
-        DrawService.CreateBuffer(RID, "aPosition");
-        DrawService.CreateBuffer(RID, "aTextureCoord");
+        vPos = DrawService.CreateBuffer(RID, "aPosition");
+        vUv =  DrawService.CreateBuffer(RID, "aTextureCoord");
             
-        DrawService.SetElementBufferData(RID,
-        new uint[] {0,1,3, 1,2,3});
+        float[] v = new float[] {0f,0f, 1f,0f, 1f,1f, 0f,1f};
+        float[] tc = new float[] {0f,0f, 1f,0f, 1f,1f, 0f,1f};
+
+        DrawService.SetBufferData(RID, "aPosition", v.ToArray(), 2);
+        DrawService.SetBufferData(RID, "aTextureCoord", tc.ToArray(), 2);
+
+        DrawService.SetElementBufferData(RID, new uint[] {0,1,3, 1,2,3});
+
+        DrawService.EnableAtributes(RID, mat);
 
     }
 
@@ -108,57 +118,49 @@ public class Label : NodeUI, ICanvasItem
         mat.Use();
         gl.BindTexture(GLEnum.Texture2D, _texture);
 
+        var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
+        
+        gl.UniformMatrix4(1, 1, true, (float*) &proj);
+        gl.Uniform4(3, color.GetAsNumerics());
+
+        gl.PixelStore(GLEnum.UnpackAlignment, 1);
+
         for (int line = 0; line < charsList.Length; line++)
         {
             int posX = 0;
             int posY = line * font.lineheight;
             nint lineWidth = 0;
 
+            foreach (var k in charsList[line]) lineWidth += k.Advance;
+            
+            /* aliginment configuration */
+            float aliginPositionX = 0;
+            float aliginPositionY = 0;
+
+            switch (horisontalAligin)
+            {
+                case Aligin.Center:
+                    aliginPositionX = Size.X/2f - lineWidth/2;
+                    break;
+                case Aligin.End:
+                    aliginPositionX = Size.X - lineWidth;
+                    break;
+            }
+            switch (verticalAligin)
+            {
+                case Aligin.Center:
+                    aliginPositionY = Size.Y/2f - _textLines.Length*font.lineheight/2;
+                    break;
+                case Aligin.End:
+                    aliginPositionY = Size.Y - _textLines.Length*font.lineheight;
+                    break;
+            }
+
             foreach (var j in charsList[line])
             {
-                foreach (var k in charsList[line])
-                    lineWidth += k.Advance;
-
-                List<float> v = new();
-                List<float> tc = new();
-                uint[] i = new uint[] {0,1,3, 1,2,3};
-
-                v.Add(0f);v.Add(0f); tc.Add(0f);tc.Add(0f);
-                v.Add(1f);v.Add(0f); tc.Add(1f);tc.Add(0f);
-                v.Add(1f);v.Add(1f); tc.Add(1f);tc.Add(1f);
-                v.Add(0f);v.Add(1f); tc.Add(0f);tc.Add(1f);
-
-                DrawService.SetBufferData(RID, "aPosition", v.ToArray(), 2, DrawService.BufferUsage.Stream);
-                DrawService.SetBufferData(RID, "aTextureCoord", tc.ToArray(), 2, DrawService.BufferUsage.Stream);
-                DrawService.EnableAtributes(RID, mat);
-
-                gl.PixelStore(GLEnum.UnpackAlignment, 1);
                 fixed (byte* buf = j.Texture)
                 gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgba, j.TexSizeX, j.TexSizeY, 0, GLEnum.Red, GLEnum.UnsignedByte, buf);
                 gl.GenerateMipmap(TextureTarget.Texture2D);
-
-                /* aliginment configuration */
-                float aliginPositionX = 0;
-                float aliginPositionY = 0;
-
-                switch (horisontalAligin)
-                {
-                    case Aligin.Center:
-                        aliginPositionX = Size.X/2f - lineWidth/2;
-                        break;
-                    case Aligin.End:
-                        aliginPositionX = Size.X - lineWidth;
-                        break;
-                }
-                switch (verticalAligin)
-                {
-                    case Aligin.Center:
-                        aliginPositionY = Size.Y/2f - (Text.Count((e)=>e=='\n')+1)*font.lineheight/2;
-                        break;
-                    case Aligin.End:
-                        aliginPositionY = Size.Y - (Text.Count((e)=>e=='\n')+2)*font.lineheight;
-                        break;
-                }
 
                 var world = Matrix4x4.CreateScale(j.SizeX, j.SizeY, 1);
                 world *= Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
@@ -166,11 +168,8 @@ public class Label : NodeUI, ICanvasItem
                 world *= Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0));
                 world *= Matrix4x4.CreateTranslation(new Vector3(aliginPositionX, aliginPositionY, 0));
                 world *= Matrix4x4.CreateScale(1, -1, 1);
-                var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
 
                 gl.UniformMatrix4(0, 1, true, (float*) &world);
-                gl.UniformMatrix4(1, 1, true, (float*) &proj);
-                gl.Uniform4(3, color.GetAsNumerics());
 
                 DrawService.Draw(RID);
 

@@ -12,7 +12,7 @@ public static class DrawService
     **
     ** as niki said, the use of a dictionaty to get the buffers using IDs
     ** can be really bad when the dictionary have to be consulted a lot
-    ** of times
+    ** of times :(
     */
 
     public enum BufferUsage { Static, Dynamic, Stream };
@@ -26,11 +26,12 @@ public static class DrawService
 
     /*
     Operations with buffers */
-    public static void CreateBuffer(uint RID, string bufferName)
+    public static uint CreateBuffer(uint RID, string bufferName)
     {
-        ResourceData[RID].CreateBuffer(bufferName);
+        return ResourceData[RID].CreateBuffer(bufferName);
     }
-    
+
+    #region SetBufferData Methods
     public static unsafe void SetBufferData(uint RID, string buffer, float[] data, int size, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
@@ -108,6 +109,88 @@ public static class DrawService
         ResourceData[RID].VertexBuffers[buffer] = vertexData;
     }
     
+    public static unsafe void SetBufferData(uint RID, uint id, float[] data, int size, BufferUsage usage=BufferUsage.Static)
+    {
+        var gl = Engine.gl;
+
+        var a = ResourceData[RID].VertexBuffers.ToArray()[id];
+        VertexData vertexData = a.Value;
+
+        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
+
+        BufferUsageARB currentUsage = 
+            usage == BufferUsage.Static? BufferUsageARB.StaticDraw :
+            usage == BufferUsage.Dynamic ? BufferUsageARB.DynamicDraw : BufferUsageARB.StreamDraw;
+        
+        fixed(float* buf = data)
+        gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(data.Length * sizeof(float)), buf, currentUsage);
+
+        vertexData.size = size;
+        ResourceData[RID].VertexBuffers[a.Key] = vertexData;
+    }
+    public static unsafe void SetBufferData(uint RID, uint id, double[] data, int size, BufferUsage usage=BufferUsage.Static)
+    {
+        var gl = Engine.gl;
+
+        var a = ResourceData[RID].VertexBuffers.ToArray()[id];
+        VertexData vertexData = a.Value;
+
+        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
+
+        BufferUsageARB currentUsage = 
+            usage == BufferUsage.Static? BufferUsageARB.StaticDraw :
+            usage == BufferUsage.Dynamic ? BufferUsageARB.DynamicDraw : BufferUsageARB.StreamDraw;
+        
+        fixed(double* buf = data)
+        gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(data.Length * sizeof(double)), buf, currentUsage);
+
+        vertexData.size = size;
+        ResourceData[RID].VertexBuffers[a.Key] = vertexData;
+    }
+    public static unsafe void SetBufferData(uint RID, uint id, byte[] data, int size, BufferUsage usage=BufferUsage.Static)
+    {
+        var gl = Engine.gl;
+
+        var a = ResourceData[RID].VertexBuffers.ToArray()[id];
+        VertexData vertexData = a.Value;
+
+        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
+
+        BufferUsageARB currentUsage = 
+            usage == BufferUsage.Static? BufferUsageARB.StaticDraw :
+            usage == BufferUsage.Dynamic ? BufferUsageARB.DynamicDraw : BufferUsageARB.StreamDraw;
+        
+        fixed(byte* buf = data)
+        gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(data.Length * sizeof(byte)), buf, currentUsage);
+
+        vertexData.size = size;
+        ResourceData[RID].VertexBuffers[a.Key] = vertexData;
+    }
+    public static unsafe void SetBufferData(uint RID, uint id, int[] data, int size, BufferUsage usage=BufferUsage.Static)
+    {
+        var gl = Engine.gl;
+
+        var a = ResourceData[RID].VertexBuffers.ToArray()[id];
+        VertexData vertexData = a.Value;
+
+        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
+
+        BufferUsageARB currentUsage = 
+            usage == BufferUsage.Static? BufferUsageARB.StaticDraw :
+            usage == BufferUsage.Dynamic ? BufferUsageARB.DynamicDraw : BufferUsageARB.StreamDraw;
+        
+        fixed(int* buf = data)
+        gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(data.Length * sizeof(int)), buf, currentUsage);
+
+        vertexData.size = size;
+        ResourceData[RID].VertexBuffers[a.Key] = vertexData;
+    }
+    #endregion
+
     public static unsafe void EnableAtributes(uint RID, Material material)
     {
         var gl = Engine.gl;
@@ -145,6 +228,7 @@ public static class DrawService
     }
     /* Operations with buffers
     */
+
     public static unsafe void Draw(uint RID)
     {
         var res = ResourceData[RID];
@@ -169,18 +253,18 @@ struct ResourceDrawData
         ElementBuffer = Engine.gl.GenBuffer();
     }
 
-    //public void Bind()
-    //{ Engine.gl.BindVertexArray(VertexArray); }
-    public void CreateBuffer(string bufferName)
+    public uint CreateBuffer(string bufferName)
     {
         if (VertexBuffers.ContainsKey(bufferName))
             throw new ApplicationException(string.Format("Buffer {0} already exists inside this resource!", bufferName));
 
         var vertData = new VertexData();
-        vertData.bufferId = Engine.gl.GenBuffer();
+        var id = Engine.gl.GenBuffer();
+        vertData.bufferId = id;
         VertexBuffers.Add(bufferName, vertData);
-    }
 
+        return (uint)(VertexBuffers.Count - 1);
+    }
 }
 struct VertexData
 {
