@@ -27,15 +27,16 @@ public class Engine
         gl.ClearColor(1f, 1f, 1f, 1f);
 
         gl.Enable(EnableCap.Multisample);
+        gl.Enable(EnableCap.ScissorTest);
         gl.Enable(EnableCap.Blend);
-        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);;
+        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         var scene = PackagedScene.Load("Data/Screens/editor.json").Instantiate();
         mainWin.AddAsChild(scene);
 
         var fileMan = scene.GetChild("Main/LeftPannel/FileMananger");
 
-        var a = new TreeGraph();
+        var a = new TreeGraph() { ClipChildren = true };
         fileMan!.AddAsChild(a);
 
         a.AddItem("", "a");
@@ -45,9 +46,6 @@ public class Engine
         a.AddItem("a", "a2");
         a.AddItem("b", "b1");
         a.AddItem("b", "b2");
-
-        Console.WriteLine(a.children.Count);
-
 
         /*
         START RUN

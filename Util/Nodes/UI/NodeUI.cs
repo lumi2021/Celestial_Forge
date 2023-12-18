@@ -98,7 +98,8 @@ public class NodeUI : Node , IClipChildren
     public Vector2<float> sizePercent = new(1,1);
     public Vector2<float> Size {
         get {
-            return ParentSize * sizePercent + sizePixels;
+            var a = ParentSize * sizePercent + sizePixels;
+            return new(MathF.Max(0f, a.X), MathF.Max(0f, a.Y));
         }
     }
 
@@ -114,8 +115,17 @@ public class NodeUI : Node , IClipChildren
 
     public Rect GetClippingArea()
     {
-        var rect = new Rect(Position, Size);
-        rect.Y = Engine.window.Size.Y - rect.Height;
+        var rect = new Rect( 0, 0, Engine.window.Size.X, Engine.window.Size.Y );
+        
+        if (ClipChildren)
+        {
+             rect.Position = Position;
+             rect.Size = Size;
+        }
+        
+        if (parent is IClipChildren)
+            rect = rect.Intersection((parent as IClipChildren)!.GetClippingArea());
+        
         return rect;
     }
 

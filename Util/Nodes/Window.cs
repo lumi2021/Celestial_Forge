@@ -1,4 +1,5 @@
 using GameEngine.Sys;
+using GameEngine.Util.Interfaces;
 using GameEngine.Util.Values;
 using Silk.NET.GLFW;
 using Silk.NET.Maths;
@@ -107,6 +108,13 @@ public class Window : Node
 
             if (current is Window) continue;
 
+            // configurate scisor
+            if (current.parent is IClipChildren)
+            {
+                var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
+                gl.Scissor((int)clipRect.X, (int)clipRect.Y,(uint)clipRect.Width, (uint)clipRect.Height);
+            }
+
             current.RunDraw(deltaTime);
 
             for (int i = current.children.Count - 1; i >= 0; i--)
@@ -138,6 +146,11 @@ public class Window : Node
         gl.Viewport(size);
     }
 
+    public override void Free(bool fromGC = false)
+    {
+        WindowService.CloseWindow(window);
+        base.Free(fromGC);
+    }
 
     public unsafe class InputHandler
     {

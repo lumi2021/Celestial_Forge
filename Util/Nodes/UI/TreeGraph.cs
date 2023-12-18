@@ -25,12 +25,32 @@ public class TreeGraph : NodeUI
             n.parent = parent;
             n.Name = name;
 
-            n.Update();
+            UpdateList();
 
             return n;
         }
         return null;
     }
+
+    private void UpdateList()
+    {
+        List<TreeGraphItem> toUpdate = new();
+        toUpdate.Add(root);
+
+        int listIndex = 0;
+        while (toUpdate.Count > 0)
+        {
+            TreeGraphItem current = toUpdate[0];
+            toUpdate.RemoveAt(0);
+
+            current.Update(listIndex);
+            listIndex++;
+
+            for (int i = current.children.Count - 1; i >= 0; i--)
+                toUpdate.Insert(0,  current.children[i]);
+        }
+    }
+
 
     #region inner classes/strucs
 
@@ -51,7 +71,7 @@ public class TreeGraph : NodeUI
         {
             get {
                 if (parent != null)
-                    return parent.Path + "\\" + Name;
+                    return parent.Path + "/" + Name;
                 else
                     return Name;
             }
@@ -65,14 +85,7 @@ public class TreeGraph : NodeUI
             }
         }
         
-        public int PositionIndex
-        {
-            get {
-            if (parent != null)
-                return parent.Index + Index + 1;
-            else return 0;
-            }
-        }
+        public int positionIndex = 0;
 
         public TreeGraphItem? parent = null;
         public List<TreeGraphItem> children = new();
@@ -115,11 +128,18 @@ public class TreeGraph : NodeUI
             parent?.children.Remove(this);
         }
     
-        public void Update()
+        public void Update(int pIndex = 0)
         {
-            container.positionPixels.Y = (int) (container.Size.Y * PositionIndex);
+            positionIndex = pIndex;
+            container.positionPixels.Y = (int) (container.Size.Y * positionIndex);
+
+            Console.WriteLine(Path);
+
+            int level = Path.Split('/').Length - 1;
+            container.positionPixels.X = 20 * level;
         }
     }
 
     #endregion
+
 }

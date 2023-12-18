@@ -48,6 +48,17 @@ public struct Rect
         Size.Y = data[3];
     }
 
-    // TODO intersection calculations
+    public Rect Intersection(Rect anotherRect)
+    {
+        var nRect = new Rect()
+        {
+            X = MathF.Max(X, anotherRect.X),
+            Y = MathF.Max(Y, anotherRect.Y),
+            Width = MathF.Min(Width, anotherRect.Width),
+            Height = MathF.Min(Height, anotherRect.Height)
+        };
+
+        return nRect;
+    }
 
 }
