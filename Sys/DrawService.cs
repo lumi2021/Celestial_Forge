@@ -8,8 +8,8 @@ namespace GameEngine.Sys;
 
 public static class DrawService
 {
-    /* FIXME see about performace
-    **
+    /* see about performace
+    
     ** as niki said, the use of a dictionaty to get the buffers using IDs
     ** can be really bad when the dictionary have to be consulted a lot
     ** of times :(
