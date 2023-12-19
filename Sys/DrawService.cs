@@ -24,8 +24,8 @@ public static class DrawService
         ResourceData.Add(RID, new ResourceDrawData());
     }
 
-    /*
-    Operations with buffers */
+    #region Operations with buffers
+
     public static uint CreateBuffer(uint RID, string bufferName)
     {
         return ResourceData[RID].CreateBuffer(bufferName);
@@ -191,21 +191,6 @@ public static class DrawService
     }
     #endregion
 
-    public static unsafe void EnableAtributes(uint RID, Material material)
-    {
-        var gl = Engine.gl;
-        var res = ResourceData[RID];
-
-        foreach (var i in res.VertexBuffers)
-        {
-            gl.BindBuffer(BufferTargetARB.ArrayBuffer, i.Value.bufferId);
-            uint loc = (uint) material.ALocation(i.Key);
-
-            gl.EnableVertexAttribArray(loc);
-            gl.VertexAttribPointer(loc, i.Value.size, VertexAttribPointerType.Float, false, (uint)(i.Value.size*Marshal.SizeOf(i.Value.type)), (void*) 0);
-        }
-    }
-
     public static unsafe void SetElementBufferData(uint RID, uint[] data, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
@@ -226,8 +211,23 @@ public static class DrawService
         a.elementsLength = (uint) data.Length;
         ResourceData[RID] = a;
     }
-    /* Operations with buffers
-    */
+    
+    public static unsafe void EnableAtributes(uint RID, Material material)
+    {
+        var gl = Engine.gl;
+        var res = ResourceData[RID];
+
+        foreach (var i in res.VertexBuffers)
+        {
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, i.Value.bufferId);
+            uint loc = (uint) material.ALocation(i.Key);
+
+            gl.EnableVertexAttribArray(loc);
+            gl.VertexAttribPointer(loc, i.Value.size, VertexAttribPointerType.Float, false, (uint)(i.Value.size*Marshal.SizeOf(i.Value.type)), (void*) 0);
+        }
+    }
+    
+    #endregion
 
     public static unsafe void Draw(uint RID)
     {
