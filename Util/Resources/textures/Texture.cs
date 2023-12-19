@@ -4,7 +4,7 @@ using Silk.NET.OpenGL;
 
 namespace GameEngine.Util.Resources;
 
-public abstract unsafe class Texture : Resource
+public abstract class Texture : Resource
 {
 
     protected uint _textureId = 0;
@@ -28,14 +28,13 @@ public abstract unsafe class Texture : Resource
 
         if (updateParams) UpdateParameters();
     
-        fixed (byte* buf = data)
-        gl.TexImage2D(
+        gl.TexImage2D<byte>(
             GLEnum.Texture2D, 0, InternalFormat.Rgba,
             size.X, size.Y, 0,
-            GLEnum.Rgba, GLEnum.UnsignedByte, buf
+            PixelFormat.Rgba, GLEnum.UnsignedByte, data
         );
         
-        gl.GenerateMipmap(TextureTarget.Texture2D);
+        //gl.GenerateMipmap(TextureTarget.Texture2D);
 
         _data = data;
         Size = size;

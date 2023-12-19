@@ -11,7 +11,7 @@ public class Pannel : NodeUI, ICanvasItem
 
     public Color backgroundColor = new(100, 100, 100, 0.9f);
 
-    private static Material mat = new();
+    private Material mat = new();
     
     protected override void Init_()
     {
@@ -39,11 +39,11 @@ public class Pannel : NodeUI, ICanvasItem
 
         out vec4 out_color;
 
-        uniform vec4 backgoundColor;
+        uniform vec4 backgroundColor;
 
         void main()
         {
-            out_color = backgoundColor;
+            out_color = backgroundColor;
         }";
 
         mat.LoadShaders(vertexCode, fragmentCode);
@@ -67,17 +67,6 @@ public class Pannel : NodeUI, ICanvasItem
     protected override unsafe void Draw(double deltaT)
     {
         var gl = Engine.gl;
-
-        /*
-        if ((parent is IClipChildren)! && (parent as IClipChildren)!.ClipChildren)
-        {
-            gl.Enable(EnableCap.ScissorTest);
-            var clippingRect = (parent as NodeUI)!.GetClippingArea();
-            gl.Scissor((int)clippingRect.X, (int)clippingRect.Y, (uint)clippingRect.Width, (uint)clippingRect.Height);
-        } else {
-            gl.Disable(EnableCap.ScissorTest);
-        }
-        */
 
         mat.Use();
 
