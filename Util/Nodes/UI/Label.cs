@@ -11,6 +11,8 @@ namespace GameEngine.Util.Nodes;
 public class Label : NodeUI, ICanvasItem
 {
 
+    public bool Visible { get; set; } = true;
+
     public enum Aligin {
         Start,
         Center,
@@ -171,5 +173,8 @@ public class Label : NodeUI, ICanvasItem
             charsList = charsList.Append(font.CreateStringTexture(ln)).ToArray();
         }
     }
+
+    public void Show() { Visible = true; }
+    public void Hide() { Visible = false; }
 
 }

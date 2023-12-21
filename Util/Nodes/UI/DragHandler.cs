@@ -10,6 +10,8 @@ namespace GameEngine.Util.Nodes;
 public class DragHandler : NodeUI, ICanvasItem
 {
 
+    public bool Visible { get; set; } = true;
+
     public NodeUI? nodeA;
     public uint nodeASizeMin = 0;
     public uint nodeASizeMax = 0;
@@ -173,5 +175,8 @@ public class DragHandler : NodeUI, ICanvasItem
 
         DrawService.Draw(RID);
     }
+
+    public void Show() { Visible = true; }
+    public void Hide() { Visible = false; }
 
 }
