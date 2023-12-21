@@ -8,8 +8,9 @@ public class Font : Resource
     public event FontUpdatedEventHandler? FontUpdated;
 
     private FreeType_TtfGlyphLoader glyphLoader = new("../../../Assets/Fonts/calibri-regular.ttf", 24);
-    private uint _size = 0;
-    private string _path = "";
+    private uint _size = 24;
+    private string _path = "Assets/Fonts/calibri-regular.ttf";
+
     public uint Size
     {
         get {return _size;}
@@ -17,6 +18,11 @@ public class Font : Resource
         {
             LoadFont(_path, value);
         }
+    }
+    public string Path
+    {
+        get { return _path; }
+        set { LoadFont(value, _size); }
     }
 
     // font metrics data
