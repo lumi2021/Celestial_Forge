@@ -1,3 +1,5 @@
+using GameEngine.Util.Resources;
+
 namespace GameEngine.Util.Nodes;
 
 public class TreeGraph : NodeUI
@@ -14,7 +16,7 @@ public class TreeGraph : NodeUI
     {
         return root?.GetChild(path.Split('/'));
     }
-    public TreeGraphItem? AddItem(string path, string name)
+    public TreeGraphItem? AddItem(string path, string name, Texture? icon = null)
     {
         var parent = path != "" ? GetItem(path) : root;
 
@@ -23,6 +25,7 @@ public class TreeGraph : NodeUI
             var n = new TreeGraphItem(this);
             parent.children.Add(n);
             n.parent = parent;
+            n.Icon = icon;
             n.Name = name;
 
             UpdateList();
@@ -58,6 +61,8 @@ public class TreeGraph : NodeUI
     {
         private TreeGraph graph;
 
+        #region variables
+
         private string _name = "";
         public string Name
         {
@@ -67,6 +72,17 @@ public class TreeGraph : NodeUI
                 title.Text = _name;
             }
         }
+        
+        private Texture? _icon = null;
+        public Texture? Icon
+        {
+            get { return _icon; }
+            set {
+                _icon = value;
+                Update();
+            }
+        }
+        
         public string Path
         {
             get {
@@ -85,7 +101,7 @@ public class TreeGraph : NodeUI
             }
         }
         
-        public int positionIndex = 0;
+        private int positionIndex = 0;
 
         public TreeGraphItem? parent = null;
         public List<TreeGraphItem> children = new();
@@ -95,19 +111,29 @@ public class TreeGraph : NodeUI
         {
             sizePercent = new(1, 0),
             sizePixels = new(0, 40),
-            //backgroundColor = new(0,0,0,0f)
+            backgroundColor = new(0,0,0,0f)
+        };
+        private TextureRect icon = new()
+        {
+            sizePercent = new(0,0),
+            sizePixels = new(20, 20),
+            positionPixels = new(10, 10)
         };
         private Label title = new()
         {
-            verticalAligin = Label.Aligin.Center
+            verticalAligin = Label.Aligin.Center,
+            color = new(1f, 1f, 1f)
         };
         /*******/
+
+        #endregion
 
         public TreeGraphItem(TreeGraph graph)
         {
             this.graph = graph;
 
             graph.AddAsChild(container);
+            container.AddAsChild(icon);
             container.AddAsChild(title);
         }
 
@@ -133,10 +159,20 @@ public class TreeGraph : NodeUI
             positionIndex = pIndex;
             container.positionPixels.Y = (int) (container.Size.Y * positionIndex);
 
-            Console.WriteLine(Path);
-
             int level = Path.Split('/').Length - 1;
-            container.positionPixels.X = 20 * level;
+            container.positionPixels.X = 40 * level;
+
+            if (_icon != null)
+            {
+                title.positionPixels.X = 40;
+                icon.Show();
+            } else
+            {
+                title.positionPixels.X = 0;
+                icon.Hide();
+            }
+
+            icon.texture = _icon;
         }
     }
 

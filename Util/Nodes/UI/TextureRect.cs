@@ -2,19 +2,17 @@ using System.Numerics;
 using GameEngine.Sys;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
-using GameEngine.Util.Values;
 
 namespace GameEngine.Util.Nodes;
 
-public class Pannel : NodeUI, ICanvasItem
+public class TextureRect : NodeUI, ICanvasItem
 {
 
     public bool Visible { get; set; } = true;
 
-    public Color backgroundColor = new(100, 100, 100, 0.9f);
-
+    public Texture? texture = null;
     private Material mat = new();
-    
+
     protected override void Init_()
     {
 
@@ -41,11 +39,11 @@ public class Pannel : NodeUI, ICanvasItem
 
         out vec4 out_color;
 
-        uniform vec4 backgroundColor;
+        uniform sampler2D tex0;
 
         void main()
         {
-            out_color = backgroundColor;
+            out_color = texture(tex0, UV);
         }";
 
         mat.LoadShaders(vertexCode, fragmentCode);
@@ -71,6 +69,7 @@ public class Pannel : NodeUI, ICanvasItem
         var gl = Engine.gl;
 
         mat.Use();
+        texture?.Use();
 
         var world = Matrix4x4.CreateScale(Size.X, Size.Y, 1);
         world *= Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
@@ -80,8 +79,6 @@ public class Pannel : NodeUI, ICanvasItem
 
         gl.UniformMatrix4(0, 1, true, (float*) &world);
         gl.UniformMatrix4(1, 1, true, (float*) &proj);
-
-        gl.Uniform4(2, backgroundColor.GetAsNumerics());
 
         DrawService.Draw(RID);
     }

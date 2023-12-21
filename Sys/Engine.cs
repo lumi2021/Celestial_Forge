@@ -39,13 +39,23 @@ public class Engine
         var a = new TreeGraph() { ClipChildren = true };
         fileMan!.AddAsChild(a);
 
-        a.AddItem("", "a");
-        a.AddItem("", "b");
+        var b = new SvgTexture();
+        var c = new SvgTexture();
+        b.LoadFromFile("Assets/Icons/script.svg", 200, 200);
+        c.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
 
-        a.AddItem("a", "a1");
-        a.AddItem("a", "a2");
-        a.AddItem("b", "b1");
-        a.AddItem("b", "b2");
+        a.AddItem("", "folder1", c);
+        a.AddItem("", "folder2", c);
+
+        a.AddItem("folder1", "script", b);
+        a.AddItem("folder1", "script2", b);
+
+        a.AddItem("folder1", "folder", c);
+        a.AddItem("folder1/folder", "script", b);
+        a.AddItem("folder1/folder", "script2", b);
+
+        a.AddItem("folder2", "script", b);
+        a.AddItem("folder2", "script2", b);
 
         /*
         START RUN

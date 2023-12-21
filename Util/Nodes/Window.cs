@@ -108,17 +108,24 @@ public class Window : Node
 
             if (current is Window) continue;
 
-            // configurate scisor
-            if (current.parent is IClipChildren)
+            if (current is ICanvasItem)
             {
-                var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
-                gl.Scissor((int)clipRect.X, (int)clipRect.Y,(uint)clipRect.Width, (uint)clipRect.Height);
+                // configurate scissor
+                if (current.parent is IClipChildren)
+                {
+                    var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
+                    gl.Scissor((int)clipRect.X, (int)clipRect.Y,(uint)clipRect.Width, (uint)clipRect.Height);
+                }
+
+                // checks if it's visible and draw
+                if ((current as ICanvasItem)!.Visible)
+                    current.RunDraw(deltaTime);
+                
+                else continue; // Don't draw childrens
             }
 
-            current.RunDraw(deltaTime);
-
             for (int i = current.children.Count - 1; i >= 0; i--)
-                    toDraw.Insert(0,  current.children[i]);
+                toDraw.Insert(0,  current.children[i]);
         }
     }
 
@@ -137,7 +144,7 @@ public class Window : Node
             current.RunInputEvent(e);
 
             for (int i = current.children.Count - 1; i >= 0; i--)
-                    toEvent.Insert(0,  current.children[i]);
+                toEvent.Insert(0,  current.children[i]);
         }
     }
 

@@ -11,6 +11,8 @@ namespace GameEngine.Util.Nodes;
 public class Label : NodeUI, ICanvasItem
 {
 
+    public bool Visible { get; set; } = true;
+
     public enum Aligin {
         Start,
         Center,
@@ -35,8 +37,7 @@ public class Label : NodeUI, ICanvasItem
     public Aligin verticalAligin = Aligin.Start;
 
     private Material mat = new();
-
-    private uint _texture;
+    private BitmapTexture texture = new();
 
     private uint vPos = 0;
     private uint vUv = 0;
@@ -76,25 +77,12 @@ public class Label : NodeUI, ICanvasItem
         void main()
         {
             vec4 color = texture(tex0, UV);
-            //if (color.r < 0.5) discard;
 
             out_color.rgb = fontColor.rgb;
             out_color.a = color.r;
         }";
 
         mat.LoadShaders(vertexCode, fragmentCode);
-        
-        #region see later
-
-        _texture = gl.GenTexture();
-        gl.BindTexture(GLEnum.Texture2D, _texture);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        gl.BindTexture(GLEnum.Texture2D, 0);
-
-        #endregion
 
         vPos = DrawService.CreateBuffer(RID, "aPosition");
         vUv =  DrawService.CreateBuffer(RID, "aTextureCoord");
@@ -116,7 +104,6 @@ public class Label : NodeUI, ICanvasItem
         var gl = Engine.gl;
 
         mat.Use();
-        gl.BindTexture(GLEnum.Texture2D, _texture);
 
         var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
         
@@ -158,9 +145,7 @@ public class Label : NodeUI, ICanvasItem
 
             foreach (var j in charsList[line])
             {
-                fixed (byte* buf = j.Texture)
-                gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgba, j.TexSizeX, j.TexSizeY, 0, GLEnum.Red, GLEnum.UnsignedByte, buf);
-                gl.GenerateMipmap(TextureTarget.Texture2D);
+                texture.Load(j.Texture, j.TexSizeX, j.TexSizeY);
 
                 var world = Matrix4x4.CreateScale(j.SizeX, j.SizeY, 1);
                 world *= Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
@@ -171,6 +156,7 @@ public class Label : NodeUI, ICanvasItem
 
                 gl.UniformMatrix4(0, 1, true, (float*) &world);
 
+                texture.Use();
                 DrawService.Draw(RID);
 
                 posX += (int) j.Advance;
@@ -187,5 +173,8 @@ public class Label : NodeUI, ICanvasItem
             charsList = charsList.Append(font.CreateStringTexture(ln)).ToArray();
         }
     }
+
+    public void Show() { Visible = true; }
+    public void Hide() { Visible = false; }
 
 }
