@@ -29,11 +29,10 @@ public class Window : Node
         }
     }
 
-    private Vector2<int> _size = new(800, 600);
-    public Vector2<int> Size
+    public Vector2<uint> Size
     {
-        get { return _size; }
-        set { _size = value; }
+        get { return new((uint) window.Size.X, (uint) window.Size.Y); }
+        set { window.Size = new Vector2D<int> ((int) value.X, (int) value.Y); }
     }
 
     private WindowState _state = WindowState.Normal;
@@ -97,6 +96,7 @@ public class Window : Node
     private void OnRender(double deltaTime)
     {
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        gl.Scissor(0,0, Size.X, Size.Y);
 
         List<Node> toDraw = new();
         toDraw.AddRange(children);
