@@ -1,3 +1,5 @@
+using System;
+
 namespace GameEngine.Sys;
 
 public static class FileService
@@ -16,26 +18,39 @@ public static class FileService
         }
     }
 
-    public static string[] GetDirectory(string path)
+    public static FileSystemInfo[] GetDirectory(string path)
     {
         var gPath = GetGlobalPath(path);
-        return Directory.GetFiles(gPath);
+
+        DirectoryInfo info = new DirectoryInfo(gPath);
+        FileSystemInfo[] itens = info.GetFileSystemInfos();
+
+        return itens;
     }
 
 
+    public static string GetProjRelativePath(string path)
+    {
+        string p = path.Replace("\\", "/");
+
+        if (p.StartsWith(Engine.projectSettings.projectPath))
+            return string.Concat("res://", p.AsSpan(Engine.projectSettings.projectPath.Length));
+
+        return p;
+    }
     public static string GetGlobalPath(string path)
     {
-        string p = path;
+        string p = path.Replace("\\", "/");
 
-        if (path.StartsWith("res://"))
+        if (p.StartsWith("res://"))
             p = Engine.projectSettings.projectPath
-            + path.Substring(6);
+            + p.Substring(6);
         
-        else if (path.StartsWith("c:/"))
-            return path;
+        else if (p.StartsWith("c:/") || p.StartsWith("C:/"))
+            return p;
 
         else
-            p ="../../../" + path;
+            p ="../../../" + p;
 
         return p;
     }

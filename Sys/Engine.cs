@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
@@ -49,18 +50,37 @@ public class Engine
 
         var b = new SvgTexture();
         var c = new SvgTexture();
-        b.LoadFromFile("Assets/Icons/script.svg", 200, 200);
+        var d = new SvgTexture();
+        b.LoadFromFile("Assets/Icons/textFile.svg", 200, 200);
         c.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
+        d.LoadFromFile("Assets/Icons/unknowFile.svg", 200, 200);
 
         /* // test here // */
 
-        Console.WriteLine(FileService.GetFile( "res://test.txt" ));
+        List<FileSystemInfo> itens = new();
+        itens.AddRange(FileService.GetDirectory("res://"));
 
-        DirectoryInfo info = new DirectoryInfo(FileService.GetGlobalPath("res://"));
-        FileSystemInfo[] itens = info.GetFileSystemInfos();
-        foreach (var i in itens)
+        while (itens.Count > 0)
         {
-            Console.WriteLine(i.FullName);
+            var i = itens[0];
+            itens.RemoveAt(0);
+
+            SvgTexture iconImage = d;
+
+            if (i.Extension == "")
+            {
+                iconImage = c;
+                itens.AddRange(FileService.GetDirectory(i.FullName));
+            }
+            else if (i.Extension == ".txt")
+                iconImage = b;
+
+            
+            a.AddItem(
+                FileService.GetProjRelativePath(i.FullName[..(i.Name+i.Extension).Length])[6..],
+                i.Name + i.Extension,
+                iconImage
+            );
         }
 
         /* // test here // */
