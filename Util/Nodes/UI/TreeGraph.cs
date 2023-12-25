@@ -5,20 +5,24 @@ namespace GameEngine.Util.Nodes;
 public class TreeGraph : NodeUI
 {
 
-    private TreeGraphItem root;
+    private TreeGraphItem _root;
+    public TreeGraphItem Root
+    {
+        get { return _root; }
+    }
 
     public TreeGraph()
     {
-        root = new(this) {Name = "root"};
+        _root = new(this) {Name = "root"};
     }
 
     public TreeGraphItem? GetItem(string path)
     {
-        return root?.GetChild(path.Split('/'));
+        return _root?.GetChild(path.Split('/'));
     }
     public TreeGraphItem? AddItem(string path, string name, Texture? icon = null)
     {
-        var parent = path != "" ? GetItem(path) : root;
+        var parent = path != "" ? GetItem(path) : _root;
 
         if (parent != null)
         {
@@ -38,7 +42,7 @@ public class TreeGraph : NodeUI
     private void UpdateList()
     {
         List<TreeGraphItem> toUpdate = new();
-        toUpdate.Add(root);
+        toUpdate.Add(_root);
 
         int listIndex = 0;
         while (toUpdate.Count > 0)
@@ -117,7 +121,8 @@ public class TreeGraph : NodeUI
         {
             sizePercent = new(0,0),
             sizePixels = new(20, 20),
-            positionPixels = new(10, 10)
+            positionPixels = new(10, 10),
+            Visible = false
         };
         private Label title = new()
         {

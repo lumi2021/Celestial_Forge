@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
 using Silk.NET.OpenGL;
@@ -13,6 +14,8 @@ public class Engine
     public static IWindow window;
     public static GL gl;
     #pragma warning restore
+
+    public static ProjectSettings projectSettings = new();
 
     public static NodeRoot root = new();
 
@@ -31,6 +34,10 @@ public class Engine
         gl.Enable(EnableCap.Blend);
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
+        /* configurate project settings */
+        projectSettings.projectLoaded = true;
+        projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
+
         
         var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
         mainWin.AddAsChild(scene);
@@ -45,6 +52,20 @@ public class Engine
         b.LoadFromFile("Assets/Icons/script.svg", 200, 200);
         c.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
 
+        /* // test here // */
+
+        Console.WriteLine(FileService.GetFile( "res://test.txt" ));
+
+        DirectoryInfo info = new DirectoryInfo(FileService.GetGlobalPath("res://"));
+        FileSystemInfo[] itens = info.GetFileSystemInfos();
+        foreach (var i in itens)
+        {
+            Console.WriteLine(i.FullName);
+        }
+
+        /* // test here // */
+
+        /*
         a.AddItem("", "folder1", c);
         a.AddItem("", "folder2", c);
 
@@ -57,11 +78,12 @@ public class Engine
 
         a.AddItem("folder2", "script", b);
         a.AddItem("folder2", "script2", b);
+        */
 
         /* START RUN */
         Run();
 
-        // End program
+         /* END PROGRAM */
         root.Free();
         gl.Dispose();
     }

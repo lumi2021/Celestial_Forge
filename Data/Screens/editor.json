@@ -94,21 +94,7 @@
                                 "backgroundColor" : [0, 0, 0],
                                 "sizePixels" : [0, -64],
                                 "anchor" : 1,
-
-                                "Children" :
-                                [
-                                    {
-                                        "NodeType" : "WriteTextField",
-                                        "Name" : "CodeEditor",
-
-                                        "horisontalAligin" : 0,
-                                        "verticalAligin" : 0,
-
-                                        "color" : [255, 255, 255],
-
-                                        "font" : 1
-                                    }
-                                ]
+                                "ClipChildren" : true
                             },
 
                             {
