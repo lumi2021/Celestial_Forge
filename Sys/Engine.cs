@@ -75,7 +75,9 @@ public class Engine
             else if (i.Extension == ".txt")
                 iconImage = b;
 
-            
+            var path = FileService.GetProjRelativePath(i.FullName);
+            Console.WriteLine(path);
+
             a.AddItem(
                 FileService.GetProjRelativePath(i.FullName[..(i.Name+i.Extension).Length])[6..],
                 i.Name + i.Extension,
