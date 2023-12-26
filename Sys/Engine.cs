@@ -78,45 +78,23 @@ public class Engine
             var path = FileService.GetProjRelativePath(i.FullName);
             path = path[6..][..^i.Name.Length];
 
-            Console.WriteLine(path);
-
-            a.AddItem(
-                path,
-                i.Name,
-                iconImage
-            );
+            a.AddItem( path, i.Name, iconImage );
         }
 
         /* // test here // */
 
-        /*
-        a.AddItem("", "folder1", c);
-        a.AddItem("", "folder2", c);
-
-        a.AddItem("folder1", "script", b);
-        a.AddItem("folder1", "script2", b);
-
-        a.AddItem("folder1", "folder", c);
-        a.AddItem("folder1/folder", "script", b);
-        a.AddItem("folder1/folder", "script2", b);
-
-        a.AddItem("folder2", "script", b);
-        a.AddItem("folder2", "script2", b);
-        */
 
         /* START RUN */
         Run();
 
-         /* END PROGRAM */
+        /* END PROGRAM */
         root.Free();
         gl.Dispose();
     }
 
     private void Run()
     {
-        /*
-        GAME LOOP PROCESS
-        */
+        /* GAME LOOP PROCESS */
 
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
