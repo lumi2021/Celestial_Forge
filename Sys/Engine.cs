@@ -76,11 +76,13 @@ public class Engine
                 iconImage = b;
 
             var path = FileService.GetProjRelativePath(i.FullName);
+            path = path[6..][..^i.Name.Length];
+
             Console.WriteLine(path);
 
             a.AddItem(
-                FileService.GetProjRelativePath(i.FullName[..(i.Name+i.Extension).Length])[6..],
-                i.Name + i.Extension,
+                path,
+                i.Name,
                 iconImage
             );
         }

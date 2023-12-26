@@ -18,7 +18,8 @@ public class TreeGraph : NodeUI
 
     public TreeGraphItem? GetItem(string path)
     {
-        return _root?.GetChild(path.Split('/'));
+        var p = path.Split('/').Where(e => e != "").ToArray();
+        return _root?.GetChild(p);
     }
     public TreeGraphItem? AddItem(string path, string name, Texture? icon = null)
     {
