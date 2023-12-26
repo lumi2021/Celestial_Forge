@@ -55,6 +55,9 @@ public class Engine
         c.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
         d.LoadFromFile("Assets/Icons/unknowFile.svg", 200, 200);
 
+        a.Root.Icon = c;
+        a.Root.Name = "Res://";
+
         /* // test here // */
 
         List<FileSystemInfo> itens = new();
