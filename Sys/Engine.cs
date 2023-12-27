@@ -16,6 +16,12 @@ public class Engine
 
     public static NodeRoot root = new();
 
+    #region gl info
+
+    public readonly int gl_MaxTextureUnits;
+
+    #endregion
+
     public Engine()
     {
         var mainWin = new Util.Nodes.Window();
@@ -26,11 +32,14 @@ public class Engine
         mainWin.Title = "Game Engine";
         gl.ClearColor(1f, 1f, 1f, 1f);
 
+        // get GL info //
+        gl_MaxTextureUnits = gl.GetInteger(GLEnum.MaxTextureImageUnits);
+
+        // configurations //
         gl.Enable(EnableCap.Multisample);
         gl.Enable(EnableCap.ScissorTest);
         gl.Enable(EnableCap.Blend);
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
         
         var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
         mainWin.AddAsChild(scene);

@@ -94,7 +94,7 @@ public class FreeType_TtfGlyphLoader
         return glyph_rec;
     }
 
-    private Character CreateChar(char c)
+    public Character CreateChar(char c)
     {
         Character ch = new Character();
 

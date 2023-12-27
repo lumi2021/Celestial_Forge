@@ -31,14 +31,12 @@ public class Label : NodeUI, ICanvasItem
         }
     }
     protected Character[][] charsList = Array.Empty<Character[]>();
-    private readonly List<CharDetails> charsToDrawPool = new();
 
     public Color color = new(0f, 0f, 0, 1f);
     public Aligin horisontalAligin = Aligin.Start;
     public Aligin verticalAligin = Aligin.Start;
 
     private Material mat = new();
-    private BitmapTexture texture = new();
 
     private uint vPos = 0;
     private uint vUv = 0;
@@ -54,6 +52,10 @@ public class Label : NodeUI, ICanvasItem
             OnFontUpdate();
         }
     }
+    
+    private readonly Dictionary<char, BitmapTexture> textures = new();
+
+    
     protected override void Init_()
     {
 
@@ -86,10 +88,10 @@ public class Label : NodeUI, ICanvasItem
         out vec4 out_color;
 
         uniform vec4 fontColor;
-        uniform sampler2D tex0;
 
         void main()
         {
+            //out_color.rgb = fontColor.rgb;
             out_color = vec4(UV.x, UV.y, 0, 1);
         }";
 
@@ -105,7 +107,7 @@ public class Label : NodeUI, ICanvasItem
         DrawService.SetBufferData(RID, "aPosition", v.ToArray(), 2);
         DrawService.SetBufferData(RID, "aTextureCoord", tc.ToArray(), 2);
 
-        DrawService.SetBufferData(RID, "aWorldMatrix", ToArray(Matrix4x4.Identity), 16);
+        DrawService.SetBufferData(RID, "aWorldMatrix", Matrix4x4.Identity.ToArray(), 16);
         DrawService.SetBufferAtribDivisor(RID, "aWorldMatrix", 1);
 
         DrawService.SetElementBufferData(RID, new uint[] {0,1,3, 1,2,3});
@@ -126,10 +128,9 @@ public class Label : NodeUI, ICanvasItem
         world *= Matrix4x4.CreateScale(1, -1, 1);
 
         var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
-        
+
         gl.UniformMatrix4(0, 1, true, (float*) &world);
         gl.UniformMatrix4(1, 1, true, (float*) &proj);
-        gl.Uniform4(3, color.GetAsNumerics());
 
         gl.PixelStore(GLEnum.UnpackAlignment, 1);
 
@@ -138,46 +139,7 @@ public class Label : NodeUI, ICanvasItem
 
     protected virtual void TextEdited()
     {
-        charsList = Array.Empty<Character[]>();
-
-        for (int i = 0; i < _textLines.Length; i++)
-        {
-            string ln = _textLines[i];
-            charsList = charsList.Append(Font.CreateStringTexture(ln)).ToArray();
-        }
-
-        charsToDrawPool.Clear();
-        int charPosX = 0;
-
-        for (int i = 0; i < charsList.Length; i++) {
-            int charPosY = _font.lineheight * i;
-            foreach (var j in charsList[i])
-            {
-                var c = new CharDetails();
-
-                c.position.X = charPosX + j.OffsetX;
-                c.position.Y = charPosY + j.OffsetY;
-                c.size.X = (int) j.SizeX;
-                c.size.Y = (int) j.SizeY;
-
-                charsToDrawPool.Add(c);
-
-                charPosX += (int) j.Advance;
-            }
-            charPosX = 0;
-        }
-
-        List<float> matrices = new();
-
-        foreach (var i in charsToDrawPool)
-        {
-            var m = Matrix4x4.CreateScale(i.size.X, i.size.Y, 1)
-            * Matrix4x4.CreateTranslation(i.position.X, i.position.Y, 0);
-            matrices.AddRange(ToArray(Matrix4x4.Transpose(m)));
-        }
-
-        DrawService.SetBufferData(RID, "aWorldMatrix", matrices.ToArray(), 16);
-        DrawService.EnableInstancing(RID, (uint) charsToDrawPool.Count);
+        ReconfigurateDraw();
     }
 
     protected virtual void OnFontUpdate()
@@ -188,37 +150,52 @@ public class Label : NodeUI, ICanvasItem
     public void Show() { Visible = true; }
     public void Hide() { Visible = false; }
 
-    static float[] ToArray(Matrix4x4 matrix)
+
+    private void ReconfigurateDraw()
     {
-        float[] array = new float[16];
+        charsList = Array.Empty<Character[]>();
 
-        // Preenchendo a array com os elementos da matriz
-        array[0] = matrix.M11;
-        array[1] = matrix.M12;
-        array[2] = matrix.M13;
-        array[3] = matrix.M14;
-        array[4] = matrix.M21;
-        array[5] = matrix.M22;
-        array[6] = matrix.M23;
-        array[7] = matrix.M24;
-        array[8] = matrix.M31;
-        array[9] = matrix.M32;
-        array[10] = matrix.M33;
-        array[11] = matrix.M34;
-        array[12] = matrix.M41;
-        array[13] = matrix.M42;
-        array[14] = matrix.M43;
-        array[15] = matrix.M44;
+        // Load character information
+        for (int i = 0; i < _textLines.Length; i++)
+        {
+            string ln = _textLines[i];
+            charsList = charsList.Append(Font.CreateStringTexture(ln)).ToArray();
+        }
 
-        return array;
+        // Load characters texture
+        foreach (var i in Text.Distinct())
+        {
+            if (textures.ContainsKey(i)) continue;
+
+            Character c = Font.CreateChar(i);
+            var texture = new BitmapTexture();
+            texture.Load(c.Texture, c.TexSizeX, c.TexSizeY);
+            textures.Add(i, texture);
+        }
+
+        // Load characters matrix
+        List<float> matrices = new();
+        int charPosX = 0;
+        for (int i = 0; i < charsList.Length; i++)
+        {
+            int charPosY = _font.lineheight * i;
+
+            foreach (var j in charsList[i])
+            {
+
+                var m = Matrix4x4.CreateScale(j.SizeX, j.SizeY, 1)
+                * Matrix4x4.CreateTranslation(charPosX + j.OffsetX, charPosY + j.OffsetY, 0);
+                matrices.AddRange(Matrix4x4.Transpose(m).ToArray());
+
+                charPosX += (int) j.Advance;
+
+            }
+
+            charPosX = 0;
+        }
+
+        DrawService.SetBufferData(RID, "aWorldMatrix", matrices.ToArray(), 16);
+        DrawService.EnableInstancing(RID, (uint) (matrices.Count / 16));
     }
 
-
-    #region inner classes/structs
-    private struct CharDetails
-    {
-        public Vector2<int> position;
-        public Vector2<int> size;
-    }
-    #endregion
 }
