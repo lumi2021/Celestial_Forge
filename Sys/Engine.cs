@@ -37,7 +37,7 @@ public class Engine
 
         var fileMan = scene.GetChild("Main/LeftPannel/FileMananger");
 
-        var a = new TreeGraph() { ClipChildren = true };
+        var a = new TreeGraph() { ClipChildren = false };
         fileMan!.AddAsChild(a);
 
         var b = new SvgTexture();

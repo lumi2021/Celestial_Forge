@@ -15,12 +15,11 @@ public class WriteTextField : Label
     protected override void Init_()
     {
         base.Init_();
-        font.FontUpdated += OnFontUpdate;
 
         AddAsChild(caret);
         caret.sizePercent = new();
         caret.sizePixels.X = 2;
-        caret.sizePixels.Y = font.lineheight;
+        caret.sizePixels.Y = Font.lineheight;
         caret.backgroundColor = new(255, 255, 255);
         
     }
@@ -35,12 +34,13 @@ public class WriteTextField : Label
             caretPosX += (int)charsList[caretLine][i].Advance;
         
         caret.positionPixels.X = caretPosX;
-        caret.positionPixels.Y = (int)(caretLine * font.lineheight) + 2;
+        caret.positionPixels.Y = (int)(caretLine * Font.lineheight) + 2;
     }
 
-    private void OnFontUpdate()
+    protected override void OnFontUpdate()
     {
-        caret.sizePixels.Y = font.lineheight;
+        base.OnFontUpdate();
+        caret.sizePixels.Y = Font.lineheight;
     }
 
     protected override void OnInputEvent(InputEvent e)
