@@ -2,7 +2,7 @@
     "NodeType" : "Pannel",
     "Name" : "Screen",
 
-    "backgroundColor" : [15, 0, 51],
+    "BackgroundColor" : [15, 0, 51],
 
     "Children" : 
     [
@@ -11,7 +11,7 @@
             "NodeType" : "Pannel",
             "Name" : "TopBar",
             
-            "backgroundColor" : [60, 42, 77],
+            "BackgroundColor" : [60, 42, 77],
             "sizePercent" : [1, 0],
             "sizePixels" : [0, 48],
             "anchor" : 1
@@ -31,7 +31,7 @@
                     "NodeType" : "Pannel",
                     "Name" : "LeftPannel",
                     
-                    "backgroundColor" : [80, 58, 101],
+                    "BackgroundColor" : [80, 58, 101],
                     "sizePercent" : [0.2, 1],
                     "anchor" : 6,
 
@@ -42,7 +42,7 @@
                             "NodeType" : "Pannel",
                             "Name" : "FileMananger",
 
-                            "backgroundColor" : [60, 42, 77],
+                            "BackgroundColor" : [60, 42, 77],
                             "anchor" : 4,
                             "sizePixels" : [-32, -32]
                         }
@@ -54,7 +54,7 @@
                     "NodeType" : "Pannel",
                     "Name" : "RightPannel",
                     
-                    "backgroundColor" : [80, 58, 101],
+                    "BackgroundColor" : [80, 58, 101],
                     "sizePercent" : [0.2, 1],
                     "anchor" : 8,
 
@@ -65,7 +65,7 @@
                             "NodeType" : "Pannel",
                             "Name" : "NodeMananger",
 
-                            "backgroundColor" : [60, 42, 77],
+                            "BackgroundColor" : [60, 42, 77],
                             "anchor" : 4,
                             "sizePixels" : [-32, -32]
                         }
@@ -89,7 +89,7 @@
                             "NodeType" : "Pannel",
                             "Name" : "Viewport",
 
-                            "backgroundColor" : [0, 0, 0],
+                            "BackgroundColor" : [0, 0, 0],
                             "sizePixels" : [0, -64],
                             "anchor" : 1,
 
@@ -111,7 +111,7 @@
                             "NodeType" : "Pannel",
                             "Name" : "BottomBar",
 
-                            "backgroundColor" : [60, 42, 77],
+                            "BackgroundColor" : [60, 42, 77],
                             "sizePercent" : [1, 0],
                             "sizePixels" : [0, 48],
                             "anchor" : 7

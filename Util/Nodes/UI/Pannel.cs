@@ -11,7 +11,15 @@ public class Pannel : NodeUI, ICanvasItem
 
     public bool Visible { get; set; } = true;
 
-    public Color backgroundColor = new(100, 100, 100, 0.9f);
+    private Color _bgColor = new(100, 100, 100, 0.9f);
+    public Color BackgroundColor
+    {
+        get { return _bgColor; }
+        set {
+            _bgColor = value;
+            mat.SetShaderParameter("backgroundColor", _bgColor);
+        }
+    }
 
     private Material mat = new();
     
@@ -64,6 +72,8 @@ public class Pannel : NodeUI, ICanvasItem
             
         DrawService.SetElementBufferData(RID, i);
 
+        mat.SetShaderParameter("backgroundColor", _bgColor);
+
     }
 
     protected override unsafe void Draw(double deltaT)
@@ -78,10 +88,8 @@ public class Pannel : NodeUI, ICanvasItem
         world *= Matrix4x4.CreateScale(1, -1, 1);
         var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
 
-        gl.UniformMatrix4(0, 1, true, (float*) &world);
-        gl.UniformMatrix4(1, 1, true, (float*) &proj);
-
-        gl.Uniform4(2, backgroundColor.GetAsNumerics());
+        mat.SetShaderParameter("world", world);
+        mat.SetShaderParameter("proj", proj);
 
         DrawService.Draw(RID);
     }

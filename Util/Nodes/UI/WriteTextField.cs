@@ -21,7 +21,7 @@ public class WriteTextField : Label
         caret.sizePercent = new();
         caret.sizePixels.X = 2;
         caret.sizePixels.Y = font.lineheight;
-        caret.backgroundColor = new(255, 255, 255);
+        caret.BackgroundColor = new(255, 255, 255);
     }
 
     protected override void Process(double deltaT)
