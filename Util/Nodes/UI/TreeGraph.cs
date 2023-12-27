@@ -111,7 +111,7 @@ public class TreeGraph : NodeUI
         {
             sizePercent = new(1, 0),
             sizePixels = new(0, 40),
-            backgroundColor = new(0,0,0,0f)
+            BackgroundColor = new(0,0,0,0f)
         };
         private TextureRect icon = new()
         {

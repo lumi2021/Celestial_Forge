@@ -204,10 +204,9 @@ public class PackagedScene : Resource
                     
                     if (i.Value is JArray) // Unpack custom values in arrays
                     {
-                        var obj = Activator.CreateInstance(
-                            field != null ? field.FieldType : prop!.PropertyType,
-                            i.Value.Values<float>().ToArray()
-                        );
+                        var obj = (field != null)?
+                        Activator.CreateInstance(field?.FieldType!, i.Value.Values<float>().ToArray()) :
+                        Activator.CreateInstance(prop?.PropertyType!, i.Value.Values<float>().ToArray());
                         
                         if (obj!=null) node.data.Add(i.Key, obj);
                     }
