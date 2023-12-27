@@ -58,5 +58,9 @@ public class Font : Resource
     {
         return glyphLoader.CreateStringTexture(s);
     }
+    public Character CreateChar(char c)
+    {
+        return glyphLoader.CreateChar(c);
+    }
 
 }

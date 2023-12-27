@@ -16,6 +16,12 @@ public class Engine
 
     public static NodeRoot root = new();
 
+    #region gl info
+
+    public readonly int gl_MaxTextureUnits;
+
+    #endregion
+
     public Engine()
     {
         var mainWin = new Util.Nodes.Window();
@@ -26,11 +32,14 @@ public class Engine
         mainWin.Title = "Game Engine";
         gl.ClearColor(1f, 1f, 1f, 1f);
 
+        // get GL info //
+        gl_MaxTextureUnits = gl.GetInteger(GLEnum.MaxTextureImageUnits);
+
+        // configurations //
         gl.Enable(EnableCap.Multisample);
         gl.Enable(EnableCap.ScissorTest);
         gl.Enable(EnableCap.Blend);
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
         
         var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
         mainWin.AddAsChild(scene);
@@ -68,11 +77,11 @@ public class Engine
 
     private void Run()
     {
-        /*
-        GAME LOOP PROCESS
-        */
+        /* GAME LOOP PROCESS */
 
-        Stopwatch stopwatch = new Stopwatch();
+        Stopwatch frameTime = new();
+        Stopwatch stopwatch = new();
+        frameTime.Start();
         stopwatch.Start();
 
         while (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
@@ -87,13 +96,19 @@ public class Engine
                 }
             }
 
-            double elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
-            double fps = 1.0 / elapsedSeconds;
-            stopwatch.Restart();
-
             WindowService.CallProcess();
 
-            Console.WriteLine(fps);
+            /* FPS COUNTER */
+
+            double elapsedSeconds = frameTime.Elapsed.TotalSeconds;
+            double fps = 1.0 / elapsedSeconds;
+            frameTime.Restart();
+
+            if (stopwatch.Elapsed.TotalSeconds >= 1)
+            {
+                stopwatch.Restart();
+                Console.Title = "fps: " + Math.Round(fps);
+            }
         }
     }
 

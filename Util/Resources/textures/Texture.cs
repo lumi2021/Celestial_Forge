@@ -52,6 +52,8 @@ public abstract class Texture : Resource
 
     public void Use() { Engine.gl.BindTexture(GLEnum.Texture2D, _textureId); }
 
+    public uint GetId() { return _textureId; }
+
     #pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
     public override void Dispose()
     {
