@@ -6,7 +6,6 @@
 
     "Children" : 
     [
-
         {
             "NodeType" : "Pannel",
             "Name" : "TopBar",
@@ -148,6 +147,15 @@
 
 
             ]
+            "ResourceType" : "Font",
+            "Path" : "Assets/Fonts/Calibri-regular.ttf",
+            "Size" : 18
+        },
+
+        {
+            "ResourceType" : "Font",
+            "Path" : "Assets/Fonts/DroidSansMono-regular.ttf",
+            "Size" : 18
         }
     ]
 }

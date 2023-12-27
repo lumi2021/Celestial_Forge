@@ -31,7 +31,8 @@ public class Engine
         gl.Enable(EnableCap.Blend);
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-        var scene = PackagedScene.Load("Data/Screens/editor.json").Instantiate();
+        
+        var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
         mainWin.AddAsChild(scene);
 
         var fileMan = scene.GetChild("Main/LeftPannel/FileMananger");
@@ -57,9 +58,7 @@ public class Engine
         a.AddItem("folder2", "script", b);
         a.AddItem("folder2", "script2", b);
 
-        /*
-        START RUN
-        */
+        /* START RUN */
         Run();
 
         // End program

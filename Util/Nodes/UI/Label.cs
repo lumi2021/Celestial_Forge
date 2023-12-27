@@ -42,7 +42,7 @@ public class Label : NodeUI, ICanvasItem
     private uint vPos = 0;
     private uint vUv = 0;
 
-    public Font font = new Font("Assets/Fonts/DroidSansMono-regular.ttf", 24);
+    public Font font = new Font("Assets/Fonts/calibri-regular.ttf", 24);
     protected override void Init_()
     {
 

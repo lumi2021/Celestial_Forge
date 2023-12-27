@@ -44,18 +44,17 @@ public class WriteTextField : Label
 
     protected override void OnInputEvent(InputEvent e)
     {
-        if (e is KeyboardInputEvent && ((KeyboardInputEvent)e).action != InputAction.Release)
+        if (e is KeyboardInputEvent @event && @event.action != InputAction.Release)
         {
-            var kbdEvent = (KeyboardInputEvent) e;
 
-            if (kbdEvent.key == Keys.Enter)
+            if (@event.key == Keys.Enter)
             {
                 AppendBeforeCursor("\n");
                 caretLine++;
                 caretRow = 0;
             }
 
-            else if (kbdEvent.key == Keys.Backspace)
+            else if (@event.key == Keys.Backspace)
             {
                 if (caretLine <= 0 && caretRow <= 0) return;
 
@@ -70,7 +69,7 @@ public class WriteTextField : Label
                 }
             }
         
-            else if (kbdEvent.key == Keys.Left)
+            else if (@event.key == Keys.Left)
             {
                 if (caretRow > 0)
                     caretRow--;
@@ -80,7 +79,7 @@ public class WriteTextField : Label
                     caretRow = (uint) _textLines[caretLine].Length;
                 }
             }
-            else if (kbdEvent.key == Keys.Right)
+            else if (@event.key == Keys.Right)
             {
                 if (caretRow < _textLines[caretLine].Length)
                     caretRow++;
@@ -90,7 +89,7 @@ public class WriteTextField : Label
                     caretRow = 0;
                 }
             }
-            else if (kbdEvent.key == Keys.Up)
+            else if (@event.key == Keys.Up)
             {
                 if (caretLine > 0)
                 {
@@ -98,7 +97,7 @@ public class WriteTextField : Label
                     caretRow = (uint) _textLines[caretLine].Length;
                 }
             }
-            else if (kbdEvent.key == Keys.Down)
+            else if (@event.key == Keys.Down)
             {
                 if (caretLine < _textLines.Length-1)
                 {
