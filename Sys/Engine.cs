@@ -37,7 +37,7 @@ public class Engine
 
         var fileMan = scene.GetChild("Main/LeftPannel/FileMananger");
 
-        var a = new TreeGraph() { ClipChildren = false };
+        var a = new TreeGraph() { ClipChildren = true };
         fileMan!.AddAsChild(a);
 
         var b = new SvgTexture();
@@ -68,11 +68,11 @@ public class Engine
 
     private void Run()
     {
-        /*
-        GAME LOOP PROCESS
-        */
+        /* GAME LOOP PROCESS */
 
-        Stopwatch stopwatch = new Stopwatch();
+        Stopwatch frameTime = new();
+        Stopwatch stopwatch = new();
+        frameTime.Start();
         stopwatch.Start();
 
         while (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
@@ -87,13 +87,19 @@ public class Engine
                 }
             }
 
-            double elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
-            double fps = 1.0 / elapsedSeconds;
-            stopwatch.Restart();
-
             WindowService.CallProcess();
 
-            Console.WriteLine(fps);
+            /* FPS COUNTER */
+
+            double elapsedSeconds = frameTime.Elapsed.TotalSeconds;
+            double fps = 1.0 / elapsedSeconds;
+            frameTime.Restart();
+
+            if (stopwatch.Elapsed.TotalSeconds >= 1)
+            {
+                stopwatch.Restart();
+                Console.Title = "fps: " + Math.Round(fps);
+            }
         }
     }
 
