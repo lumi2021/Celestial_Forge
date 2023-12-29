@@ -1,164 +1,152 @@
 {
-    "NodeTree" :
-    {
-        "NodeType" : "Pannel",
-        "Name" : "Screen",
+    "NodeType" : "Pannel",
+    "Name" : "Screen",
 
-        "backgroundColor" : [15, 0, 51],
+    "BackgroundColor" : [15, 0, 51],
 
-        "Children" : 
-        [
-
-            {
-                "NodeType" : "Pannel",
-                "Name" : "TopBar",
-                
-                "backgroundColor" : [60, 42, 77],
-                "sizePercent" : [1, 0],
-                "sizePixels" : [0, 48],
-                "anchor" : 1
-            },
-
-            {
-                "NodeType" : "NodeUI",
-                "Name" : "Main",
-                
-                "sizePixels" : [0, -64],
-                "anchor" : 6,
-
-                "Children" :
-                [
-
-                    {
-                        "NodeType" : "Pannel",
-                        "Name" : "LeftPannel",
-                        
-                        "backgroundColor" : [80, 58, 101],
-                        "sizePercent" : [0.2, 1],
-                        "anchor" : 6,
-
-                        "Children" :
-                        [
-
-                            {
-                                "NodeType" : "Pannel",
-                                "Name" : "FileMananger",
-
-                                "backgroundColor" : [60, 42, 77],
-                                "anchor" : 4,
-                                "sizePixels" : [-32, -32]
-                            }
-
-                        ]
-                    },
-
-                    {
-                        "NodeType" : "Pannel",
-                        "Name" : "RightPannel",
-                        
-                        "backgroundColor" : [80, 58, 101],
-                        "sizePercent" : [0.2, 1],
-                        "anchor" : 8,
-
-                        "Children" :
-                        [
-
-                            {
-                                "NodeType" : "Pannel",
-                                "Name" : "NodeMananger",
-
-                                "backgroundColor" : [60, 42, 77],
-                                "anchor" : 4,
-                                "sizePixels" : [-32, -32]
-                            }
-
-                        ]
-                    },
-
-                    {
-                        "NodeType" : "NodeUI",
-                        "Name" : "Center",
-                        
-                        "sizePercent" : [0.6, 1],
-                        "sizePixels" : [-32, 0],
-                        "positionPercent" : [0.2, 0],
-                        "positionPixels" : [16, 0],
-                        "anchor" : 6,
-
-                        "Children" : 
-                        [
-                            {
-                                "NodeType" : "Pannel",
-                                "Name" : "Viewport",
-
-                                "backgroundColor" : [0, 0, 0],
-                                "sizePixels" : [0, -64],
-                                "anchor" : 1,
-
-                                "Children" :
-                                [
-                                    {
-                                        "NodeType" : "WriteTextField",
-                                        "Name" : "CodeEditor",
-
-                                        "horisontalAligin" : 0,
-                                        "verticalAligin" : 0,
-
-                                        "color" : [255, 255, 255],
-
-                                        "Font" : 1
-                                    }
-                                ]
-                            },
-
-                            {
-                                "NodeType" : "Pannel",
-                                "Name" : "BottomBar",
-
-                                "backgroundColor" : [60, 42, 77],
-                                "sizePercent" : [1, 0],
-                                "sizePixels" : [0, 48],
-                                "anchor" : 7
-                            }
-                        ]
-                    },
-
-                    {
-                        "NodeType" : "DragHandler",
-                        "Name" : "LeftHandler",
-
-                        "nodeA" : "../LeftPannel",
-                        "nodeB" : "../Center",
-
-                        "positionPercent" : [0.2, 0],
-                        "nodeBSizeMin" : 300,
-                        "defaultColor" : [255, 255, 255, 0],
-                        "holdingColor" : [255, 255, 255, 0.3]
-                    },
-
-                    {
-                        "NodeType" : "DragHandler",
-                        "Name" : "RightHandler",
-
-                        "nodeA" : "../Center",
-                        "nodeB" : "../RightPannel",
-
-                        "positionPercent" : [0.8, 0],
-                        "positionPixels" : [-16, 0],
-                        "nodeASizeMin" : 300,
-                        "defaultColor" : [255, 255, 255, 0],
-                        "holdingColor" : [255, 255, 255, 0.3]
-                    }
-
-
-                ]
-            }
-        ]
-    },
-
-    "Resources" :
+    "Children" : 
     [
         {
+            "NodeType" : "Pannel",
+            "Name" : "TopBar",
+            
+            "BackgroundColor" : [60, 42, 77],
+            "sizePercent" : [1, 0],
+            "sizePixels" : [0, 48],
+            "anchor" : 1
+        },
+
+        {
+            "NodeType" : "NodeUI",
+            "Name" : "Main",
+            
+            "sizePixels" : [0, -64],
+            "anchor" : 6,
+
+            "Children" :
+            [
+
+                {
+                    "NodeType" : "Pannel",
+                    "Name" : "LeftPannel",
+                    
+                    "BackgroundColor" : [80, 58, 101],
+                    "sizePercent" : [0.2, 1],
+                    "anchor" : 6,
+
+                    "Children" :
+                    [
+
+                        {
+                            "NodeType" : "Pannel",
+                            "Name" : "FileMananger",
+
+                            "BackgroundColor" : [60, 42, 77],
+                            "anchor" : 4,
+                            "sizePixels" : [-32, -32]
+                        }
+
+                    ]
+                },
+
+                {
+                    "NodeType" : "Pannel",
+                    "Name" : "RightPannel",
+                    
+                    "BackgroundColor" : [80, 58, 101],
+                    "sizePercent" : [0.2, 1],
+                    "anchor" : 8,
+
+                    "Children" :
+                    [
+
+                        {
+                            "NodeType" : "Pannel",
+                            "Name" : "NodeMananger",
+
+                            "BackgroundColor" : [60, 42, 77],
+                            "anchor" : 4,
+                            "sizePixels" : [-32, -32]
+                        }
+
+                    ]
+                },
+
+                {
+                    "NodeType" : "NodeUI",
+                    "Name" : "Center",
+                    
+                    "sizePercent" : [0.6, 1],
+                    "sizePixels" : [-32, 0],
+                    "positionPercent" : [0.2, 0],
+                    "positionPixels" : [16, 0],
+                    "anchor" : 6,
+
+                    "Children" : 
+                    [
+                        {
+                            "NodeType" : "Pannel",
+                            "Name" : "Viewport",
+
+                            "BackgroundColor" : [0, 0, 0],
+                            "sizePixels" : [0, -64],
+                            "anchor" : 1,
+
+                            "Children" :
+                            [
+                                {
+                                    "NodeType" : "WriteTextField",
+                                    "Name" : "CodeEditor",
+
+                                    "horisontalAligin" : 0,
+                                    "verticalAligin" : 0,
+
+                                    "color" : [255, 255, 255]
+                                }
+                            ]
+                        },
+
+                        {
+                            "NodeType" : "Pannel",
+                            "Name" : "BottomBar",
+
+                            "BackgroundColor" : [60, 42, 77],
+                            "sizePercent" : [1, 0],
+                            "sizePixels" : [0, 48],
+                            "anchor" : 7
+                        }
+                    ]
+                },
+
+                {
+                    "NodeType" : "DragHandler",
+                    "Name" : "LeftHandler",
+
+                    "nodeA" : "../LeftPannel",
+                    "nodeB" : "../Center",
+
+                    "positionPercent" : [0.2, 0],
+                    "nodeBSizeMin" : 300,
+                    "defaultColor" : [255, 255, 255, 0],
+                    "holdingColor" : [255, 255, 255, 0.3]
+                },
+
+                {
+                    "NodeType" : "DragHandler",
+                    "Name" : "RightHandler",
+
+                    "nodeA" : "../Center",
+                    "nodeB" : "../RightPannel",
+
+                    "positionPercent" : [0.8, 0],
+                    "positionPixels" : [-16, 0],
+                    "nodeASizeMin" : 300,
+                    "defaultColor" : [255, 255, 255, 0],
+                    "holdingColor" : [255, 255, 255, 0.3]
+                }
+
+
+            ]
             "ResourceType" : "Font",
             "Path" : "Assets/Fonts/Calibri-regular.ttf",
             "Size" : 18
