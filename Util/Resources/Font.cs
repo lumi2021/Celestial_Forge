@@ -1,4 +1,5 @@
 using GameEngine.Text;
+using GameEngine.Util.Values;
 
 namespace GameEngine.Util.Resources;
 
@@ -30,6 +31,9 @@ public class Font : Resource
     public int fontheight;
     public int lineheight;
     public int ascender;
+
+    public byte[] AtlasData { get { return glyphLoader.AtlasData; } }
+    public Vector2<int> AtlasSize { get { return glyphLoader.AtlasSize; } }
 
     public Font() {}
     public Font(string path)

@@ -9,7 +9,12 @@ public class Material : Resource
 {
     private uint _program;
 
-    private readonly Dictionary<string, UniformSetted> uniforms = new();
+    private readonly Dictionary<string, UniformConfig> uniforms = new();
+
+    private Matrix4x4 projectionMatrix = Matrix4x4.Identity;
+    private Matrix4x4 worldMatrix = Matrix4x4.Identity;
+    private int projLoc = -1;
+    private int worldLoc = -1;
 
     public Material() {}
     public Material(string vs, string fs)
@@ -21,22 +26,26 @@ public class Material : Resource
 
         gl.UseProgram(_program);
 
-        // set uniforms
-        foreach (var i in uniforms)
+        foreach (var i in uniforms) SetUniform(i.Value);
+
+        // Set projection and world matrices
+        Engine.gl.UniformMatrix4(projLoc, 1, true, projectionMatrix.ToArray());
+        Engine.gl.UniformMatrix4(worldLoc, 1, true, worldMatrix.ToArray());
+    }
+    
+    private static void SetUniform(UniformConfig u)
+    {
+        var gl = Engine.gl;
+
+        switch (u.type)
         {
-            var v = i.Value;
+            case UniformType.FloatMat4:
+                gl.UniformMatrix4((int) u.loc, 1, true, ((Matrix4x4)u.data).ToArray());
+                break;
 
-            switch (v.type)
-            {
-                case UniformType.FloatMat4:
-                    gl.UniformMatrix4((int) v.loc, 1, true, ((Matrix4x4)v.data).ToArray());
-                    break;
-
-                case UniformType.FloatVec4:
-                    gl.Uniform4((int) v.loc, (Vector4) v.data);
-                    break;
-            }
-
+            case UniformType.FloatVec4:
+                gl.Uniform4((int) u.loc, (Vector4) u.data);
+                break;
         }
     }
 
@@ -77,6 +86,10 @@ public class Material : Resource
         gl.DetachShader(_program, fragmentShader);
         gl.DeleteShader(vertexShader);
         gl.DeleteShader(fragmentShader);
+
+        // get default information
+        projLoc = ULocation("projection");
+        worldLoc = ULocation("world");
     }
 
     public override void Dispose()
@@ -100,7 +113,7 @@ public class Material : Resource
                     "Error! Uniform {0} is of type {1} and can't accept type {2}",
                     name, t, value.GetType().Name));
 
-            var uni = new UniformSetted
+            var uni = new UniformConfig
             {
                 loc = (uint)loc,
                 data = value.GetAsNumerics(),
@@ -111,8 +124,10 @@ public class Material : Resource
                 uniforms[name] = uni;
             else uniforms.Add(name, uni);
 
+            SetUniform(uni);
+
         }
-        else throw new ApplicationException(string.Format( "Error! Uniform {0} don't exist!", name ));
+        else Console.WriteLine("Error! Uniform {0} don't exist!", name );
 
     }
     public void SetShaderParameter(string name, Matrix4x4 value)
@@ -130,7 +145,7 @@ public class Material : Resource
                     "Error! Uniform {0} is of type {1} and can't accept type {2}",
                     name, t.ToString(), value.GetType().Namespace));
 
-            var uni = new UniformSetted
+            var uni = new UniformConfig
             {
                 loc = (uint)loc,
                 data = value,
@@ -141,9 +156,22 @@ public class Material : Resource
                 uniforms[name] = uni;
             else uniforms.Add(name, uni);
 
+            SetUniform(uni);
+
         }
         else throw new ApplicationException(string.Format( "Error! Uniform {0} don't exist!", name ));
 
+    }
+
+    public void SetShaderProjectionMatrix(Matrix4x4 value)
+    {
+        projectionMatrix = value;
+        Engine.gl.UniformMatrix4(projLoc, 1, true, value.ToArray());
+    }
+    public void SetShaderWorldMatrix(Matrix4x4 value)
+    {
+        worldMatrix = value;
+        Engine.gl.UniformMatrix4(worldLoc, 1, true, value.ToArray());
     }
 
     public int ALocation(string name)
@@ -167,7 +195,7 @@ public class Material : Resource
     }
 
 
-    private struct UniformSetted
+    private struct UniformConfig
     {
         public uint loc;
         public UniformType type;
