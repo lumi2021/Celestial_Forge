@@ -19,7 +19,7 @@ public class WriteTextField : Label
         AddAsChild(caret);
         caret.sizePercent = new();
         caret.sizePixels.X = 2;
-        caret.sizePixels.Y = font.lineheight;
+        caret.sizePixels.Y = Font.lineheight;
         caret.BackgroundColor = new(255, 255, 255);
     }
 

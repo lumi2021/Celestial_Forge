@@ -1,29 +1,30 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FreeTypeSharp.Native;
+using GameEngine.Util.Values;
+using StbRectPackSharp;
 
 namespace GameEngine.Text;
 
 public struct Character
-    {
-
+{
     public Character() {}
 
     public byte[] Texture { get; set; } = Array.Empty<byte>();
 
-        public nint Advance { get; set; }
+    public nint Advance { get; set; }
 
-        public int OffsetX { get; set; }
-        public int OffsetY { get; set; }
+    public int OffsetX { get; set; }
+    public int OffsetY { get; set; }
 
-        public uint TexSizeX { get; set; }
-        public uint TexSizeY { get; set; }
+    public uint SizeX { get; set; }
+    public uint SizeY { get; set; }
 
-        public uint SizeX { get; set; }
-        public uint SizeY { get; set; }
+    public Vector2<uint> TexPosition { get; set; } = new();
+    public Vector2<uint> TexSize { get; set; } = new();
 
-        public char Char { get; set; }
-    }
+    public char Char { get; set; }
+}
 
 public class FreeType_TtfGlyphLoader
 {
@@ -45,6 +46,13 @@ public class FreeType_TtfGlyphLoader
     public float ResizeScale {get; private set;} = 1f;
 
     private Dictionary <char, Character> buffer = new Dictionary <char, Character>();
+
+    private int _textureSize = 128;
+    private byte[] _bufferTexture = new byte[128*128];
+    private Packer _packer = new(128, 128);
+
+    public byte[] AtlasData { get { return _bufferTexture; } }
+    public Vector2<int> AtlasSize { get { return new(_textureSize, _textureSize); } }
 
     public FreeType_TtfGlyphLoader(string font, uint size)
     {
@@ -125,9 +133,10 @@ public class FreeType_TtfGlyphLoader
                 ch.OffsetX = (int)(charoffsetx * ResizeScale);
                 ch.SizeX = (uint)(tt.bitmap.width * ResizeScale);
                 ch.SizeY = (uint)(tt.bitmap.rows * ResizeScale);
-                ch.TexSizeX = tt.bitmap.width;
-                ch.TexSizeY = tt.bitmap.rows;
+                ch.TexSize = new(tt.bitmap.width, tt.bitmap.rows);
                 ch.Char    = c;
+                ch.TexPosition = AddCharacterToTexture((int) tt.bitmap.width, (int) tt.bitmap.rows, bmp);
+
                 buffer.Add(c, ch);
             }
             else
@@ -153,6 +162,41 @@ public class FreeType_TtfGlyphLoader
             temp[i] = CreateChar(s[i]);
         
         return temp;
+    }
+
+    private Vector2<uint> AddCharacterToTexture(int width, int height, byte[] charBitmap)
+    {
+        bool canContinue;
+        uint iteration = 0;
+        do
+        {
+            if (iteration > 0 ) ResizeTexture();
+
+            var res = _packer.PackRect(width, height, null);
+            
+            if (res != null)
+            {
+                // Add character to the atlas
+                for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+
+                    _bufferTexture[((res.Y+y)*_textureSize) + res.X+x] = charBitmap[(y*width)+x];
+                
+
+                return new Vector2<uint>((uint) res.X, (uint) res.Y);
+            }
+            else canContinue = false;
+            
+
+            iteration++;            
+        } while (!canContinue);
+
+        return new();
+    }
+
+    private void ResizeTexture()
+    {
+
     }
 
 }

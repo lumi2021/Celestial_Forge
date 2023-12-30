@@ -37,9 +37,7 @@ public class Label : NodeUI, ICanvasItem
     public Aligin verticalAligin = Aligin.Start;
 
     private Material mat = new();
-
-    private uint vPos = 0;
-    private uint vUv = 0;
+    private BitmapTexture tex = new();
 
     private Font _font = new("Assets/Fonts/calibri-regular.ttf", 24);
     public Font Font
@@ -69,6 +67,7 @@ public class Label : NodeUI, ICanvasItem
         in vec2 aTextureCoord;
 
         in mat4 aWorldMatrix;
+        in mat4 aUvMatrix;
 
         uniform mat4 world;
         uniform mat4 proj;
@@ -78,7 +77,7 @@ public class Label : NodeUI, ICanvasItem
         void main()
         {
             gl_Position = vec4(aPosition, 0, 1.0) * aWorldMatrix * world * proj;
-            UV = aTextureCoord;
+            UV = (vec4(aTextureCoord, 0, 1.0) * aUvMatrix).xy;
         }";
         const string fragmentCode = @"
         #version 330 core
@@ -88,27 +87,31 @@ public class Label : NodeUI, ICanvasItem
         out vec4 out_color;
 
         uniform vec4 fontColor;
+        uniform sampler2D tex0;
 
         void main()
         {
-            //out_color.rgb = fontColor.rgb;
-            out_color = vec4(UV.x, UV.y, 0, 1);
+            out_color.rgb = fontColor.rgb;
+            out_color.a = texture(tex0, UV).r;
         }";
 
         mat.LoadShaders(vertexCode, fragmentCode);
 
-        vPos = DrawService.CreateBuffer(RID, "aPosition");
-        vUv =  DrawService.CreateBuffer(RID, "aTextureCoord");
-        vUv =  DrawService.CreateBuffer(RID, "aWorldMatrix");
+        DrawService.CreateBuffer(RID, "aPosition");
+        DrawService.CreateBuffer(RID, "aTextureCoord");
+
+        DrawService.CreateBuffer(RID, "aWorldMatrix");
+        DrawService.CreateBuffer(RID, "aUvMatrix");
             
         float[] v = new float[] {0f,0f, 1f,0f, 1f,1f, 0f,1f};
-        float[] tc = new float[] {0f,0f, 1f,0f, 1f,1f, 0f,1f};
 
         DrawService.SetBufferData(RID, "aPosition", v.ToArray(), 2);
-        DrawService.SetBufferData(RID, "aTextureCoord", tc.ToArray(), 2);
+        DrawService.SetBufferData(RID, "aTextureCoord", v.ToArray(), 2);
 
         DrawService.SetBufferData(RID, "aWorldMatrix", Matrix4x4.Identity.ToArray(), 16);
+        DrawService.SetBufferData(RID, "aUvMatrix", Matrix4x4.Identity.ToArray(), 16);
         DrawService.SetBufferAtribDivisor(RID, "aWorldMatrix", 1);
+        DrawService.SetBufferAtribDivisor(RID, "aUvMatrix", 1);
 
         DrawService.SetElementBufferData(RID, new uint[] {0,1,3, 1,2,3});
 
@@ -122,6 +125,7 @@ public class Label : NodeUI, ICanvasItem
         var gl = Engine.gl;
 
         mat.Use();
+        tex.Use();
 
         var world = Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
         world *= Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0));
@@ -131,6 +135,8 @@ public class Label : NodeUI, ICanvasItem
 
         gl.UniformMatrix4(0, 1, true, (float*) &world);
         gl.UniformMatrix4(1, 1, true, (float*) &proj);
+
+        mat.SetShaderParameter("fontColor", color);
 
         gl.PixelStore(GLEnum.UnpackAlignment, 1);
 
@@ -162,40 +168,44 @@ public class Label : NodeUI, ICanvasItem
             charsList = charsList.Append(Font.CreateStringTexture(ln)).ToArray();
         }
 
-        // Load characters texture
-        foreach (var i in Text.Distinct())
-        {
-            if (textures.ContainsKey(i)) continue;
+        // Load characters matrices
+        uint charCount = 0;
 
-            Character c = Font.CreateChar(i);
-            var texture = new BitmapTexture();
-            texture.Load(c.Texture, c.TexSizeX, c.TexSizeY);
-            textures.Add(i, texture);
-        }
-
-        // Load characters matrix
-        List<float> matrices = new();
+        List<float> world = new();
+        List<float> uv = new();
         int charPosX = 0;
+
+        float textureSize = Font.AtlasSize.X;
         for (int i = 0; i < charsList.Length; i++)
         {
             int charPosY = _font.lineheight * i;
 
             foreach (var j in charsList[i])
             {
-
                 var m = Matrix4x4.CreateScale(j.SizeX, j.SizeY, 1)
                 * Matrix4x4.CreateTranslation(charPosX + j.OffsetX, charPosY + j.OffsetY, 0);
-                matrices.AddRange(Matrix4x4.Transpose(m).ToArray());
+                world.AddRange(Matrix4x4.Transpose(m).ToArray());
+
+                var u = Matrix4x4.CreateScale(j.TexSize.X, j.TexSize.Y, 1)
+                * Matrix4x4.CreateTranslation(j.TexPosition.X, j.TexPosition.Y, 0)
+                * Matrix4x4.CreateOrthographic(textureSize*2,textureSize*2, -1f, 1f);
+                uv.AddRange(Matrix4x4.Transpose(u).ToArray());
 
                 charPosX += (int) j.Advance;
-
+                charCount++;
             }
 
             charPosX = 0;
         }
 
-        DrawService.SetBufferData(RID, "aWorldMatrix", matrices.ToArray(), 16);
-        DrawService.EnableInstancing(RID, (uint) (matrices.Count / 16));
+        DrawService.SetBufferData(RID, "aWorldMatrix", world.ToArray(), 16);
+        DrawService.SetBufferData(RID, "aUvMatrix", uv.ToArray(), 16);
+
+        DrawService.EnableInstancing(RID, charCount);
+    
+        // Update texture
+        var size = Font.AtlasSize;
+        tex.Load(Font.AtlasData, (uint) size.X, (uint) size.Y);
     }
 
 }

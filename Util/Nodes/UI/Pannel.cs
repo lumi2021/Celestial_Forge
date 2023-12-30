@@ -22,7 +22,8 @@ public class Pannel : NodeUI, ICanvasItem
     }
 
     private Material mat = new();
-    
+    private BitmapTexture tex = new();
+
     protected override void Init_()
     {
 
@@ -73,7 +74,6 @@ public class Pannel : NodeUI, ICanvasItem
         DrawService.SetElementBufferData(RID, i);
 
         mat.SetShaderParameter("backgroundColor", _bgColor);
-
     }
 
     protected override unsafe void Draw(double deltaT)
@@ -81,6 +81,7 @@ public class Pannel : NodeUI, ICanvasItem
         var gl = Engine.gl;
 
         mat.Use();
+        tex.Use();
 
         var world = Matrix4x4.CreateScale(Size.X, Size.Y, 1);
         world *= Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
