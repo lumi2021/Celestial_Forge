@@ -42,8 +42,7 @@ public class TreeGraph : NodeUI
 
     private void UpdateList()
     {
-        List<TreeGraphItem> toUpdate = new();
-        toUpdate.Add(_root);
+        List<TreeGraphItem> toUpdate = new() { _root };
 
         int listIndex = 0;
         while (toUpdate.Count > 0)
@@ -95,6 +94,16 @@ public class TreeGraph : NodeUI
                     return parent.Path + "/" + Name;
                 else
                     return Name;
+            }
+        }
+        public string[] ArrayPath
+        {
+            get
+            {
+                if (parent != null)
+                    return parent.ArrayPath.Append(Name).ToArray();
+                else
+                    return new string[] {Name};   
             }
         }
         public int Index
@@ -165,7 +174,7 @@ public class TreeGraph : NodeUI
             positionIndex = pIndex;
             container.positionPixels.Y = (int) (container.Size.Y * positionIndex);
 
-            int level = Path.Split('/').Length - 1;
+            int level = ArrayPath.Length - 1;
             container.positionPixels.X = 40 * level;
 
             if (_icon != null)

@@ -94,7 +94,17 @@
                                 "BackgroundColor" : [0, 0, 0],
                                 "sizePixels" : [0, -64],
                                 "anchor" : 1,
-                                "ClipChildren" : true
+                                "ClipChildren" : true,
+
+                                "Children" : 
+                                [
+                                    {
+                                        "NodeType" : "WriteTextField",
+                                        "Name" : "TextField",
+
+                                        "color" : [255, 255, 255]
+                                    }
+                                ]
                             },
 
                             {
