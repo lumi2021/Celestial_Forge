@@ -1,4 +1,6 @@
+using System.ComponentModel;
 using System.Diagnostics;
+using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
 using Silk.NET.OpenGL;
@@ -13,6 +15,8 @@ public class Engine
     public static IWindow window;
     public static GL gl;
     #pragma warning restore
+
+    public static ProjectSettings projectSettings = new();
 
     public static NodeRoot root = new();
 
@@ -40,6 +44,10 @@ public class Engine
         gl.Enable(EnableCap.ScissorTest);
         gl.Enable(EnableCap.Blend);
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+        /* configurate project settings */
+        projectSettings.projectLoaded = true;
+        projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
         
         var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
         mainWin.AddAsChild(scene);
@@ -51,26 +59,47 @@ public class Engine
 
         var b = new SvgTexture();
         var c = new SvgTexture();
-        b.LoadFromFile("Assets/Icons/script.svg", 200, 200);
+        var d = new SvgTexture();
+        b.LoadFromFile("Assets/Icons/textFile.svg", 200, 200);
         c.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
+        d.LoadFromFile("Assets/Icons/unknowFile.svg", 200, 200);
 
-        a.AddItem("", "folder1", c);
-        a.AddItem("", "folder2", c);
+        a.Root.Icon = c;
+        a.Root.Name = "Res://";
 
-        a.AddItem("folder1", "script", b);
-        a.AddItem("folder1", "script2", b);
+        /* // test here // */
 
-        a.AddItem("folder1", "folder", c);
-        a.AddItem("folder1/folder", "script", b);
-        a.AddItem("folder1/folder", "script2", b);
+        List<FileSystemInfo> itens = new();
+        itens.AddRange(FileService.GetDirectory("res://"));
 
-        a.AddItem("folder2", "script", b);
-        a.AddItem("folder2", "script2", b);
+        while (itens.Count > 0)
+        {
+            var i = itens[0];
+            itens.RemoveAt(0);
+
+            SvgTexture iconImage = d;
+
+            if (i.Extension == "")
+            {
+                iconImage = c;
+                itens.AddRange(FileService.GetDirectory(i.FullName));
+            }
+            else if (i.Extension == ".txt")
+                iconImage = b;
+
+            var path = FileService.GetProjRelativePath(i.FullName);
+            path = path[6..][..^i.Name.Length];
+
+            a.AddItem( path, i.Name, iconImage );
+        }
+
+        /* // test here // */
+
 
         /* START RUN */
         Run();
 
-        // End program
+        /* END PROGRAM */
         root.Free();
         gl.Dispose();
     }

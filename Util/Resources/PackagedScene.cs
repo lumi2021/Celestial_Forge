@@ -1,3 +1,4 @@
+using GameEngine.Sys;
 using GameEngine.Util.Nodes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,7 +21,7 @@ public class PackagedScene : Resource
 
     public static PackagedScene? Load(string path)
     {
-        var data = File.ReadAllText("../../../" + path);
+        var data = FileService.GetFile(path);
 
         var settings = new JsonSerializerSettings
         { Converters = { new PackagedSceneFileConverter() } };
