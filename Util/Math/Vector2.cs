@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace GameEngine.Util.Values;
 
 public struct Vector2<T> where T : struct
@@ -5,7 +7,7 @@ public struct Vector2<T> where T : struct
     public T X { get; set; }
     public T Y { get; set; }
 
-    public double Magnitude {
+    public readonly double Magnitude {
         get {
             double xDouble = Convert.ToDouble(X);
             double yDouble = Convert.ToDouble(Y);
@@ -27,7 +29,7 @@ public struct Vector2<T> where T : struct
         X = (T)Convert.ChangeType(data[0], typeof(T));
         Y = (T)Convert.ChangeType(data[1], typeof(T));
     }
-    public Vector2(System.Numerics.Vector2 numericsVector2)
+    public Vector2(Vector2 numericsVector2)
     {
         X = (T)Convert.ChangeType(numericsVector2.X, typeof(T));
         Y = (T)Convert.ChangeType(numericsVector2.Y, typeof(T));
@@ -38,9 +40,9 @@ public struct Vector2<T> where T : struct
         return new Vector2<T>(X, Y) / Magnitude;
     }
 
-    public System.Numerics.Vector2 GetAsNumerics()
+    public Vector2 GetAsNumerics()
     {
-        return new System.Numerics.Vector2((float)Convert.ToDouble(X), (float)Convert.ToDouble(Y));
+        return new Vector2((float)Convert.ToDouble(X), (float)Convert.ToDouble(Y));
     }
     public Silk.NET.Maths.Vector2D<float> GetAsSilkFloat()
     {
@@ -116,6 +118,8 @@ public struct Vector2<T> where T : struct
     {return DoMultiplication(a, b);}
     public static Vector2<T> operator * (Vector2<T> a, Vector2<T> b)
     {return DoVectorMultiplication(a, b);}
+    public static Vector2<T> operator * (Vector2<T> a, Matrix4x4 b)
+    {return DoMatrixMultiplication(a, b);}
     
     public static Vector2<T> operator / (Vector2<T> a, int b)
     {return DoDivision(a, b);}
@@ -182,6 +186,20 @@ public struct Vector2<T> where T : struct
         return new Vector2<T>(
             (T)Convert.ChangeType(x1/x2, typeof(T)),
             (T)Convert.ChangeType(y1/y2, typeof(T))
+        );
+    }
+
+    private static Vector2<T> DoMatrixMultiplication(Vector2<T> a, Matrix4x4 b)
+    {
+        Vector4 vec4 = new(
+            (float) Convert.ToDouble(a.X),
+            (float) Convert.ToDouble(a.Y),
+            0.0f, 1.0f
+        );
+        var result = Vector4.Transform(vec4, b);
+        return new(
+            (T)Convert.ChangeType(result.X, typeof(T)),
+            (T)Convert.ChangeType(result.Y, typeof(T))
         );
     }
 
