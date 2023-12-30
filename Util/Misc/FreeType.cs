@@ -196,7 +196,17 @@ public class FreeType_TtfGlyphLoader
 
     private void ResizeTexture()
     {
+        _textureSize *= 2;
+        _packer = new Packer(_textureSize, _textureSize);
+        _bufferTexture = new byte[_textureSize * _textureSize];
 
+        foreach (var i in buffer)
+        {
+            var v = i.Value;
+            v.TexPosition =
+            AddCharacterToTexture((int) v.TexSize.X, (int) v.TexSize.Y, v.Texture); 
+            buffer[i.Key] = v;
+        }
     }
 
 }

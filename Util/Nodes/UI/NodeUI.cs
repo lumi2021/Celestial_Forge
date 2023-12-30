@@ -25,8 +25,8 @@ public class NodeUI : Node , IClipChildren
     //Get parent size
     private Vector2<float> ParentSize {
         get {
-            Vector2<float> parentSize = new();
-
+            Vector2<float> parentSize;
+            
             if (parent != null && parent is NodeUI)
                 parentSize = (parent as NodeUI)!.Size;
             else

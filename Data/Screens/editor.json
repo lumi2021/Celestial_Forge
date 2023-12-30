@@ -94,14 +94,32 @@
                                 "BackgroundColor" : [0, 0, 0],
                                 "sizePixels" : [0, -64],
                                 "anchor" : 1,
-                                "ClipChildren" : true
+                                "ClipChildren" : true,
+
+                                "Children" : 
+                                [
+                                    {
+                                        "NodeType" : "Pannel",
+                                        "Name" : "test",
+
+                                        "BackgroundColor" : [255, 0, 0]
+                                    },
+                                    {
+                                        "NodeType" : "Label",
+                                        "Name" : "TextField",
+
+                                        "color" : [255, 255, 255],
+                                        "Text" : "This is a test!\nA aliginment test!\nEverything working fine!",
+                                        "Font" : 1
+                                    }
+                                ]
                             },
 
                             {
                                 "NodeType" : "Pannel",
                                 "Name" : "BottomBar",
 
-                                "BackgroundColor" : [60, 42, 77],
+                                "BackgroundColor" : [60, 42, 77, 0],
                                 "sizePercent" : [1, 0],
                                 "sizePixels" : [0, 48],
                                 "anchor" : 7
@@ -153,7 +171,7 @@
         {
             "ResourceType" : "Font",
             "Path" : "Assets/Fonts/DroidSansMono-regular.ttf",
-            "Size" : 18
+            "Size" : 30
         }
     ]
 }

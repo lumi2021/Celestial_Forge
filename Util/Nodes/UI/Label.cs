@@ -178,8 +178,16 @@ public class Label : NodeUI, ICanvasItem
         float textureSize = Font.AtlasSize.X;
         for (int i = 0; i < charsList.Length; i++)
         {
-            int charPosY = _font.lineheight * i;
-
+            #region charPosY switch
+            var charPosY = verticalAligin switch
+            {
+                Aligin.Center =>
+                (int)((Size.Y / 2) - (charsList.Length * _font.lineheight / 2) + _font.lineheight * i),
+                Aligin.End => // Don't ask why there's a +3 here, even i don't know ;)
+                (int)(Size.Y - ((charsList.Length+3) * _font.lineheight) + _font.lineheight * i),
+                _ => _font.lineheight * i
+            };
+            #endregion
             foreach (var j in charsList[i])
             {
                 var m = Matrix4x4.CreateScale(j.SizeX, j.SizeY, 1)
