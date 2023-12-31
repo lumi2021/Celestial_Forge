@@ -4,7 +4,7 @@ using GameEngine.Util.Values;
 
 namespace GameEngine.Util.Nodes;
 
-public class NodeUI : Node , IClipChildren
+public class NodeUI : Node, IClipChildren
 {
 
     public enum ANCHOR {
@@ -30,7 +30,7 @@ public class NodeUI : Node , IClipChildren
             if (parent != null && parent is NodeUI)
                 parentSize = (parent as NodeUI)!.Size;
             else
-                parentSize = new Vector2<float>(Engine.window.Size.X, Engine.window.Size.Y);
+                parentSize = new Vector2<float>(Engine.window.Size.X, Engine.window.Size.Y+1);
 
             return parentSize;
         }
@@ -41,7 +41,8 @@ public class NodeUI : Node , IClipChildren
     public Vector2<float> positionPercent = new(0,0);
     public Vector2<float> Position {
         get {
-            Vector2<float> parentPos = new();
+            Vector2<float> parentPos = new(0, -1);
+
             if (parent != null && parent is NodeUI)
                 parentPos = (parent as NodeUI)!.Position;
 
@@ -105,22 +106,14 @@ public class NodeUI : Node , IClipChildren
 
     public bool ClipChildren {get;set;} = false;
 
-    public void ConvertSizePercent2Pixels()
-    {
-        var ps = Size;
-
-        sizePixels = new((int)ps.X, (int)ps.Y);
-        sizePercent = new();
-    }
-
     public Rect GetClippingArea()
     {
         var rect = new Rect( 0, 0, Engine.window.Size.X, Engine.window.Size.Y );
         
         if (ClipChildren)
         {
-             rect.Position = Position;
-             rect.Size = Size;
+            rect.Position = Position;
+            rect.Size = Size;
         }
         
         if (parent is IClipChildren)

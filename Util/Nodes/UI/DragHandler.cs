@@ -20,7 +20,7 @@ public class DragHandler : NodeUI, ICanvasItem
     public uint nodeBSizeMin = 0;
     public uint nodeBSizeMax = 0;
 
-    private static Material mat = new();
+    private static Material mat = DrawService.Standard2DMaterial;
 
     public Color defaultColor = new(0.3f, 0.3f, 0.3f);
     public Color holdingColor = new(0.8f, 0.8f, 0.8f);
@@ -32,38 +32,6 @@ public class DragHandler : NodeUI, ICanvasItem
     {
 
         color = defaultColor;
-
-        const string vertexCode = @"
-        #version 330 core
-
-        in vec2 aPosition;
-        in vec2 aTextureCoord;
-
-        uniform mat4 world;
-        uniform mat4 proj;
-
-        out vec2 UV;
-
-        void main()
-        {
-            gl_Position = vec4(aPosition, 0, 1.0) * world * proj;
-            UV = aTextureCoord;
-        }";
-        const string fragmentCode = @"
-        #version 330 core
-
-        in vec2 UV;
-
-        out vec4 out_color;
-
-        uniform vec4 backgoundColor;
-
-        void main()
-        {
-            out_color = backgoundColor;
-        }";
-
-        mat.LoadShaders(vertexCode, fragmentCode);
 
         float[] v = new float[] { 0.0f,0.0f, 1.0f,0.0f, 1.0f,1.0f, 0.0f,1.0f };
         float[] uv = new float[] { 0f,0f, 1f,0f, 1f,1f, 0f,1f };
@@ -160,18 +128,17 @@ public class DragHandler : NodeUI, ICanvasItem
     {
         var gl = Engine.gl;
 
-        mat.Use();
+        mat.Use( RID );
 
         var world = Matrix4x4.CreateScale(Size.X, Size.Y, 1);
         world *= Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
         world *= Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0));
-        world *= Matrix4x4.CreateScale(1, -1, 1);
         var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
 
-        gl.UniformMatrix4(0, 1, true, (float*) &world);
-        gl.UniformMatrix4(1, 1, true, (float*) &proj);
+        mat.SetShaderWorldMatrix(world);
+        mat.SetShaderProjectionMatrix(proj);
 
-        gl.Uniform4(2, color.GetAsNumerics());
+        mat.SetShaderParameter(RID, "backgroundColor", color);
 
         DrawService.Draw(RID);
     }

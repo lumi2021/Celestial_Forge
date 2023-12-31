@@ -14,13 +14,11 @@ public unsafe class BitmapTexture : Texture
         LoadTextureBytes(bitmap, new(sizeX, sizeY));
     }
 
-    protected override void LoadTextureBytes(byte[] data, Vector2<uint> size, bool updateParams=true)
+    protected override void LoadTextureBytes(byte[] data, Vector2<uint> size)
     {
         var gl = Engine.gl;
 
         gl.BindTexture(GLEnum.Texture2D, _textureId);
-
-        if (updateParams) UpdateParameters();
     
         fixed (byte* buf = data)
         gl.TexImage2D(

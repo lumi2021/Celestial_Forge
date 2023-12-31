@@ -61,4 +61,19 @@ public struct Rect
         return nRect;
     }
 
+
+    public static Rect operator + (Rect a, Vector2<int> b) { return AddRectVector2(a, b); }
+    public static Rect operator + (Rect a, Vector2<float> b) { return AddRectVector2(a, b); }
+    public static Rect operator + (Rect a, Vector2<double> b) { return AddRectVector2(a, b); }
+
+    private static Rect AddRectVector2<T>(Rect a, Vector2<T> b) where T : struct
+    {
+        var nRect = a;
+
+        Vector2<double> v2 = new(Convert.ToDouble(b.X), Convert.ToDouble(b.Y));
+        nRect.Position += v2;
+
+        return nRect;
+    }
+
 }

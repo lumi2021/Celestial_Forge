@@ -14,19 +14,29 @@ public abstract class Texture : Resource
 
     public Vector2<uint> Size { get; protected set; }
 
+    private bool _filter = true;
+    public bool Filter
+    {
+        get { return _filter; }
+        set
+        {
+            _filter = value;
+            UpdateParameters();
+        }
+    }
+
 
     public Texture()
     {
         _textureId = Engine.gl.GenTexture();
+        UpdateParameters();
     }
 
-    protected virtual void LoadTextureBytes(byte[] data, Vector2<uint> size, bool updateParams=true)
+    protected virtual void LoadTextureBytes(byte[] data, Vector2<uint> size)
     {
         var gl = Engine.gl;
 
         gl.BindTexture(GLEnum.Texture2D, _textureId);
-
-        if (updateParams) UpdateParameters();
     
         gl.TexImage2D<byte>(
             GLEnum.Texture2D, 0, InternalFormat.Rgba,
@@ -44,10 +54,11 @@ public abstract class Texture : Resource
     {
         var gl = Engine.gl;
         gl.BindTexture(GLEnum.Texture2D, _textureId);
+
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, _filter ? (int)TextureMinFilter.Nearest : (int)TextureMinFilter.Linear);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, _filter ? (int)TextureMagFilter.Nearest : (int)TextureMagFilter.Linear);
     }
 
     public void Use() { Engine.gl.BindTexture(GLEnum.Texture2D, _textureId); }

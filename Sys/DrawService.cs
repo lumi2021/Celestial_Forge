@@ -1,6 +1,9 @@
+using System.Numerics;
 using System.Runtime.InteropServices;
+using GameEngine.Util;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
+using GameEngine.Util.Values;
 using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 
@@ -18,6 +21,17 @@ public static class DrawService
     public enum BufferUsage { Static, Dynamic, Stream };
 
     private static Dictionary<uint, ResourceDrawData> ResourceData = new();
+
+    /* Standard material reference */
+    public static readonly Material Standard2DMaterial;
+
+    static DrawService()
+    {
+        Standard2DMaterial = new(
+            FileService.GetFile("./Data/Shaders/standard2dMaterial.vert"),
+            FileService.GetFile("./Data/Shaders/standard2dMaterial.frag")
+        );
+    }
 
     public static void CreateCanvasItem(uint RID)
     {
@@ -233,6 +247,93 @@ public static class DrawService
     }
     #endregion
 
+    #region Operations with Shaders
+    public static void SetShaderParameter(uint RID, Material mat, string name, Color value)
+    {
+        ResourceDrawData res = ResourceData[RID];
+        int loc = mat.ULocation(name);
+
+        if (loc > 0)
+        {
+
+            UniformType t = mat.UType(name);
+
+            if (t != UniformType.FloatVec4)
+                throw new ApplicationException(string.Format(
+                    "Error! Uniform {0} is of type {1} and can't accept type {2}",
+                    name, t, value.GetType().Name));
+
+            var uni = new UniformConfig
+            {
+                loc = (uint)loc,
+                data = value.GetAsNumerics(),
+                type = t
+            };
+
+            if (res.shaderUniforms.ContainsKey(name))
+                res.shaderUniforms[name] = uni;
+            else res.shaderUniforms.Add(name, uni);
+        }
+        else Console.WriteLine("Error! Uniform {0} don't exist!", name );
+
+    }
+    public static void SetShaderParameter(uint RID, Material mat, string name, Matrix4x4 value)
+    {
+        ResourceDrawData res = ResourceData[RID];
+        int loc = mat.ULocation(name);
+
+        if (loc >= 0)
+        {
+
+            UniformType t = mat.UType(name);
+
+            if (t != UniformType.FloatMat4)
+                throw new ApplicationException(string.Format(
+                    "Error! Uniform {0} is of type {1} and can't accept type {2}",
+                    name, t.ToString(), value.GetType().Namespace));
+
+            var uni = new UniformConfig
+            {
+                loc = (uint)loc,
+                data = value,
+                type = t
+            };
+
+            if (res.shaderUniforms.ContainsKey(name))
+                res.shaderUniforms[name] = uni;
+            else res.shaderUniforms.Add(name, uni);
+
+            ResourceData[RID] = res;
+
+        }
+        else Console.WriteLine("Error! Uniform {0} don't exist!", name );
+
+    }
+
+    public static void UseShader(uint RID)
+    {
+        ResourceDrawData res = ResourceData[RID];
+        foreach (var i in res.shaderUniforms)
+        SetUniform(i.Value);
+    }
+
+    private static void SetUniform(UniformConfig u)
+    {
+        var gl = Engine.gl;
+
+        switch (u.type)
+        {
+            case UniformType.FloatMat4:
+                gl.UniformMatrix4((int) u.loc, 1, true, ((Matrix4x4)u.data).ToArray());
+                break;
+
+            case UniformType.FloatVec4:
+                gl.Uniform4((int) u.loc, (Vector4) u.data);
+                break;
+        }
+    }
+    #endregion
+
     public static unsafe void SetElementBufferData(uint RID, uint[] data, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
@@ -317,6 +418,8 @@ struct ResourceDrawData
     public uint elementsLength = 0;
     public uint instanceCount = 0;
 
+    public Dictionary<string, UniformConfig> shaderUniforms = new();
+
     // configs
     public bool useInstancing = false;
 
@@ -348,4 +451,10 @@ struct VertexData
     public uint divisions = 0;
 
     public VertexData() {}
+}
+struct UniformConfig
+{
+    public uint loc;
+    public UniformType type;
+    public object data;
 }

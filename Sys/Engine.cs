@@ -96,6 +96,9 @@ public class Engine
         /* // test here // */
 
 
+        /* START DRAW */
+        DrawService.Standard2DMaterial.Bind();
+
         /* START RUN */
         Run();
 

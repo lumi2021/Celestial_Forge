@@ -80,7 +80,7 @@
                         "Name" : "Center",
                         
                         "sizePercent" : [0.6, 1],
-                        "sizePixels" : [-32, 0],
+                        "sizePixels" : [-31, 0],
                         "positionPercent" : [0.2, 0],
                         "positionPixels" : [16, 0],
                         "anchor" : 6,
@@ -99,17 +99,12 @@
                                 "Children" : 
                                 [
                                     {
-                                        "NodeType" : "Pannel",
-                                        "Name" : "test",
-
-                                        "BackgroundColor" : [255, 0, 0]
-                                    },
-                                    {
                                         "NodeType" : "Label",
                                         "Name" : "TextField",
 
                                         "color" : [255, 255, 255],
                                         "Text" : "This is a test!\nA aliginment test!\nEverything working fine!",
+                                        "verticalAligin" : 0,
                                         "Font" : 1
                                     }
                                 ]
@@ -119,7 +114,7 @@
                                 "NodeType" : "Pannel",
                                 "Name" : "BottomBar",
 
-                                "BackgroundColor" : [60, 42, 77, 0],
+                                "BackgroundColor" : [60, 42, 77],
                                 "sizePercent" : [1, 0],
                                 "sizePixels" : [0, 48],
                                 "anchor" : 7

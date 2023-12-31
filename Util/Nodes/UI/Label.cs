@@ -36,7 +36,7 @@ public class Label : NodeUI, ICanvasItem
     public Aligin horisontalAligin = Aligin.Start;
     public Aligin verticalAligin = Aligin.Start;
 
-    private Material mat = new();
+    private Material mat = DrawService.Standard2DMaterial;
     private BitmapTexture tex = new();
 
     private Font _font = new("Assets/Fonts/calibri-regular.ttf", 24);
@@ -59,49 +59,11 @@ public class Label : NodeUI, ICanvasItem
 
         var gl = Engine.gl;
 
-        const string vertexCode = @"
-
-        #version 330 core
-
-        in vec2 aPosition;
-        in vec2 aTextureCoord;
-
-        in mat4 aWorldMatrix;
-        in mat4 aUvMatrix;
-
-        uniform mat4 world;
-        uniform mat4 proj;
-
-        out vec2 UV;
-
-        void main()
-        {
-            gl_Position = vec4(aPosition, 0, 1.0) * aWorldMatrix * world * proj;
-            UV = (vec4(aTextureCoord, 0, 1.0) * aUvMatrix).xy;
-        }";
-        const string fragmentCode = @"
-        #version 330 core
-
-        in vec2 UV;
-
-        out vec4 out_color;
-
-        uniform vec4 fontColor;
-        uniform sampler2D tex0;
-
-        void main()
-        {
-            out_color.rgb = fontColor.rgb;
-            out_color.a = texture(tex0, UV).r;
-        }";
-
-        mat.LoadShaders(vertexCode, fragmentCode);
-
         DrawService.CreateBuffer(RID, "aPosition");
         DrawService.CreateBuffer(RID, "aTextureCoord");
 
-        DrawService.CreateBuffer(RID, "aWorldMatrix");
-        DrawService.CreateBuffer(RID, "aUvMatrix");
+        DrawService.CreateBuffer(RID, "aInstanceWorldMatrix");
+        DrawService.CreateBuffer(RID, "aInstanceUvMatrix");
             
         float[] v = new float[] {0f,0f, 1f,0f, 1f,1f, 0f,1f};
 
@@ -118,25 +80,28 @@ public class Label : NodeUI, ICanvasItem
         DrawService.EnableAtributes(RID, mat);
 
         Font.FontUpdated += OnFontUpdate;
+
+        tex.Filter = true;
+
+        mat.SetShaderParameter(RID, "backgroundColor", new Color(1f, 0f, 0f, 1f));
     }
 
     protected override unsafe void Draw(double deltaT)
     {
         var gl = Engine.gl;
 
-        mat.Use();
+        mat.Use( RID );
         tex.Use();
 
         var world = Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
         world *= Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0));
-        world *= Matrix4x4.CreateScale(1, -1, 1);
 
         var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
 
-        gl.UniformMatrix4(0, 1, true, (float*) &world);
-        gl.UniformMatrix4(1, 1, true, (float*) &proj);
+        mat.SetShaderWorldMatrix(world);
+        mat.SetShaderProjectionMatrix(world);
 
-        mat.SetShaderParameter("fontColor", color);
+        mat.SetShaderParameter(RID, "backgroundColor", color);
 
         gl.PixelStore(GLEnum.UnpackAlignment, 1);
 
