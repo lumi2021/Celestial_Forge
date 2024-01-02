@@ -1,12 +1,13 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
-namespace GameEngine.Sys;
+namespace GameEngine.Core;
 
 public class Engine
 {
@@ -95,10 +96,6 @@ public class Engine
 
         /* // test here // */
 
-
-        /* START DRAW */
-        DrawService.Standard2DMaterial.Bind();
-
         /* START RUN */
         Run();
 
@@ -115,6 +112,7 @@ public class Engine
         Stopwatch stopwatch = new();
         frameTime.Start();
         stopwatch.Start();
+        List<double> fpsHistory = new();
 
         while (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
         {
@@ -134,12 +132,14 @@ public class Engine
 
             double elapsedSeconds = frameTime.Elapsed.TotalSeconds;
             double fps = 1.0 / elapsedSeconds;
+            fpsHistory.Add(fps);
             frameTime.Restart();
 
             if (stopwatch.Elapsed.TotalSeconds >= 1)
             {
                 stopwatch.Restart();
-                Console.Title = "fps: " + Math.Round(fps);
+                Console.Title = "fps: " + Math.Round(fpsHistory.ToArray().Average());
+                fpsHistory.Clear();
             }
         }
     }

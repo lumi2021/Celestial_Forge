@@ -1,13 +1,9 @@
-using System.Numerics;
 using System.Runtime.InteropServices;
 using GameEngine.Util;
-using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
-using GameEngine.Util.Values;
-using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 
-namespace GameEngine.Sys;
+namespace GameEngine.Core;
 
 public static class DrawService
 {
@@ -22,35 +18,28 @@ public static class DrawService
 
     private static Dictionary<uint, ResourceDrawData> ResourceData = new();
 
-    /* Standard material reference */
-    public static readonly Material Standard2DMaterial;
+    #region Gl Binded data
+    public static int GlBinded_ShaderProgram = -1;
+    #endregion
 
-    static DrawService()
+    public static void CreateCanvasItem(uint NID)
     {
-        Standard2DMaterial = new(
-            FileService.GetFile("./Data/Shaders/standard2dMaterial.vert"),
-            FileService.GetFile("./Data/Shaders/standard2dMaterial.frag")
-        );
+        ResourceData.Add(NID, new ResourceDrawData());
     }
 
-    public static void CreateCanvasItem(uint RID)
+    public static uint CreateBuffer(uint NID, string bufferName)
     {
-        ResourceData.Add(RID, new ResourceDrawData());
-    }
-
-    public static uint CreateBuffer(uint RID, string bufferName)
-    {
-        return ResourceData[RID].CreateBuffer(bufferName);
+        return ResourceData[NID].CreateBuffer(bufferName);
     }
 
     #region SetBufferData Methods
-    public static unsafe void SetBufferData(uint RID, string buffer, float[] data, int size, BufferUsage usage=BufferUsage.Static)
+    public static unsafe void SetBufferData(uint NID, string buffer, float[] data, int size, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
 
-        VertexData vertexData = ResourceData[RID].VertexBuffers[buffer];
+        VertexData vertexData = ResourceData[NID].VertexBuffers[buffer];
 
-        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindVertexArray(ResourceData[NID].VertexArray);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
 
         BufferUsageARB currentUsage = 
@@ -62,15 +51,15 @@ public static class DrawService
 
         vertexData.size = size;
         vertexData.type = typeof(float);
-        ResourceData[RID].VertexBuffers[buffer] = vertexData;
+        ResourceData[NID].VertexBuffers[buffer] = vertexData;
     }
-    public static unsafe void SetBufferData(uint RID, string buffer, double[] data, int size, BufferUsage usage=BufferUsage.Static)
+    public static unsafe void SetBufferData(uint NID, string buffer, double[] data, int size, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
 
-        VertexData vertexData = ResourceData[RID].VertexBuffers[buffer];
+        VertexData vertexData = ResourceData[NID].VertexBuffers[buffer];
 
-        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindVertexArray(ResourceData[NID].VertexArray);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
 
         BufferUsageARB currentUsage = 
@@ -82,15 +71,15 @@ public static class DrawService
 
         vertexData.size = size;
         vertexData.type = typeof(double);
-        ResourceData[RID].VertexBuffers[buffer] = vertexData;
+        ResourceData[NID].VertexBuffers[buffer] = vertexData;
     }
-    public static unsafe void SetBufferData(uint RID, string buffer, byte[] data, int size, BufferUsage usage=BufferUsage.Static)
+    public static unsafe void SetBufferData(uint NID, string buffer, byte[] data, int size, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
 
-        VertexData vertexData = ResourceData[RID].VertexBuffers[buffer];
+        VertexData vertexData = ResourceData[NID].VertexBuffers[buffer];
 
-        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindVertexArray(ResourceData[NID].VertexArray);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
 
         BufferUsageARB currentUsage = 
@@ -102,15 +91,15 @@ public static class DrawService
 
         vertexData.size = size;
         vertexData.type = typeof(byte);
-        ResourceData[RID].VertexBuffers[buffer] = vertexData;
+        ResourceData[NID].VertexBuffers[buffer] = vertexData;
     }
-    public static unsafe void SetBufferData(uint RID, string buffer, int[] data, int size, BufferUsage usage=BufferUsage.Static)
+    public static unsafe void SetBufferData(uint NID, string buffer, int[] data, int size, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
 
-        VertexData vertexData = ResourceData[RID].VertexBuffers[buffer];
+        VertexData vertexData = ResourceData[NID].VertexBuffers[buffer];
 
-        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindVertexArray(ResourceData[NID].VertexArray);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
 
         BufferUsageARB currentUsage = 
@@ -122,17 +111,17 @@ public static class DrawService
 
         vertexData.size = size;
         vertexData.type = typeof(int);
-        ResourceData[RID].VertexBuffers[buffer] = vertexData;
+        ResourceData[NID].VertexBuffers[buffer] = vertexData;
     }
     
-    public static unsafe void SetBufferData(uint RID, uint id, float[] data, int size, BufferUsage usage=BufferUsage.Static)
+    public static unsafe void SetBufferData(uint NID, uint id, float[] data, int size, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
 
-        var a = ResourceData[RID].VertexBuffers.ToArray()[id];
+        var a = ResourceData[NID].VertexBuffers.ToArray()[id];
         VertexData vertexData = a.Value;
 
-        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindVertexArray(ResourceData[NID].VertexArray);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
 
         BufferUsageARB currentUsage = 
@@ -144,16 +133,16 @@ public static class DrawService
 
         vertexData.size = size;
         vertexData.type = typeof(float);
-        ResourceData[RID].VertexBuffers[a.Key] = vertexData;
+        ResourceData[NID].VertexBuffers[a.Key] = vertexData;
     }
-    public static unsafe void SetBufferData(uint RID, uint id, double[] data, int size, BufferUsage usage=BufferUsage.Static)
+    public static unsafe void SetBufferData(uint NID, uint id, double[] data, int size, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
 
-        var a = ResourceData[RID].VertexBuffers.ToArray()[id];
+        var a = ResourceData[NID].VertexBuffers.ToArray()[id];
         VertexData vertexData = a.Value;
 
-        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindVertexArray(ResourceData[NID].VertexArray);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
 
         BufferUsageARB currentUsage = 
@@ -165,16 +154,16 @@ public static class DrawService
 
         vertexData.size = size;
         vertexData.type = typeof(double);
-        ResourceData[RID].VertexBuffers[a.Key] = vertexData;
+        ResourceData[NID].VertexBuffers[a.Key] = vertexData;
     }
-    public static unsafe void SetBufferData(uint RID, uint id, byte[] data, int size, BufferUsage usage=BufferUsage.Static)
+    public static unsafe void SetBufferData(uint NID, uint id, byte[] data, int size, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
 
-        var a = ResourceData[RID].VertexBuffers.ToArray()[id];
+        var a = ResourceData[NID].VertexBuffers.ToArray()[id];
         VertexData vertexData = a.Value;
 
-        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindVertexArray(ResourceData[NID].VertexArray);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
 
         BufferUsageARB currentUsage = 
@@ -186,16 +175,16 @@ public static class DrawService
 
         vertexData.size = size;
         vertexData.type = typeof(byte);
-        ResourceData[RID].VertexBuffers[a.Key] = vertexData;
+        ResourceData[NID].VertexBuffers[a.Key] = vertexData;
     }
-    public static unsafe void SetBufferData(uint RID, uint id, int[] data, int size, BufferUsage usage=BufferUsage.Static)
+    public static unsafe void SetBufferData(uint NID, uint id, int[] data, int size, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
 
-        var a = ResourceData[RID].VertexBuffers.ToArray()[id];
+        var a = ResourceData[NID].VertexBuffers.ToArray()[id];
         VertexData vertexData = a.Value;
 
-        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindVertexArray(ResourceData[NID].VertexArray);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, vertexData.bufferId);
 
         BufferUsageARB currentUsage = 
@@ -207,34 +196,34 @@ public static class DrawService
 
         vertexData.size = size;
         vertexData.type = typeof(int);
-        ResourceData[RID].VertexBuffers[a.Key] = vertexData;
+        ResourceData[NID].VertexBuffers[a.Key] = vertexData;
     }
     #endregion
 
     #region Operations with instances
-    public static void SetBufferAtribDivisor(uint RID, string buffer, uint divisor)
+    public static void SetBufferAtribDivisor(uint NID, string buffer, uint divisor)
     {
         var gl = Engine.gl;
 
-        VertexData vertexData = ResourceData[RID].VertexBuffers[buffer];
+        VertexData vertexData = ResourceData[NID].VertexBuffers[buffer];
         vertexData.divisions = divisor;
-        ResourceData[RID].VertexBuffers[buffer] = vertexData;
+        ResourceData[NID].VertexBuffers[buffer] = vertexData;
     }
-    public static void SetBufferAtribDivisor(uint RID, uint id, uint divisor)
+    public static void SetBufferAtribDivisor(uint NID, uint id, uint divisor)
     {
         var gl = Engine.gl;
 
-        var a = ResourceData[RID].VertexBuffers.ToArray()[id];
+        var a = ResourceData[NID].VertexBuffers.ToArray()[id];
         VertexData vertexData = a.Value;
         vertexData.divisions = divisor;
-        ResourceData[RID].VertexBuffers[a.Key] = vertexData;
+        ResourceData[NID].VertexBuffers[a.Key] = vertexData;
     }
     
-    public static void EnableInstancing(uint RID, uint instanceCount)
+    public static void EnableInstancing(uint NID, uint instanceCount)
     {
         var gl = Engine.gl;
 
-        var res = ResourceData[RID];
+        var res = ResourceData[NID];
 
         if (instanceCount > 0)
         {
@@ -243,104 +232,17 @@ public static class DrawService
         }
         else res.useInstancing = false;
 
-        ResourceData[RID] = res;
+        ResourceData[NID] = res;
     }
     #endregion
 
-    #region Operations with Shaders
-    public static void SetShaderParameter(uint RID, Material mat, string name, Color value)
-    {
-        ResourceDrawData res = ResourceData[RID];
-        int loc = mat.ULocation(name);
-
-        if (loc > 0)
-        {
-
-            UniformType t = mat.UType(name);
-
-            if (t != UniformType.FloatVec4)
-                throw new ApplicationException(string.Format(
-                    "Error! Uniform {0} is of type {1} and can't accept type {2}",
-                    name, t, value.GetType().Name));
-
-            var uni = new UniformConfig
-            {
-                loc = (uint)loc,
-                data = value.GetAsNumerics(),
-                type = t
-            };
-
-            if (res.shaderUniforms.ContainsKey(name))
-                res.shaderUniforms[name] = uni;
-            else res.shaderUniforms.Add(name, uni);
-        }
-        else Console.WriteLine("Error! Uniform {0} don't exist!", name );
-
-    }
-    public static void SetShaderParameter(uint RID, Material mat, string name, Matrix4x4 value)
-    {
-        ResourceDrawData res = ResourceData[RID];
-        int loc = mat.ULocation(name);
-
-        if (loc >= 0)
-        {
-
-            UniformType t = mat.UType(name);
-
-            if (t != UniformType.FloatMat4)
-                throw new ApplicationException(string.Format(
-                    "Error! Uniform {0} is of type {1} and can't accept type {2}",
-                    name, t.ToString(), value.GetType().Namespace));
-
-            var uni = new UniformConfig
-            {
-                loc = (uint)loc,
-                data = value,
-                type = t
-            };
-
-            if (res.shaderUniforms.ContainsKey(name))
-                res.shaderUniforms[name] = uni;
-            else res.shaderUniforms.Add(name, uni);
-
-            ResourceData[RID] = res;
-
-        }
-        else Console.WriteLine("Error! Uniform {0} don't exist!", name );
-
-    }
-
-    public static void UseShader(uint RID)
-    {
-        ResourceDrawData res = ResourceData[RID];
-        foreach (var i in res.shaderUniforms)
-        SetUniform(i.Value);
-    }
-
-    private static void SetUniform(UniformConfig u)
+    public static unsafe void SetElementBufferData(uint NID, uint[] data, BufferUsage usage=BufferUsage.Static)
     {
         var gl = Engine.gl;
 
-        switch (u.type)
-        {
-            case UniformType.FloatMat4:
-                gl.UniformMatrix4((int) u.loc, 1, true, ((Matrix4x4)u.data).ToArray());
-                break;
+        uint bufferId = ResourceData[NID].ElementBuffer;
 
-            case UniformType.FloatVec4:
-                gl.Uniform4((int) u.loc, (Vector4) u.data);
-                break;
-        }
-    }
-    #endregion
-
-    public static unsafe void SetElementBufferData(uint RID, uint[] data, BufferUsage usage=BufferUsage.Static)
-    {
-        var gl = Engine.gl;
-
-        uint bufferId = ResourceData[RID].ElementBuffer;
-
-        gl.BindVertexArray(ResourceData[RID].VertexArray);
+        gl.BindVertexArray(ResourceData[NID].VertexArray);
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, bufferId);
 
         BufferUsageARB currentUsage = 
@@ -350,20 +252,21 @@ public static class DrawService
         fixed(uint* buf = data)
         gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(data.Length * sizeof(uint)), buf, currentUsage);
 
-        var a = ResourceData[RID];
+        var a = ResourceData[NID];
         a.elementsLength = (uint) data.Length;
-        ResourceData[RID] = a;
+        ResourceData[NID] = a;
     }
     
-    public static unsafe void EnableAtributes(uint RID, Material material)
+    
+    public static unsafe void EnableAtributes(uint NID, Material material)
     {
         var gl = Engine.gl;
-        var res = ResourceData[RID];
+        var res = ResourceData[NID];
 
         foreach (var i in res.VertexBuffers)
         {
             gl.BindBuffer(BufferTargetARB.ArrayBuffer, i.Value.bufferId);
-            int iloc = material.ALocation(i.Key);
+            int iloc = material.GetALocation(i.Key);
             if (iloc < 0) continue;
 
             uint loc = (uint) iloc;
@@ -393,10 +296,10 @@ public static class DrawService
             }
         }
     }
-    
-    public static unsafe void Draw(uint RID)
+
+    public static unsafe void Draw(uint NID)
     {
-        var res = ResourceData[RID];
+        var res = ResourceData[NID];
         Engine.gl.BindVertexArray(res.VertexArray);
 
         if (!res.useInstancing)
@@ -417,8 +320,6 @@ struct ResourceDrawData
     public uint ElementBuffer = 0;
     public uint elementsLength = 0;
     public uint instanceCount = 0;
-
-    public Dictionary<string, UniformConfig> shaderUniforms = new();
 
     // configs
     public bool useInstancing = false;
@@ -451,10 +352,4 @@ struct VertexData
     public uint divisions = 0;
 
     public VertexData() {}
-}
-struct UniformConfig
-{
-    public uint loc;
-    public UniformType type;
-    public object data;
 }

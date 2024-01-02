@@ -1,5 +1,5 @@
 using System.Numerics;
-using GameEngine.Sys;
+using GameEngine.Core;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Values;
 using Silk.NET.GLFW;

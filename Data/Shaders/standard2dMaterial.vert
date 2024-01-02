@@ -13,7 +13,7 @@ in vec2 aPosition;
 in vec2 aTextureCoord;
 
 in mat4 aInstanceWorldMatrix;
-in mat4 aInstanceWorldMatrix;
+in mat4 aInstanceTexCoordMatrix;
 
 uniform mat4 world;
 uniform mat4 projection;
@@ -24,8 +24,8 @@ void main()
 {
     if (configDrawType == 2) // TEXT
     {
-        gl_Position = vec4(aPosition, 0, 1.0) * aWorldMatrix * world * projection;
-        UV = (vec4(aTextureCoord, 0, 1.0) * aUvMatrix).xy;
+        gl_Position = vec4(aPosition, 0, 1.0) * aInstanceWorldMatrix * world * projection;
+        UV = (vec4(aTextureCoord, 0, 1.0) * aInstanceTexCoordMatrix).xy;
     }
 
     else // OTHERS

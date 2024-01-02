@@ -1,5 +1,5 @@
 using System.Numerics;
-using GameEngine.Sys;
+using GameEngine.Core;
 using GameEngine.Text;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
@@ -36,7 +36,6 @@ public class Label : NodeUI, ICanvasItem
     public Aligin horisontalAligin = Aligin.Start;
     public Aligin verticalAligin = Aligin.Start;
 
-    private Material mat = DrawService.Standard2DMaterial;
     private BitmapTexture tex = new();
 
     private Font _font = new("Assets/Fonts/calibri-regular.ttf", 24);
@@ -59,38 +58,32 @@ public class Label : NodeUI, ICanvasItem
 
         var gl = Engine.gl;
 
-        DrawService.CreateBuffer(RID, "aPosition");
-        DrawService.CreateBuffer(RID, "aTextureCoord");
+        DrawService.CreateBuffer(NID, "aPosition");
+        DrawService.CreateBuffer(NID, "aTextureCoord");
 
-        DrawService.CreateBuffer(RID, "aInstanceWorldMatrix");
-        DrawService.CreateBuffer(RID, "aInstanceUvMatrix");
+        DrawService.CreateBuffer(NID, "aInstanceWorldMatrix");
+        DrawService.CreateBuffer(NID, "aInstanceUvMatrix");
             
         float[] v = new float[] {0f,0f, 1f,0f, 1f,1f, 0f,1f};
 
-        DrawService.SetBufferData(RID, "aPosition", v.ToArray(), 2);
-        DrawService.SetBufferData(RID, "aTextureCoord", v.ToArray(), 2);
+        DrawService.SetBufferData(NID, "aPosition", v.ToArray(), 2);
+        DrawService.SetBufferData(NID, "aTextureCoord", v.ToArray(), 2);
 
-        DrawService.SetBufferData(RID, "aWorldMatrix", Matrix4x4.Identity.ToArray(), 16);
-        DrawService.SetBufferData(RID, "aUvMatrix", Matrix4x4.Identity.ToArray(), 16);
-        DrawService.SetBufferAtribDivisor(RID, "aWorldMatrix", 1);
-        DrawService.SetBufferAtribDivisor(RID, "aUvMatrix", 1);
+        DrawService.SetBufferData(NID, "aInstanceWorldMatrix", Matrix4x4.Identity.ToArray(), 16);
+        DrawService.SetBufferData(NID, "aInstanceUvMatrix", Matrix4x4.Identity.ToArray(), 16);
+        DrawService.SetBufferAtribDivisor(NID, "aInstanceWorldMatrix", 1);
+        DrawService.SetBufferAtribDivisor(NID, "aInstanceUvMatrix", 1);
 
-        DrawService.SetElementBufferData(RID, new uint[] {0,1,3, 1,2,3});
-
-        DrawService.EnableAtributes(RID, mat);
+        DrawService.SetElementBufferData(NID, new uint[] {0,1,3, 1,2,3});
 
         Font.FontUpdated += OnFontUpdate;
 
         tex.Filter = true;
 
-        mat.SetShaderParameter(RID, "backgroundColor", new Color(1f, 0f, 0f, 1f));
     }
 
-    protected override unsafe void Draw(double deltaT)
+    protected override void Draw(double deltaT)
     {
-        var gl = Engine.gl;
-
-        mat.Use( RID );
         tex.Use();
 
         var world = Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
@@ -98,14 +91,7 @@ public class Label : NodeUI, ICanvasItem
 
         var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
 
-        mat.SetShaderWorldMatrix(world);
-        mat.SetShaderProjectionMatrix(world);
-
-        mat.SetShaderParameter(RID, "backgroundColor", color);
-
-        gl.PixelStore(GLEnum.UnpackAlignment, 1);
-
-        DrawService.Draw(RID);
+        DrawService.Draw(NID);
     }
 
     protected virtual void TextEdited()
@@ -171,10 +157,10 @@ public class Label : NodeUI, ICanvasItem
             charPosX = 0;
         }
 
-        DrawService.SetBufferData(RID, "aWorldMatrix", world.ToArray(), 16);
-        DrawService.SetBufferData(RID, "aUvMatrix", uv.ToArray(), 16);
+        DrawService.SetBufferData(NID, "aInstanceWorldMatrix", world.ToArray(), 16);
+        DrawService.SetBufferData(NID, "aInstanceUvMatrix", uv.ToArray(), 16);
 
-        DrawService.EnableInstancing(RID, charCount);
+        DrawService.EnableInstancing(NID, charCount);
     
         // Update texture
         var size = Font.AtlasSize;

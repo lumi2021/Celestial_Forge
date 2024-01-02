@@ -1,4 +1,4 @@
-using GameEngine.Sys;
+using GameEngine.Core;
 using GameEngine.Util.Interfaces;
 using static GameEngine.Util.Nodes.Window;
 using static GameEngine.Util.Nodes.Window.InputHandler;
@@ -10,7 +10,7 @@ public class Node
     /* System variables */
     private bool _freeled = false;
     private bool _isReady = false;
-    public readonly uint RID = 0;
+    public readonly uint NID = 0;
 
     /* Script & load variables */
     private Dictionary<string, object?> _fieldsToLoadWhenReady = new();
@@ -25,7 +25,6 @@ public class Node
     public string name = "";
 
     // FIXME optimaze these two if it's possible
-    // FIXME make _parentWin update when parent change
     private Window? _parentWin;
     protected Window? ParentWindow
     {
@@ -53,8 +52,8 @@ public class Node
 
     public Node()
     {
-        RID = ResourcesService.CreateNewResouce();
-        if (this is ICanvasItem) DrawService.CreateCanvasItem(RID);
+        NID = ResourcesService.CreateNewNode(this);
+        if (this is ICanvasItem) DrawService.CreateCanvasItem(NID);
         Init_();
     }
 
@@ -117,8 +116,7 @@ public class Node
     public void AddAsChild(Node node)
     {
         // Remove the node from the old parent if it as one
-        if (node.parent != null)
-            node.parent.children.Remove(node);
+        node.parent?.children.Remove(node);
 
         node.parent = this;
 
