@@ -36,9 +36,11 @@ public class Label : NodeUI, ICanvasItem
     public Aligin horisontalAligin = Aligin.Start;
     public Aligin verticalAligin = Aligin.Start;
 
-    private BitmapTexture tex = new();
+    private readonly BitmapTexture tex = new();
 
-    private Font _font = new("Assets/Fonts/calibri-regular.ttf", 24);
+    public Material material = new Material2D( Material2D.DrawTypes.Text );
+
+    private Font _font = new("Assets/Fonts/calibri.ttf", 18);
     public Font Font
     {
         get { return _font; }
@@ -62,7 +64,7 @@ public class Label : NodeUI, ICanvasItem
         DrawService.CreateBuffer(NID, "aTextureCoord");
 
         DrawService.CreateBuffer(NID, "aInstanceWorldMatrix");
-        DrawService.CreateBuffer(NID, "aInstanceUvMatrix");
+        DrawService.CreateBuffer(NID, "aInstanceTexCoordMatrix");
             
         float[] v = new float[] {0f,0f, 1f,0f, 1f,1f, 0f,1f};
 
@@ -70,26 +72,32 @@ public class Label : NodeUI, ICanvasItem
         DrawService.SetBufferData(NID, "aTextureCoord", v.ToArray(), 2);
 
         DrawService.SetBufferData(NID, "aInstanceWorldMatrix", Matrix4x4.Identity.ToArray(), 16);
-        DrawService.SetBufferData(NID, "aInstanceUvMatrix", Matrix4x4.Identity.ToArray(), 16);
+        DrawService.SetBufferData(NID, "aInstanceTexCoordMatrix", Matrix4x4.Identity.ToArray(), 16);
         DrawService.SetBufferAtribDivisor(NID, "aInstanceWorldMatrix", 1);
-        DrawService.SetBufferAtribDivisor(NID, "aInstanceUvMatrix", 1);
+        DrawService.SetBufferAtribDivisor(NID, "aInstanceTexCoordMatrix", 1);
 
         DrawService.SetElementBufferData(NID, new uint[] {0,1,3, 1,2,3});
 
         Font.FontUpdated += OnFontUpdate;
 
-        tex.Filter = true;
+        DrawService.EnableAtributes(NID, material);
+
+        tex.Filter = false;
 
     }
 
     protected override void Draw(double deltaT)
     {
         tex.Use();
+        material.Use();
 
         var world = Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
         world *= Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0));
 
         var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
+
+        material.SetTranslation(world);
+        material.SetProjection(proj);
 
         DrawService.Draw(NID);
     }
@@ -158,7 +166,7 @@ public class Label : NodeUI, ICanvasItem
         }
 
         DrawService.SetBufferData(NID, "aInstanceWorldMatrix", world.ToArray(), 16);
-        DrawService.SetBufferData(NID, "aInstanceUvMatrix", uv.ToArray(), 16);
+        DrawService.SetBufferData(NID, "aInstanceTexCoordMatrix", uv.ToArray(), 16);
 
         DrawService.EnableInstancing(NID, charCount);
     

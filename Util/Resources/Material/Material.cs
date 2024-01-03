@@ -1,4 +1,3 @@
-using System.Drawing;
 using System.Numerics;
 using GameEngine.Core;
 using GameEngine.Util.Values;
@@ -50,6 +49,7 @@ public abstract class Material : Resource
                 UniformType.Float       =>  typeof(float),
                 UniformType.Double      =>  typeof(double),
                 UniformType.FloatVec2   =>  typeof(Vector2<float>),
+                UniformType.FloatVec4   =>  typeof(Color),
                 UniformType.Bool        =>  typeof(bool),
                 UniformType.FloatMat4   =>  typeof(Matrix4x4),
                 UniformType.Sampler2D   =>  typeof(Texture),
@@ -83,7 +83,23 @@ public abstract class Material : Resource
 
     public virtual void Use()
     {
+        var gl = Engine.gl;
         _program.TryBind();
+
+        foreach (var i in _shaderUniforms)
+        {
+            if (i.Value.value == null) continue;
+
+            if (i.Value.type == typeof(int))
+                gl.Uniform1(i.Value.location, (int) i.Value.value);
+
+            else if (i.Value.type == typeof(Color))
+                gl.Uniform4(i.Value.location, ((Color)i.Value.value).GetAsNumerics());
+
+            else if (i.Value.type == typeof(Matrix4x4))
+                    Console.WriteLine("{0} is a Matrix!", i.Key);
+
+        }
     }
 
     public int GetULocation(string name)
@@ -99,18 +115,98 @@ public abstract class Material : Resource
         else return -1;
     }
 
-    public unsafe void SetUniform(string name, Matrix4x4 matrix)
+    public Uniform? GetUInformation(string name)
     {
-        Engine.gl.UniformMatrix4(GetULocation(name), 1, true, (float*) &matrix);
+        if (_shaderUniforms.ContainsKey(name))
+            return _shaderUniforms[name];
+        else return null;
     }
 
+    #region SetUniforms
+    public unsafe void SetUniform(string name, int value)
+    {
+        var uInfoRes = GetUInformation(name);
+       
+        if (uInfoRes.HasValue)
+        {
+            var uInfo = uInfoRes.Value;
+            
+            if (uInfo.type == typeof(int))
+            {
+                uInfo.value = value;
+                Engine.gl.Uniform1(uInfo.location, value);
 
-    protected struct Uniform
+                _shaderUniforms[name] = uInfo;
+            }
+            else throw new ApplicationException(
+                string.Format("Uniform {0} is of type {1} and can't use type {2}!",
+                name, uInfo.type.Name, typeof(int).Name)
+                );
+        }
+        else Console.WriteLine("Uniform \"{0}\" don't exist!", name);
+    }
+    public unsafe void SetUniform(string name, Color value)
+    {
+        var uInfoRes = GetUInformation(name);
+       
+        if (uInfoRes.HasValue)
+        {
+            var uInfo = uInfoRes.Value;
+            
+            if (uInfo.type == typeof(Color))
+            {
+                uInfo.value = value;
+                Engine.gl.Uniform4(uInfo.location, value.GetAsNumerics());
+
+                _shaderUniforms[name] = uInfo;
+            }
+            else throw new ApplicationException(
+                string.Format("Uniform {0} is of type {1} and can't use type {2}!",
+                name, uInfo.type.Name, typeof(Color).Name)
+                );
+        }
+        else Console.WriteLine("Uniform \"{0}\" don't exist!", name);
+    }
+    public unsafe void SetUniform(string name, Matrix4x4 matrix)
+    {
+        var uInfoRes = GetUInformation(name);
+       
+        if (uInfoRes.HasValue)
+        {
+            var uInfo = uInfoRes.Value;
+            
+            if (uInfo.type == typeof(Matrix4x4))
+            {
+                uInfo.value = matrix;
+                Engine.gl.UniformMatrix4(uInfo.location, 1, true, (float*) &matrix);
+
+                _shaderUniforms[name] = uInfo;
+            }
+            else throw new ApplicationException(
+                string.Format("Uniform {0} is of type {1} and can't use type {2}!",
+                name, uInfo.type.Name, typeof(Matrix4x4).Name)
+                );
+        }
+        else Console.WriteLine("Uniform \"{0}\" don't exist!", name);
+    }
+    
+    public unsafe void SetTranslation(Matrix4x4 matrix)
+    {
+        Engine.gl.UniformMatrix4(worldMatrixLocation, 1, true, (float*) &matrix);
+    }
+    public unsafe void SetProjection(Matrix4x4 matrix)
+    {
+        var m = Matrix4x4.CreateScale(1, -1, 1) * matrix;
+        Engine.gl.UniformMatrix4(projMatrixLocation, 1, true, (float*) &m);
+    }
+    #endregion
+
+    public struct Uniform
     {
         public int location;
         public int size;
         public Type type;
-        public object? Value;
+        public object? value;
     }
 
 }

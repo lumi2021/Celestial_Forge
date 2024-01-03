@@ -26,8 +26,8 @@ public class Material2D : Material
 
     public override void Use()
     {
-        Engine.gl.Uniform1(DrawTypeLocation, (int) DrawType);
         base.Use();
+        Engine.gl.Uniform1(DrawTypeLocation, (int) DrawType);
     }
 
 }

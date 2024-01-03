@@ -17,6 +17,7 @@ public class Pannel : NodeUI, ICanvasItem
         get { return _bgColor; }
         set {
             _bgColor = value;
+            material.SetUniform("color", _bgColor);
         }
     }
 
@@ -37,6 +38,8 @@ public class Pannel : NodeUI, ICanvasItem
         DrawService.SetElementBufferData(NID, i);
 
         DrawService.EnableAtributes(NID, material);
+
+        material.SetUniform("color", _bgColor);
     }
 
     protected override unsafe void Draw(double deltaT)
@@ -51,8 +54,8 @@ public class Pannel : NodeUI, ICanvasItem
 
         var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
 
-        material.SetUniform("world", world);
-        material.SetUniform("projection", proj);
+        material.SetTranslation(world);
+        material.SetProjection(proj);
 
         DrawService.Draw(NID);
     }

@@ -26,6 +26,8 @@ public class DragHandler : NodeUI, ICanvasItem
 
     private bool holding = false;
 
+    public Material material = new Material2D( Material2D.DrawTypes.SolidColor );
+
     protected override void Init_()
     {
 
@@ -42,6 +44,8 @@ public class DragHandler : NodeUI, ICanvasItem
         DrawService.SetBufferData(NID, "aTextureCoord", uv, 2);
             
         DrawService.SetElementBufferData(NID, i);
+
+        DrawService.EnableAtributes(NID, material);
 
     }
 
@@ -65,6 +69,8 @@ public class DragHandler : NodeUI, ICanvasItem
         else {
             color = defaultColor;
         }
+
+        material.SetUniform("color", color);
 
         if (holding && Input.IsActionJustReleased(MouseButton.Left))
         {
@@ -117,17 +123,22 @@ public class DragHandler : NodeUI, ICanvasItem
                 nodeB.sizePixels.X -= (int) d;
             }
         }
-        
+
     }
 
     protected override unsafe void Draw(double deltaT)
     {
         var gl = Engine.gl;
 
-        var world = Matrix4x4.CreateScale(Size.X, Size.Y, 1);
-        world *= Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
-        world *= Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0));
+        material.Use();
+
+        var world = Matrix4x4.CreateScale(Size.X, Size.Y, 1)
+        * Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0))
+        * Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0));
         var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
+
+        material.SetTranslation(world);
+        material.SetProjection(proj);
 
         DrawService.Draw(NID);
     }

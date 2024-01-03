@@ -11,6 +11,7 @@ public class TextureRect : NodeUI, ICanvasItem
     public bool Visible { get; set; } = true;
 
     public Texture? texture = null;
+    public Material material = new Material2D( Material2D.DrawTypes.Texture );
 
     protected override void Init_()
     {
@@ -27,16 +28,22 @@ public class TextureRect : NodeUI, ICanvasItem
             
         DrawService.SetElementBufferData(NID, i);
 
+        DrawService.EnableAtributes(NID, material);
+
     }
 
     protected override void Draw(double deltaT)
     {
         texture?.Use();
+        material.Use();
 
         var world = Matrix4x4.CreateScale(Size.X, Size.Y, 1);
         world *= Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
         world *= Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0));
         var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
+
+        material.SetTranslation(world);
+        material.SetProjection(proj);
 
         DrawService.Draw(NID);
     }

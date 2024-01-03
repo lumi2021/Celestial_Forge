@@ -4,11 +4,24 @@ uniform int configDrawType;
 
 in vec2 UV;
 
-out vec4 out_color;
-
 uniform vec4 color;
+uniform sampler2D texture;
+
+out vec4 out_color;
 
 void main()
 {
-    out_color = vec4(UV.x, UV.y, 0.5, 1);//backgroundColor;
+    if (configDrawType == 0) // Solid color
+        out_color = color;
+
+    else if (configDrawType == 1) // Texture
+        out_color = texture(texture, UV);
+
+    else if (configDrawType == 2) // Text
+    {
+        out_color.r = 1;
+        out_color.g = 1;
+        out_color.b = 1;
+        out_color.a = texture(texture, UV).r;
+    }
 }
