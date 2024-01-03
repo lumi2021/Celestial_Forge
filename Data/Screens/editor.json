@@ -159,14 +159,14 @@
     [
         {
             "ResourceType" : "Font",
-            "Path" : "Assets/Fonts/Calibri-regular.ttf",
+            "Path" : "Assets/Fonts/calibri.ttf",
             "Size" : 18
         },
 
         {
             "ResourceType" : "Font",
-            "Path" : "Assets/Fonts/DroidSansMono-regular.ttf",
-            "Size" : 30
+            "Path" : "Assets/Fonts/consola.ttf",
+            "Size" : 40
         }
     ]
 }

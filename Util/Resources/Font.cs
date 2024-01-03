@@ -8,9 +8,9 @@ public class Font : Resource
     public delegate void FontUpdatedEventHandler();
     public event FontUpdatedEventHandler? FontUpdated;
 
-    private FreeType_TtfGlyphLoader glyphLoader = new("../../../Assets/Fonts/calibri-regular.ttf", 24);
+    private FreeType_TtfGlyphLoader glyphLoader = new("../../../Assets/Fonts/calibri.ttf", 24);
     private uint _size = 24;
-    private string _path = "Assets/Fonts/calibri-regular.ttf";
+    private string _path = "Assets/Fonts/calibri.ttf";
 
     public uint Size
     {

@@ -2,7 +2,7 @@ using GameEngine.Util.Values;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
-namespace GameEngine.Sys;
+namespace GameEngine.Core;
 
 public static class WindowService
 {

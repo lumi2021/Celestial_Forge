@@ -1,6 +1,6 @@
 using System;
 
-namespace GameEngine.Sys;
+namespace GameEngine.Core;
 
 public static class FileService
 {
