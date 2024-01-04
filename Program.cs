@@ -1,4 +1,4 @@
-﻿using GameEngine.Sys;
+﻿using GameEngine.Core;
 
 namespace GameEngine;
 internal class Program

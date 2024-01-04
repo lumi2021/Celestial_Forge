@@ -39,17 +39,14 @@ public class FreeType_TtfGlyphLoader
     public int fontheight;
     public int lineheight;
     public int ascender;
-
-    private uint rSize;
     
     public uint Size {get; private set;}
-    public float ResizeScale {get; private set;} = 1f;
 
     private Dictionary <char, Character> buffer = new Dictionary <char, Character>();
 
-    private int _textureSize = 128;
-    private byte[] _bufferTexture = new byte[128*128];
-    private Packer _packer = new(128, 128);
+    private int _textureSize = 256;
+    private byte[] _bufferTexture = new byte[256*256];
+    private Packer _packer = new(256, 256);
 
     public byte[] AtlasData { get { return _bufferTexture; } }
     public Vector2<int> AtlasSize { get { return new(_textureSize, _textureSize); } }
@@ -58,17 +55,7 @@ public class FreeType_TtfGlyphLoader
     {
         if (!File.Exists(font)) throw new FileNotFoundException("Failed to load font file:" + font);
         
-        if (size < 24)
-        {
-            Size = size;
-            rSize = 48;
-            ResizeScale = size/48f;
-        }
-        else
-        {
-            Size = size;
-            rSize = size;
-        }
+        Size = size;
 
         int r1 = (int) FT.FT_Init_FreeType(out IntPtr libptr);
         if (r1!=0) throw new Exception("Failed to load FreeType library.");
@@ -77,14 +64,13 @@ public class FreeType_TtfGlyphLoader
         if (r2 != 0) throw new Exception("Failed to create font face.");
 
         face = Marshal.PtrToStructure<FT_FaceRec>(faceptr);
-        FT.FT_Set_Char_Size(faceptr, (int)rSize << 6, (int)rSize << 6, 96, 96);
-        FT.FT_Set_Pixel_Sizes(faceptr, rSize, rSize);
+        FT.FT_Set_Char_Size(faceptr, (int)Size << 6, (int)Size << 6, 96, 96);
 
-        ascender = (int) ((face.ascender >> 6) * ResizeScale);
-        descender = (int) ((face.descender >> 6) * ResizeScale);
-        fontheight = (int) (((face.height >> 6)*ResizeScale + descender + ascender) / 4);
-        yoffset = (int) (size - ascender * ResizeScale);
-        lineheight = fontheight + yoffset - (int)(descender*1.6f);
+        ascender = (int) (face.ascender >> 6);
+        descender = (int) (face.descender >> 6);
+        fontheight = (int) (((face.height >> 6) - descender + ascender) / 4);
+        yoffset = (int) (size - ascender);
+        lineheight = fontheight + yoffset - (int)(descender*1.8f);
         baseCharacter = CreateChar('a');
 
     }
@@ -115,7 +101,6 @@ public class FreeType_TtfGlyphLoader
             {
                 ch.Char = c;
                 buffer.Add(c, ch);
-                return ch;
             }
 
             if (c != ' ' && c != '\t')
@@ -128,14 +113,14 @@ public class FreeType_TtfGlyphLoader
                 Marshal.Copy(tt.bitmap.buffer, bmp, 0, bmp.Length);
 
                 ch.Texture = bmp;
-                ch.Advance = (nint)(tt.advance.x/64 * ResizeScale);
-                ch.OffsetY = (int)(charoffsety * ResizeScale) + yoffset;
-                ch.OffsetX = (int)(charoffsetx * ResizeScale);
-                ch.SizeX = (uint)(tt.bitmap.width * ResizeScale);
-                ch.SizeY = (uint)(tt.bitmap.rows * ResizeScale);
+                ch.Advance = tt.advance.x / 64;
+                ch.OffsetY = charoffsety + yoffset;
+                ch.OffsetX = charoffsetx;
+                ch.SizeX = tt.bitmap.width;
+                ch.SizeY = tt.bitmap.rows;
                 ch.TexSize = new(tt.bitmap.width, tt.bitmap.rows);
-                ch.Char    = c;
                 ch.TexPosition = AddCharacterToTexture((int) tt.bitmap.width, (int) tt.bitmap.rows, bmp);
+                ch.Char    = c;
 
                 buffer.Add(c, ch);
             }
@@ -196,7 +181,17 @@ public class FreeType_TtfGlyphLoader
 
     private void ResizeTexture()
     {
+        _textureSize *= 2;
+        _packer = new Packer(_textureSize, _textureSize);
+        _bufferTexture = new byte[_textureSize * _textureSize];
 
+        foreach (var i in buffer)
+        {
+            var v = i.Value;
+            v.TexPosition =
+            AddCharacterToTexture((int) v.TexSize.X, (int) v.TexSize.Y, v.Texture); 
+            buffer[i.Key] = v;
+        }
     }
 
 }
