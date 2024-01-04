@@ -31,9 +31,10 @@ public class Label : NodeUI, ICanvasItem
         }
     }
     protected Character[][] charsList = Array.Empty<Character[]>();
+    protected Vector2<int> TextSize = new(); 
 
     public Color color = new(0f, 0f, 0, 1f);
-    public Aligin horisontalAligin = Aligin.Start;
+    public Aligin horizontalAligin = Aligin.Start;
     public Aligin verticalAligin = Aligin.Start;
 
     private readonly BitmapTexture tex = new();
@@ -91,8 +92,29 @@ public class Label : NodeUI, ICanvasItem
         tex.Use();
         material.Use();
 
+        #region textPosY switch
+        var textPosY = verticalAligin switch
+        {
+            Aligin.Center =>
+            (int)(Size.Y / 2 - TextSize.Y / 2),
+            Aligin.End =>
+            (int)(Size.Y - TextSize.Y),
+            _ => 0
+        };
+        #endregion
+        #region textPosX switch
+        var textPosX = horizontalAligin switch
+        {
+            Aligin.Center =>
+            (int)(Size.X / 2 - TextSize.X / 2),
+            Aligin.End =>
+            (int)(Size.X - TextSize.X),
+            _ => 0
+        };
+        #endregion
+
         var world = Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
-        world *= Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0));
+        world *= Matrix4x4.CreateTranslation(new Vector3(textPosX + Position.X, textPosY + Position.Y, 0));
 
         var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
 
@@ -115,7 +137,6 @@ public class Label : NodeUI, ICanvasItem
     public void Show() { Visible = true; }
     public void Hide() { Visible = false; }
 
-
     private void ReconfigurateDraw()
     {
         charsList = Array.Empty<Character[]>();
@@ -127,6 +148,19 @@ public class Label : NodeUI, ICanvasItem
             charsList = charsList.Append(Font.CreateStringTexture(ln)).ToArray();
         }
 
+        // Load characters and text sizes
+        TextSize = new();
+        for (int i = 0; i < charsList.Length; i++)
+        {
+            int lineSize = 0;
+            foreach (var j in charsList[i])
+            {
+                lineSize += (int) j.Advance;
+                if (lineSize > TextSize.X) TextSize.X = lineSize;
+            }
+        }
+        TextSize.Y = _font.lineheight * charsList.Length;
+
         // Load characters matrices
         uint charCount = 0;
 
@@ -137,20 +171,22 @@ public class Label : NodeUI, ICanvasItem
         float textureSize = Font.AtlasSize.X;
         for (int i = 0; i < charsList.Length; i++)
         {
-            #region charPosY switch
-            var charPosY = verticalAligin switch
+            int carPosY = _font.lineheight * i;
+            int lineSize = 0;
+            //get line size
+            foreach (var j in charsList[i]) lineSize += (int) j.Advance;
+
+            int lineOffset = horizontalAligin switch
             {
-                Aligin.Center =>
-                (int)((Size.Y / 2) - (charsList.Length * _font.lineheight / 2) + _font.lineheight * i),
-                Aligin.End => // Don't ask why there's a +3 here, even i don't know ;)
-                (int)(Size.Y - ((charsList.Length+3) * _font.lineheight) + _font.lineheight * i),
-                _ => _font.lineheight * i
+                Aligin.Center   =>  (TextSize.X - lineSize) / 2,
+                Aligin.End      =>  TextSize.X - lineSize,
+                _               =>  0
             };
-            #endregion
+
             foreach (var j in charsList[i])
             {
                 var m = Matrix4x4.CreateScale(j.SizeX, j.SizeY, 1)
-                * Matrix4x4.CreateTranslation(charPosX + j.OffsetX, charPosY + j.OffsetY, 0);
+                * Matrix4x4.CreateTranslation(lineOffset + charPosX + j.OffsetX, carPosY + j.OffsetY, 0);
                 world.AddRange(Matrix4x4.Transpose(m).ToArray());
 
                 var u = Matrix4x4.CreateScale(j.TexSize.X, j.TexSize.Y, 1)
@@ -161,7 +197,7 @@ public class Label : NodeUI, ICanvasItem
                 charPosX += (int) j.Advance;
                 charCount++;
             }
-
+        
             charPosX = 0;
         }
 

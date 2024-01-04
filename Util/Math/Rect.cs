@@ -61,6 +61,20 @@ public struct Rect
         return nRect;
     }
 
+    public Rect InvertVerticallyIn(Rect rect)
+    {
+        float invertedX = X;
+        float invertedY = rect.Height - Y - Height;
+
+        return new(invertedX, invertedY, Width, Height);
+    }
+    public Rect InvertHorizontallyIn(Rect rect)
+    {
+        float invertedX = rect.Width - X - Width;
+        float invertedY = Y;
+
+        return new(invertedX, invertedY, Width, Height);
+    }
 
     public static Rect operator + (Rect a, Vector2<int> b) { return AddRectVector2(a, b); }
     public static Rect operator + (Rect a, Vector2<float> b) { return AddRectVector2(a, b); }
@@ -74,6 +88,11 @@ public struct Rect
         nRect.Position += v2;
 
         return nRect;
+    }
+
+    public override string ToString()
+    {
+        return string.Format("Rect(X {0}, Y {1}, W {2}, H {3})", X, Y, Width, Height);
     }
 
 }

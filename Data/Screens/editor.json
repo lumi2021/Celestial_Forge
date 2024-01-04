@@ -48,7 +48,6 @@
                                 "anchor" : 4,
                                 "sizePixels" : [-32, -32]
                             }
-
                         ]
                     },
 
@@ -104,7 +103,8 @@
 
                                         "color" : [255, 255, 255],
                                         "Text" : "This is a test!\nA aliginment test!\nEverything working fine!",
-                                        "verticalAligin" : 0,
+                                        "verticalAligin" : 1,
+                                        "horizontalAligin" : 1,
                                         "Font" : 1
                                     }
                                 ]
@@ -166,7 +166,7 @@
         {
             "ResourceType" : "Font",
             "Path" : "Assets/Fonts/consola.ttf",
-            "Size" : 40
+            "Size" : 18
         }
     ]
 }
