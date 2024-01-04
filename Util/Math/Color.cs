@@ -108,7 +108,7 @@ public struct Color
         return new Color(a.R / b.R, a.G / b.G, a.B / b.B, a.A / b.A);
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return string.Format("Col(R {0}, G {1}, B {2}, A {3})", red, green, blue, alpha);
     }

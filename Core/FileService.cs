@@ -1,6 +1,6 @@
 using System;
 
-namespace GameEngine.Sys;
+namespace GameEngine.Core;
 
 public static class FileService
 {
@@ -44,7 +44,7 @@ public static class FileService
 
         if (p.StartsWith("res://"))
             p = Engine.projectSettings.projectPath
-            + p.Substring(6);
+            + p[6..];
         
         else if (p.StartsWith("c:/") || p.StartsWith("C:/"))
             return p;

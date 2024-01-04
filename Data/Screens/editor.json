@@ -48,7 +48,6 @@
                                 "anchor" : 4,
                                 "sizePixels" : [-32, -32]
                             }
-
                         ]
                     },
 
@@ -80,7 +79,7 @@
                         "Name" : "Center",
                         
                         "sizePercent" : [0.6, 1],
-                        "sizePixels" : [-32, 0],
+                        "sizePixels" : [-31, 0],
                         "positionPercent" : [0.2, 0],
                         "positionPixels" : [16, 0],
                         "anchor" : 6,
@@ -94,7 +93,21 @@
                                 "BackgroundColor" : [0, 0, 0],
                                 "sizePixels" : [0, -64],
                                 "anchor" : 1,
-                                "ClipChildren" : true
+                                "ClipChildren" : true,
+
+                                "Children" : 
+                                [
+                                    {
+                                        "NodeType" : "Label",
+                                        "Name" : "TextField",
+
+                                        "color" : [255, 255, 255],
+                                        "Text" : "This is a test!\nA aliginment test!\nEverything working fine!",
+                                        "verticalAligin" : 1,
+                                        "horizontalAligin" : 1,
+                                        "Font" : 1
+                                    }
+                                ]
                             },
 
                             {
@@ -146,13 +159,13 @@
     [
         {
             "ResourceType" : "Font",
-            "Path" : "Assets/Fonts/Calibri-regular.ttf",
+            "Path" : "Assets/Fonts/calibri.ttf",
             "Size" : 18
         },
 
         {
             "ResourceType" : "Font",
-            "Path" : "Assets/Fonts/DroidSansMono-regular.ttf",
+            "Path" : "Assets/Fonts/consola.ttf",
             "Size" : 18
         }
     ]

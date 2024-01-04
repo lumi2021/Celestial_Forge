@@ -1,4 +1,5 @@
-using GameEngine.Sys;
+using System.Numerics;
+using GameEngine.Core;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Values;
 using Silk.NET.GLFW;
@@ -114,7 +115,8 @@ public class Window : Node
                 if (current.parent is IClipChildren)
                 {
                     var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
-                    gl.Scissor((int)clipRect.X, (int)clipRect.Y,(uint)clipRect.Width, (uint)clipRect.Height);
+                    clipRect = clipRect.InvertVerticallyIn( new(0, 0, Size.X, Size.Y) );
+                    gl.Scissor(clipRect);
                 }
 
                 // checks if it's visible and draw
