@@ -94,10 +94,10 @@ public abstract class Material : Resource
                 gl.Uniform1(i.Value.location, (int) i.Value.value);
 
             else if (i.Value.type == typeof(Color))
-                gl.Uniform4(i.Value.location, ((Color)i.Value.value).GetAsNumerics());
+                Engine.gl.UniformColor(i.Value.location, (Color) i.Value.value);
 
             else if (i.Value.type == typeof(Matrix4x4))
-                    Console.WriteLine("{0} is a Matrix!", i.Key);
+                Console.WriteLine("{0} is a Matrix!", i.Key);
 
         }
     }
@@ -156,7 +156,7 @@ public abstract class Material : Resource
             if (uInfo.type == typeof(Color))
             {
                 uInfo.value = value;
-                Engine.gl.Uniform4(uInfo.location, value.GetAsNumerics());
+                Engine.gl.UniformColor(uInfo.location, value);
 
                 _shaderUniforms[name] = uInfo;
             }

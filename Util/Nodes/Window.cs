@@ -116,7 +116,7 @@ public class Window : Node
                 {
                     var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
                     clipRect = clipRect.InvertVerticallyIn( new(0, 0, Size.X, Size.Y) );
-                    gl.Scissor((int)clipRect.X, (int)clipRect.Y,(uint)clipRect.Width, (uint)clipRect.Height);
+                    gl.Scissor(clipRect);
                 }
 
                 // checks if it's visible and draw
