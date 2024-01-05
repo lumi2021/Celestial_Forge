@@ -19,9 +19,7 @@ void main()
 
     else if (configDrawType == 2) // Text
     {
-        out_color.r = 1;
-        out_color.g = 1;
-        out_color.b = 1;
-        out_color.a = texture(texture, UV).r;
+        out_color.rgb = color.rgb;
+        out_color.a = texture(texture, UV).r * color.a;
     }
 }

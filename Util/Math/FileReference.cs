@@ -33,8 +33,14 @@ public struct FileReference
     {
         return !(left == right);
     }
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return base.GetHashCode();
     }
+
+    public override string ToString()
+    {
+        return string.Format("path(\"{0}\")", path);
+    }
+
 }

@@ -101,7 +101,7 @@
                                         "NodeType" : "Label",
                                         "Name" : "TextField",
 
-                                        "color" : [255, 255, 255],
+                                        "Color" : [255, 255, 255],
                                         "Text" : "This is a test!\nA aliginment test!\nEverything working fine!",
                                         "verticalAligin" : 1,
                                         "horizontalAligin" : 1,

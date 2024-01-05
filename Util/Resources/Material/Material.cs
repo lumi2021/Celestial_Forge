@@ -19,9 +19,9 @@ public abstract class Material : Resource
     protected int worldMatrixLocation;
     protected int projMatrixLocation;
 
-    public Material(string VertexPath, string FragmentPath)
+    public Material(string vertexPath, string fragmentPath, string? geometryPath=null)
     {
-        _program = GlShaderProgram.CreateOrGet(VertexPath, FragmentPath);
+        _program = GlShaderProgram.CreateOrGet(vertexPath, fragmentPath, geometryPath);
 
         int uniformsCount = Engine.gl.GetProgram(_program.Handler, GLEnum.ActiveUniforms);
         int attributCount = Engine.gl.GetProgram(_program.Handler, GLEnum.ActiveAttributes);
@@ -31,6 +31,7 @@ public abstract class Material : Resource
         worldMatrixLocation = GetULocation("world");
         projMatrixLocation  = GetULocation("projection");
     }
+    
     private void LoadUniforms(int count)
     {
         var gl = Engine.gl;

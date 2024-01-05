@@ -58,7 +58,6 @@ public class TreeGraph : NodeUI
         }
     }
 
-
     #region inner classes/strucs
 
     public class TreeGraphItem
@@ -137,7 +136,7 @@ public class TreeGraph : NodeUI
         private Label title = new()
         {
             verticalAligin = Label.Aligin.Center,
-            color = new(1f, 1f, 1f)
+            Color = new(1f, 1f, 1f)
         };
         /*******/
 

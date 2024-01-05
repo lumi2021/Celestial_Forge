@@ -1,18 +1,19 @@
 using GameEngine.Util;
 using GameEngine.Util.Resources;
-using Silk.NET.Core;
 
 namespace GameEngine.Core;
 
 public static class ResourceHeap
 {
 
+    #region shader programs
     private static List<GlShaderProgram> _GlShaderPrograms = new();
-    public static GlShaderProgram? GetShaderProgramReference(FileReference vs, FileReference fs)
+    public static GlShaderProgram? GetShaderProgramReference(FileReference vs, FileReference fs, FileReference? gs)
     {
         foreach (var i in _GlShaderPrograms)
-        if (i.vertexShader == vs && i.fragmentShader == fs)
+        if (i.vertexShader == vs && i.fragmentShader == fs && i.geometryShader == gs)
             return i;
+        
         return null;
     }
     public static void AddShaderProgramReference(GlShaderProgram program)
@@ -24,5 +25,6 @@ public static class ResourceHeap
         _GlShaderPrograms.Remove(program);
         program.Dispose();
     }
+    #endregion
 
 }
