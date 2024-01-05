@@ -1,4 +1,3 @@
-using System.Numerics;
 using GameEngine.Core;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Values;
@@ -47,6 +46,7 @@ public class Window : Node
         }
     }
 
+    private bool proceedInput = true;
 
     protected override void Init_()
     {
@@ -133,26 +133,45 @@ public class Window : Node
 
     private void OnInput(InputEvent e)
     {
-        List<Node> toEvent = new();
-        toEvent.AddRange(children);
+        List<Node> toIterate = new();
+        toIterate.AddRange(children);
 
-        while (toEvent.Count > 0)
+        List<Node> toEvent = new();
+
+        // Get ordered nodes list
+        while (toIterate.Count > 0)
         {
-            Node current = toEvent[0];
-            toEvent.RemoveAt(0);
+            Node current = toIterate[0];
+            toIterate.RemoveAt(0);
 
             if (current is Window) continue;
 
-            current.RunInputEvent(e);
+            toEvent.Add(current);
 
             for (int i = current.children.Count - 1; i >= 0; i--)
-                toEvent.Insert(0,  current.children[i]);
+                toIterate.Insert(0,  current.children[i]);
         }
+    
+        proceedInput = true;
+
+        // invert and iterate from top to bottom
+        toEvent.Reverse();
+        foreach(var i in toEvent)
+        {
+            i.RunInputEvent(e);
+            if (!proceedInput) break;
+        }
+
     }
 
     private void OnResize(Vector2D<int> size)
     {
         gl.Viewport(size);
+    }
+
+    public void SupressInputEvent()
+    {
+        proceedInput = false;
     }
 
     public override void Free(bool fromGC = false)
@@ -320,7 +339,7 @@ public class Window : Node
 
             var e = new MouseBtnInputEvent(
                 DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                button, action
+                button, action, GetMousePosition()
             );
 
             InputEventSender?.Invoke(e);
@@ -334,6 +353,16 @@ public class Window : Node
             public InputEvent(long timestamp)
             {
                 this.timestamp = timestamp;
+            }
+
+            protected virtual string GetDataAsString()
+            {
+                return string.Format("timestamp:\t{0};", timestamp);
+            }
+
+            public override string ToString()
+            {
+                return string.Format("{0}(\n{1}\n)",GetType().Name , GetDataAsString());
             }
         }
         public class KeyboardInputEvent : InputEvent
@@ -354,6 +383,17 @@ public class Window : Node
                 this.key = key;
                 this.action = action;
             }
+
+            protected override string GetDataAsString()
+            {
+                string bd = base.GetDataAsString();
+                return string.Format(
+                    "repeating:\t{0};\n" +
+                    "key:\t{1};\n" +
+                    "action:\t{2};\n",
+                    repeating, key, action
+                    ) + bd;
+            }
         }
         public class MouseInputEvent : InputEvent
         {
@@ -363,12 +403,25 @@ public class Window : Node
         {
             public readonly MouseButton button;
             public readonly InputAction action;
+            public readonly Vector2<int> position;
 
-            public MouseBtnInputEvent(long timestamp, MouseButton button, InputAction action)
+            public MouseBtnInputEvent(long timestamp, MouseButton button, InputAction action, Vector2<int> position)
             : base(timestamp)
             {
                 this.button = button;
                 this.action = action;
+                this.position = position;
+            }
+
+            protected override string GetDataAsString()
+            {
+                string bd = base.GetDataAsString();
+                return string.Format(
+                    "button:\t{0};\n" +
+                    "action:\t{1};\n" +
+                    "position:\t{2};\n",
+                    button, action, position
+                    ) + bd;
             }
         }
         public class MouseMoveInputEvent : MouseInputEvent
@@ -389,6 +442,18 @@ public class Window : Node
                 this.lastPosition = lastPosition;
                 this.positionDelta = positionDelta;
             }
+        
+            protected override string GetDataAsString()
+            {
+                string bd = base.GetDataAsString();
+                return string.Format(
+                    "position:\t{0};\n" +
+                    "last position:\t{1};\n",
+                    "delta:\t{2};\n",
+                    position, lastPosition, positionDelta
+                    ) + bd;
+            }
+
         }
         #endregion
     }

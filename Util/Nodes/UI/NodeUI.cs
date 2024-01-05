@@ -1,11 +1,15 @@
 using GameEngine.Core;
 using GameEngine.Util.Interfaces;
+using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
+using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
 public class NodeUI : Node, IClipChildren
 {
+    /* SIGNALS */
+    public Signal onClicked = new();
 
     public enum ANCHOR {
         TOP_LEFT,
@@ -106,6 +110,10 @@ public class NodeUI : Node, IClipChildren
 
     public bool ClipChildren {get;set;} = false;
 
+    // Mouse options
+    public enum MouseFilter {Block, Pass, Ignore}
+    public MouseFilter mouseFilter = MouseFilter.Block;
+
     public Rect GetClippingArea()
     {
         var rect = new Rect( 0, 0, Engine.window.Size.X, Engine.window.Size.Y );
@@ -120,6 +128,20 @@ public class NodeUI : Node, IClipChildren
             rect = rect.Intersection((parent as IClipChildren)!.GetClippingArea());
         
         return rect;
+    }
+
+    protected override void OnInputEvent(InputEvent e)
+    {
+        if (mouseFilter == MouseFilter.Ignore) return;
+
+        if (e is MouseBtnInputEvent @event)
+        if (@event.action == Silk.NET.GLFW.InputAction.Press)
+        if (new Rect(Position, Size).Intersects(@event.position))
+        {
+            Console.WriteLine("{0} was clicked!", name);
+            if (mouseFilter == MouseFilter.Block)
+                ParentWindow?.SupressInputEvent();
+        }
     }
 
 }

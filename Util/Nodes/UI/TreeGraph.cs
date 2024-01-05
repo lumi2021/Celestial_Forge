@@ -124,19 +124,22 @@ public class TreeGraph : NodeUI
         {
             sizePercent = new(1, 0),
             sizePixels = new(0, 40),
-            BackgroundColor = new(0,0,0,0f)
+            //BackgroundColor = new(0,0,0,0f),
+            mouseFilter = MouseFilter.Block
         };
         private TextureRect icon = new()
         {
             sizePercent = new(0,0),
             sizePixels = new(20, 20),
             positionPixels = new(10, 10),
-            Visible = false
+            Visible = false,
+            mouseFilter = MouseFilter.Ignore
         };
         private Label title = new()
         {
             verticalAligin = Label.Aligin.Center,
-            Color = new(1f, 1f, 1f)
+            Color = new(1f, 1f, 1f),
+            mouseFilter = MouseFilter.Ignore
         };
         /*******/
 
@@ -162,9 +165,8 @@ public class TreeGraph : NodeUI
         public void RemoveItem()
         {
             foreach (var i in children)
-            {
                 i.RemoveItem();
-            }
+            container.Free();
             parent?.children.Remove(this);
         }
     

@@ -59,9 +59,11 @@ public class Engine
         var b = new SvgTexture();
         var c = new SvgTexture();
         var d = new SvgTexture();
+        var e = new SvgTexture();
         b.LoadFromFile("Assets/Icons/textFile.svg", 200, 200);
         c.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
         d.LoadFromFile("Assets/Icons/unknowFile.svg", 200, 200);
+        e.LoadFromFile("Assets/Icons/AnviwWKey.svg", 200, 200);
 
         a.Root.Icon = c;
         a.Root.Name = "Res://";
@@ -70,6 +72,11 @@ public class Engine
 
         List<FileSystemInfo> itens = new();
         itens.AddRange(FileService.GetDirectory("res://"));
+        itens.Sort((a, b) => {
+            if (a.Extension == "" && b.Extension != "") return -1;
+            else if (a.Extension != "" && b.Extension == "") return 1;
+            else return 0;
+        });
 
         while (itens.Count > 0)
         {
@@ -82,9 +89,17 @@ public class Engine
             {
                 iconImage = c;
                 itens.AddRange(FileService.GetDirectory(i.FullName));
+                itens.Sort((a, b) => {
+                    if (a.Extension == "" && b.Extension != "") return -1;
+                    else if (a.Extension != "" && b.Extension == "") return 1;
+                    else return 0;
+                });
             }
             else if (i.Extension == ".txt")
                 iconImage = b;
+            
+            else if (i.Extension == ".forgec")
+                iconImage = e;
 
             var path = FileService.GetProjRelativePath(i.FullName);
             path = path[6..][..^i.Name.Length];

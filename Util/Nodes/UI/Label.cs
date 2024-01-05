@@ -4,7 +4,6 @@ using GameEngine.Text;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
-using Silk.NET.OpenGL;
 
 namespace GameEngine.Util.Nodes;
 
