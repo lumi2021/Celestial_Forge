@@ -3,7 +3,7 @@ using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
-public class WriteTextField : Label
+public class WriteTextField : TextField
 {
 
     private uint caretLine = 0;

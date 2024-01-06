@@ -90,7 +90,7 @@ public class FreeType_TtfGlyphLoader
 
     public Character CreateChar(char c)
     {
-        Character ch = new Character();
+        Character ch = new();
 
         try
         {
@@ -133,7 +133,8 @@ public class FreeType_TtfGlyphLoader
         }
         catch (Exception)
         {
-            buffer.Add(c, ch);
+            if (!buffer.ContainsKey(c))
+                buffer.Add(c, ch);
         }
 
         return ch;

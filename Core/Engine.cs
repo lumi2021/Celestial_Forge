@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using GameEngine.Util;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
@@ -18,6 +19,8 @@ public class Engine
     public static ProjectSettings projectSettings = new();
 
     public static NodeRoot root = new();
+
+    private TextField? textField;
 
     #region gl info
 
@@ -52,6 +55,7 @@ public class Engine
         mainWin.AddAsChild(scene);
 
         var fileMan = scene.GetChild("Main/LeftPannel/FileMananger");
+        textField = scene.GetChild("Main/Center/Viewport/TextField") as TextField;
 
         var a = new TreeGraph() { ClipChildren = true };
         fileMan!.AddAsChild(a);
@@ -104,7 +108,8 @@ public class Engine
             var path = FileService.GetProjRelativePath(i.FullName);
             path = path[6..][..^i.Name.Length];
 
-            a.AddItem( path, i.Name, iconImage );
+            var item = a.AddItem( path, i.Name, iconImage );
+            item?.OnClick.Connect(OnClick);
         }
 
         /* // test here // */
@@ -155,6 +160,12 @@ public class Engine
                 fpsHistory.Clear();
             }
         }
+    }
+
+    private void OnClick(object? from, dynamic[]? args)
+    {
+        var a = "res://" + ((TreeGraph.TreeGraphItem)from!).Path[7..];
+        textField!.Text = new FileReference(a).ReadAllFile();
     }
 
 }

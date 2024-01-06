@@ -7,7 +7,7 @@ using GameEngine.Util.Values;
 
 namespace GameEngine.Util.Nodes;
 
-public class Label : NodeUI, ICanvasItem
+public class TextField : NodeUI, ICanvasItem
 {
 
     public bool Visible { get; set; } = true;

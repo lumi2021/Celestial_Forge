@@ -119,15 +119,15 @@ public class TreeGraph : NodeUI
         public TreeGraphItem? parent = null;
         public List<TreeGraphItem> children = new();
 
-        /*******/
-        private Pannel container = new()
+        /* * * * * * */
+        private readonly Pannel container = new()
         {
             sizePercent = new(1, 0),
             sizePixels = new(0, 40),
-            //BackgroundColor = new(0,0,0,0f),
+            BackgroundColor = new(0,0,0,0f),
             mouseFilter = MouseFilter.Block
         };
-        private TextureRect icon = new()
+        private readonly TextureRect icon = new()
         {
             sizePercent = new(0,0),
             sizePixels = new(20, 20),
@@ -135,15 +135,17 @@ public class TreeGraph : NodeUI
             Visible = false,
             mouseFilter = MouseFilter.Ignore
         };
-        private Label title = new()
+        private readonly TextField title = new()
         {
-            verticalAligin = Label.Aligin.Center,
+            verticalAligin = TextField.Aligin.Center,
             Color = new(1f, 1f, 1f),
             mouseFilter = MouseFilter.Ignore
         };
-        /*******/
+        /* * * * * * */
 
         #endregion
+
+        public readonly Signal OnClick = new();
 
         public TreeGraphItem(TreeGraph graph)
         {
@@ -152,6 +154,8 @@ public class TreeGraph : NodeUI
             graph.AddAsChild(container);
             container.AddAsChild(icon);
             container.AddAsChild(title);
+
+            container.onClick.Connect((a,b) => OnClick.Emit(this));
         }
 
         public TreeGraphItem? GetChild(string[] path)

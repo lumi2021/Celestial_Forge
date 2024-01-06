@@ -9,7 +9,7 @@ namespace GameEngine.Util.Nodes;
 public class NodeUI : Node, IClipChildren
 {
     /* SIGNALS */
-    public Signal onClicked = new();
+    public readonly Signal onClick = new();
 
     public enum ANCHOR {
         TOP_LEFT,
@@ -138,7 +138,7 @@ public class NodeUI : Node, IClipChildren
         if (@event.action == Silk.NET.GLFW.InputAction.Press)
         if (new Rect(Position, Size).Intersects(@event.position))
         {
-            Console.WriteLine("{0} was clicked!", name);
+            onClick.Emit(this);
             if (mouseFilter == MouseFilter.Block)
                 ParentWindow?.SupressInputEvent();
         }
