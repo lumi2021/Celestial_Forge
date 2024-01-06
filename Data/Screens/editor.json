@@ -98,7 +98,7 @@
                                 "Children" : 
                                 [
                                     {
-                                        "NodeType" : "TextField",
+                                        "NodeType" : "WriteTextField",
                                         "Name" : "TextField",
 
                                         "Color" : [255, 255, 255],

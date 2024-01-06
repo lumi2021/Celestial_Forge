@@ -56,17 +56,7 @@ public class WriteTextField : TextField
 
             else if (@event.key == Keys.Backspace)
             {
-                if (caretLine <= 0 && caretRow <= 0) return;
-
-                if (caretRow > 0)
-                {
-                    RemoveBeforeCursor(1);
-                }
-                else {
-                    caretLine--;
-                    caretRow = (uint) _textLines[caretLine].Length;
-                    Console.WriteLine(caretRow);
-                }
+                RemoveBeforeCursor(1);
             }
         
             else if (@event.key == Keys.Left)
@@ -119,11 +109,57 @@ public class WriteTextField : TextField
     }
     protected void RemoveBeforeCursor(uint length)
     {
-        var line =  _textLines[caretLine];
-        _textLines[caretLine] =
-        line[..(int)(caretRow - length)] + line[(int)caretRow..];
-        Text = string.Join('\n', _textLines);
+        uint charsToRemove = length;
 
-        caretRow -= length;
+        while(charsToRemove > 0)
+        {
+            var line = _textLines[caretLine];
+            // Do it if charsToRemove is lower than the caret position
+            if (line[..(int)caretRow].Length >= charsToRemove)
+            {
+                _textLines[caretLine] =
+                line[..(int)(caretRow - charsToRemove)] + line[(int)caretRow..];
+                caretRow -= charsToRemove;
+                charsToRemove = 0;
+            }
+            // Do it if charsToRemove is higher than the caret position and there's no lines before
+            else if (caretLine <= 0)
+            {
+                int toRemove = line[..(int)caretRow].Length;
+                _textLines[caretLine] = line[toRemove..];
+
+                caretRow = 0;
+                charsToRemove = 0;
+            }
+            // Do it if charsToRemove is higher than the caret position and there's a line before
+            else {
+                if (caretRow <= 0) // remove this line and continue in the next
+                {
+                    var nextCarretRow =  _textLines[caretLine-1].Length;
+
+                    _textLines[caretLine-1] += line[(int)caretRow..];
+                    var linesList = _textLines.ToList();
+                    linesList.RemoveAt((int) caretLine);
+                    _textLines = linesList.ToArray();
+
+                    caretLine--;
+
+                    caretRow = (uint) nextCarretRow;
+                }
+                else
+                {
+                    int toRemove = line[..(int)caretRow].Length;
+
+                    _textLines[caretLine] = line[toRemove..];
+
+                    charsToRemove -= (uint) toRemove;
+                    caretRow -= (uint) toRemove;
+                }
+
+            }
+        }
+
+        Text = string.Join('\n', _textLines);
     }
+
 }

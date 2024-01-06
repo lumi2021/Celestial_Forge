@@ -142,8 +142,12 @@ public class FreeType_TtfGlyphLoader
 
     public Character[] CreateStringTexture(string s)
     {
-        var temp = new Character[s.Length];
+        // check if all characters are inside the buffer
+        // if not, iterate to create JUST the characters that are not in the buffer
+        var notInBuffer = s.Distinct().Where(e => !buffer.ContainsKey(e)).ToArray();
+        foreach (var i in notInBuffer) CreateChar(i);
 
+        var temp = new Character[s.Length];
         for (int i = 0; i < s.Length; i++)
             temp[i] = CreateChar(s[i]);
         
