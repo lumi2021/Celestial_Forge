@@ -66,9 +66,9 @@ public class FreeType_TtfGlyphLoader
         face = Marshal.PtrToStructure<FT_FaceRec>(faceptr);
         FT.FT_Set_Char_Size(faceptr, (int)Size << 6, (int)Size << 6, 96, 96);
 
-        ascender = (int) (face.ascender >> 6);
-        descender = (int) (face.descender >> 6);
-        fontheight = (int) (((face.height >> 6) - descender + ascender) / 4);
+        ascender = face.ascender >> 6;
+        descender = face.descender >> 6;
+        fontheight = ((face.height >> 6) - descender + ascender) / 4;
         yoffset = (int) (size - ascender);
         lineheight = fontheight + yoffset - (int)(descender*1.8f);
         baseCharacter = CreateChar('a');

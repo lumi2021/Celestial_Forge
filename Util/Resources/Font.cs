@@ -52,6 +52,7 @@ public class Font : Resource
         glyphLoader = new("../../../" + path, size);
         descender = glyphLoader.descender;
         fontheight = glyphLoader.fontheight;
+        Console.WriteLine(fontheight);
         lineheight = glyphLoader.lineheight;
         ascender = glyphLoader.ascender;
 

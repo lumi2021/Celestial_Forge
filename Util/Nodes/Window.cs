@@ -152,10 +152,22 @@ public class Window : Node
                 toIterate.Insert(0,  current.children[i]);
         }
     
-        proceedInput = true;
-
         // invert and iterate from top to bottom
         toEvent.Reverse();
+
+        // UI event
+        proceedInput = true;
+        foreach(var i in toEvent.Where(e => e is NodeUI))
+        {
+            var a = i as NodeUI;
+            if (a is not ICanvasItem || (a as ICanvasItem)!.Visible)
+                a!.RunUIInputEvent(e);
+            
+            if (!proceedInput) break;
+        }
+        
+        // default unhandled event
+        proceedInput = true;
         foreach(var i in toEvent)
         {
             i.RunInputEvent(e);

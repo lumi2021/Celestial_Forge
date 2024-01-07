@@ -130,7 +130,11 @@ public class NodeUI : Node, IClipChildren
         return rect;
     }
 
-    protected override void OnInputEvent(InputEvent e)
+    public void RunUIInputEvent(InputEvent e)
+    {
+        OnUIInputEvent(e);
+    }
+    protected virtual void OnUIInputEvent(InputEvent e)
     {
         if (mouseFilter == MouseFilter.Ignore) return;
 
@@ -143,5 +147,4 @@ public class NodeUI : Node, IClipChildren
                 ParentWindow?.SupressInputEvent();
         }
     }
-
 }
