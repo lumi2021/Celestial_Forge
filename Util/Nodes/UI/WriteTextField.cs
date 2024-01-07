@@ -10,7 +10,7 @@ public class WriteTextField : TextField
     private uint caretRow = 0;
     //private uint caretRowMax = 0;
 
-    private Pannel caret = new();
+    private readonly Pannel caret = new();
 
     protected override void Init_()
     {
@@ -18,7 +18,6 @@ public class WriteTextField : TextField
 
         AddAsChild(caret);
         caret.sizePercent = new();
-        caret.sizePixels.X = 2;
         caret.sizePixels.Y = Font.lineheight;
         caret.BackgroundColor = new(255, 255, 255);
     }
@@ -39,7 +38,18 @@ public class WriteTextField : TextField
     protected override void OnFontUpdate()
     {
         base.OnFontUpdate();
-        caret.sizePixels.Y = Font.lineheight;
+        caret.sizePixels.Y = Font.fontheight;
+    }
+    protected override void TextEdited()
+    {
+        base.TextEdited();
+        if (_textLines.Length < caretLine)
+        {
+            caretRow = (uint) _textLines.Length;
+            caretRow = (uint) _textLines[caretLine].Length;
+        }
+        else if (_textLines[caretLine].Length < caretRow)
+            caretRow = (uint) _textLines[caretLine].Length;
     }
 
     protected override void OnInputEvent(InputEvent e)

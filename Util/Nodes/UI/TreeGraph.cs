@@ -40,7 +40,7 @@ public class TreeGraph : NodeUI
         return null;
     }
 
-    private void UpdateList()
+    public void UpdateList()
     {
         List<TreeGraphItem> toUpdate = new() { _root };
 
@@ -53,8 +53,9 @@ public class TreeGraph : NodeUI
             current.Update(listIndex);
             listIndex++;
 
-            for (int i = current.children.Count - 1; i >= 0; i--)
-                toUpdate.Insert(0,  current.children[i]);
+            if (!current.Collapsed)
+                for (int i = current.children.Count - 1; i >= 0; i--)
+                    toUpdate.Insert(0,  current.children[i]);
         }
     }
 
@@ -63,8 +64,6 @@ public class TreeGraph : NodeUI
     public class TreeGraphItem
     {
         private TreeGraph graph;
-
-        #region variables
 
         private string _name = "";
         public string Name
@@ -75,7 +74,7 @@ public class TreeGraph : NodeUI
                 title.Text = _name;
             }
         }
-        
+
         private Texture? _icon = null;
         public Texture? Icon
         {
@@ -114,10 +113,32 @@ public class TreeGraph : NodeUI
             }
         }
         
+        private bool _collapsed = false;
+        public bool Collapsed
+        {
+            get { return _collapsed; }
+            set {
+                _collapsed = value;
+                graph.UpdateList();
+                ChildrenVisibility(!value);
+            }
+        }
+
         private int positionIndex = 0;
 
         public TreeGraphItem? parent = null;
         public List<TreeGraphItem> children = new();
+
+        public bool Visible
+        {
+            get { return container.Visible; }
+            set {
+                container.Visible = value;
+                ChildrenVisibility(value);
+                }
+        }
+
+        #region random variables
 
         /* * * * * * */
         private readonly Pannel container = new()
@@ -144,6 +165,8 @@ public class TreeGraph : NodeUI
         /* * * * * * */
 
         #endregion
+
+        public readonly Dictionary<string, dynamic> data = new();
 
         public readonly Signal OnClick = new();
 
@@ -193,6 +216,17 @@ public class TreeGraph : NodeUI
             }
 
             icon.texture = _icon;
+
+            ChildrenVisibility(!_collapsed);
+        }
+    
+        public void ChildrenVisibility(bool visible)
+        {
+            foreach (var i in children)
+            {
+                i.Visible = visible;
+                i.ChildrenVisibility(visible);
+            }
         }
     }
 

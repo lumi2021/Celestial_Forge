@@ -54,25 +54,22 @@ public class Engine
         var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
         mainWin.AddAsChild(scene);
 
+        /* // test here // */
+
         var fileMan = scene.GetChild("Main/LeftPannel/FileMananger");
         textField = scene.GetChild("Main/Center/Viewport/TextField") as TextField;
 
         var a = new TreeGraph() { ClipChildren = true };
         fileMan!.AddAsChild(a);
 
-        var b = new SvgTexture();
-        var c = new SvgTexture();
-        var d = new SvgTexture();
-        var e = new SvgTexture();
-        b.LoadFromFile("Assets/Icons/textFile.svg", 200, 200);
-        c.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
-        d.LoadFromFile("Assets/Icons/unknowFile.svg", 200, 200);
-        e.LoadFromFile("Assets/Icons/AnviwWKey.svg", 200, 200);
+        var b = new SvgTexture(); b.LoadFromFile("Assets/Icons/textFile.svg", 200, 200);
+        var c = new SvgTexture(); c.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
+        var d = new SvgTexture(); d.LoadFromFile("Assets/Icons/unknowFile.svg", 200, 200);
+        var e = new SvgTexture(); e.LoadFromFile("Assets/Icons/AnviwWKey.svg", 200, 200);
 
         a.Root.Icon = c;
         a.Root.Name = "Res://";
 
-        /* // test here // */
 
         List<FileSystemInfo> itens = new();
         itens.AddRange(FileService.GetDirectory("res://"));
@@ -86,8 +83,8 @@ public class Engine
         {
             var i = itens[0];
             itens.RemoveAt(0);
-
             SvgTexture iconImage = d;
+            var type = "file";
 
             if (i.Extension == "")
             {
@@ -98,6 +95,7 @@ public class Engine
                     else if (a.Extension != "" && b.Extension == "") return 1;
                     else return 0;
                 });
+                type = "folder";
             }
             else if (i.Extension == ".txt")
                 iconImage = b;
@@ -109,7 +107,9 @@ public class Engine
             path = path[6..][..^i.Name.Length];
 
             var item = a.AddItem( path, i.Name, iconImage );
-            item?.OnClick.Connect(OnClick);
+            item!.Collapsed = type == "folder";
+            item!.data.Add("type", type);
+            item!.OnClick.Connect(OnClick);
         }
 
         /* // test here // */
@@ -164,8 +164,16 @@ public class Engine
 
     private void OnClick(object? from, dynamic[]? args)
     {
-        var a = "res://" + ((TreeGraph.TreeGraphItem)from!).Path[7..];
-        textField!.Text = new FileReference(a).ReadAllFile();
+        var item = from as TreeGraph.TreeGraphItem;
+
+        if (item!.data["type"] == "file")
+        {
+            var a = "res://" + item!.Path[7..];
+            textField!.Text = new FileReference(a).ReadAllFile();
+        }
+        else {
+            item.Collapsed = !item.Collapsed;
+        }
     }
 
 }
