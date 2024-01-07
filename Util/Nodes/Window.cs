@@ -58,6 +58,8 @@ public class Window : Node
         window.Render += OnRender;
         window.Resize += OnResize;
 
+        Console.WriteLine(window);
+
         input.Start(window, OnInput);
 
         gl = Engine.gl;

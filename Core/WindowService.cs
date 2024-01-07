@@ -23,13 +23,13 @@ public static class WindowService
         {
             Title = title,
             Size = size.GetAsSilkInt(),
-            WindowState = WindowState.Normal,
-            Samples = 4
+            WindowState = WindowState.Normal
+            //Samples = 4
         };
         if (mainWindow != null)
             options.SharedContext = mainWindow.GLContext;
 
-        var nWin = Silk.NET.Windowing.Window.Create(options);
+        var nWin = Window.Create(options);
 
         if (mainWindow == null)
         {
@@ -40,6 +40,8 @@ public static class WindowService
         }
 
         windows.Add(nWin);
+
+        Console.WriteLine(nWin.Handle);
 
         return nWin;
 
