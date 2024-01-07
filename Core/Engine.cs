@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using GameEngine.Editor;
-using GameEngine.Util;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
-using OpenGL;
+using Silk.NET.OpenGL;
+using Silk.NET.Windowing;
 
 namespace GameEngine.Core;
 
@@ -12,7 +12,7 @@ public class Engine
 
     #pragma warning disable CS8618
     public static IWindow window;
-    public static Gl gl;
+    public static GL gl;
     #pragma warning restore
 
     public static ProjectSettings projectSettings = new();
@@ -36,7 +36,7 @@ public class Engine
         gl.ClearColor(1f, 1f, 1f, 1f);
 
         // get GL info //
-        gl.GetInteger(GetPName.MaxTextureImageUnits, out gl_MaxTextureUnits);
+        gl_MaxTextureUnits = gl.GetInteger(GLEnum.MaxTextureImageUnits);
 
         // configurations //
         gl.Enable(EnableCap.Multisample);
