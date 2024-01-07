@@ -98,13 +98,13 @@
                                 "Children" : 
                                 [
                                     {
-                                        "NodeType" : "Label",
+                                        "NodeType" : "WriteTextField",
                                         "Name" : "TextField",
 
-                                        "color" : [255, 255, 255],
-                                        "Text" : "This is a test!\nA aliginment test!\nEverything working fine!",
-                                        "verticalAligin" : 1,
-                                        "horizontalAligin" : 1,
+                                        "Color" : [255, 255, 255],
+                                        "positionPixels" : [10, 10],
+                                        "sizePixels" : [-20, -20],
+                                        "Text" : "",
                                         "Font" : 1
                                     }
                                 ]

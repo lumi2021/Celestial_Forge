@@ -61,6 +61,15 @@ public struct Rect
         return nRect;
     }
 
+    public bool Intersects(Vector2<int> vec2)
+    {
+        return X <= vec2.X && X+Width >= vec2.X && Y <= vec2.Y && Y+Height >= vec2.Y;
+    }
+    public bool Intersects(Vector2<float> vec2)
+    {
+        return X <= vec2.X && X+Width >= vec2.X && Y <= vec2.Y && Y+Height >= vec2.Y;
+    }
+
     public Rect InvertVerticallyIn(Rect rect)
     {
         float invertedX = X;

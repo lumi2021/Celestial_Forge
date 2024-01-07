@@ -4,11 +4,10 @@ using GameEngine.Text;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
-using Silk.NET.OpenGL;
 
 namespace GameEngine.Util.Nodes;
 
-public class Label : NodeUI, ICanvasItem
+public class TextField : NodeUI, ICanvasItem
 {
 
     public bool Visible { get; set; } = true;
@@ -33,7 +32,15 @@ public class Label : NodeUI, ICanvasItem
     protected Character[][] charsList = Array.Empty<Character[]>();
     protected Vector2<int> TextSize = new(); 
 
-    public Color color = new(0f, 0f, 0, 1f);
+    private Color _color =  new(0f, 0f, 0, 1f);
+    public Color Color
+    {
+        get { return _color; }
+        set {
+            _color = value;
+            material.SetUniform("color", _color);
+        }
+    }
     public Aligin horizontalAligin = Aligin.Start;
     public Aligin verticalAligin = Aligin.Start;
 
@@ -84,6 +91,8 @@ public class Label : NodeUI, ICanvasItem
         DrawService.EnableAtributes(NID, material);
 
         tex.Filter = false;
+
+        material.SetUniform("color", _color);
 
     }
 

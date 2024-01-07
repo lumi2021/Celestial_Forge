@@ -5,8 +5,8 @@ namespace GameEngine.Util.Resources;
 public class Material2D : Material
 {
 
-    private const string _vsp = "./Data/Shaders/standard2dMaterial.vert";
-    private const string _fsp = "./Data/Shaders/standard2dMaterial.frag";
+    private const string _vsp = "./Data/Shaders/standard2dMaterial.vs";
+    private const string _fsp = "./Data/Shaders/standard2dMaterial.fs";
 
     public enum DrawTypes
     {

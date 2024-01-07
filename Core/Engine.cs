@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using GameEngine.Util;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
@@ -18,6 +19,8 @@ public class Engine
     public static ProjectSettings projectSettings = new();
 
     public static NodeRoot root = new();
+
+    private TextField? textField;
 
     #region gl info
 
@@ -51,45 +54,64 @@ public class Engine
         var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
         mainWin.AddAsChild(scene);
 
+        /* // test here // */
+
         var fileMan = scene.GetChild("Main/LeftPannel/FileMananger");
+        textField = scene.GetChild("Main/Center/Viewport/TextField") as TextField;
 
         var a = new TreeGraph() { ClipChildren = true };
         fileMan!.AddAsChild(a);
 
-        var b = new SvgTexture();
-        var c = new SvgTexture();
-        var d = new SvgTexture();
-        b.LoadFromFile("Assets/Icons/textFile.svg", 200, 200);
-        c.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
-        d.LoadFromFile("Assets/Icons/unknowFile.svg", 200, 200);
+        var b = new SvgTexture(); b.LoadFromFile("Assets/Icons/textFile.svg", 200, 200);
+        var c = new SvgTexture(); c.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
+        var f = new SvgTexture(); f.LoadFromFile("Assets/Icons/emptyFolder.svg", 200, 200);
+        var d = new SvgTexture(); d.LoadFromFile("Assets/Icons/unknowFile.svg", 200, 200);
+        var e = new SvgTexture(); e.LoadFromFile("Assets/Icons/AnvilKey.svg", 200, 200);
 
         a.Root.Icon = c;
-        a.Root.Name = "Res://";
+        a.Root.Name = "res://";
 
-        /* // test here // */
 
         List<FileSystemInfo> itens = new();
         itens.AddRange(FileService.GetDirectory("res://"));
+        itens.Sort((a, b) => {
+            if (a.Extension == "" && b.Extension != "") return -1;
+            else if (a.Extension != "" && b.Extension == "") return 1;
+            else return 0;
+        });
 
         while (itens.Count > 0)
         {
             var i = itens[0];
             itens.RemoveAt(0);
-
             SvgTexture iconImage = d;
+            var type = "file";
 
             if (i.Extension == "")
             {
-                iconImage = c;
-                itens.AddRange(FileService.GetDirectory(i.FullName));
+                var filesInThisDirectory = FileService.GetDirectory(i.FullName);
+                iconImage = filesInThisDirectory.Length == 0 ? f : c;
+                itens.AddRange(filesInThisDirectory);
+                itens.Sort((a, b) => {
+                    if (a.Extension == "" && b.Extension != "") return -1;
+                    else if (a.Extension != "" && b.Extension == "") return 1;
+                    else return 0;
+                });
+                type = "folder";
             }
             else if (i.Extension == ".txt")
                 iconImage = b;
+            
+            else if (i.Extension == ".forgec")
+                iconImage = e;
 
             var path = FileService.GetProjRelativePath(i.FullName);
             path = path[6..][..^i.Name.Length];
 
-            a.AddItem( path, i.Name, iconImage );
+            var item = a.AddItem( path, i.Name, iconImage );
+            item!.Collapsed = type == "folder";
+            item!.data.Add("type", type);
+            item!.OnClick.Connect(OnClick);
         }
 
         /* // test here // */
@@ -139,6 +161,20 @@ public class Engine
                 Console.Title = "fps: " + Math.Round(fpsHistory.ToArray().Average());
                 fpsHistory.Clear();
             }
+        }
+    }
+
+    private void OnClick(object? from, dynamic[]? args)
+    {
+        var item = from as TreeGraph.TreeGraphItem;
+
+        if (item!.data["type"] == "file")
+        {
+            var a = "res://" + item!.Path[7..];
+            textField!.Text = new FileReference(a).ReadAllFile();
+        }
+        else {
+            item.Collapsed = !item.Collapsed;
         }
     }
 

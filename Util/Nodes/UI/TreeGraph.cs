@@ -40,7 +40,7 @@ public class TreeGraph : NodeUI
         return null;
     }
 
-    private void UpdateList()
+    public void UpdateList()
     {
         List<TreeGraphItem> toUpdate = new() { _root };
 
@@ -53,19 +53,17 @@ public class TreeGraph : NodeUI
             current.Update(listIndex);
             listIndex++;
 
-            for (int i = current.children.Count - 1; i >= 0; i--)
-                toUpdate.Insert(0,  current.children[i]);
+            if (!current.Collapsed)
+                for (int i = current.children.Count - 1; i >= 0; i--)
+                    toUpdate.Insert(0,  current.children[i]);
         }
     }
-
 
     #region inner classes/strucs
 
     public class TreeGraphItem
     {
         private TreeGraph graph;
-
-        #region variables
 
         private string _name = "";
         public string Name
@@ -76,7 +74,7 @@ public class TreeGraph : NodeUI
                 title.Text = _name;
             }
         }
-        
+
         private Texture? _icon = null;
         public Texture? Icon
         {
@@ -115,33 +113,62 @@ public class TreeGraph : NodeUI
             }
         }
         
+        private bool _collapsed = false;
+        public bool Collapsed
+        {
+            get { return _collapsed; }
+            set {
+                _collapsed = value;
+                graph.UpdateList();
+                ChildrenVisibility(!value);
+            }
+        }
+
         private int positionIndex = 0;
 
         public TreeGraphItem? parent = null;
         public List<TreeGraphItem> children = new();
 
-        /*******/
-        private Pannel container = new()
+        public bool Visible
+        {
+            get { return container.Visible; }
+            set {
+                container.Visible = value;
+                ChildrenVisibility(value);
+                }
+        }
+
+        #region random variables
+
+        /* * * * * * */
+        private readonly Pannel container = new()
         {
             sizePercent = new(1, 0),
             sizePixels = new(0, 40),
-            BackgroundColor = new(0,0,0,0f)
+            BackgroundColor = new(0,0,0,0f),
+            mouseFilter = MouseFilter.Block
         };
-        private TextureRect icon = new()
+        private readonly TextureRect icon = new()
         {
             sizePercent = new(0,0),
             sizePixels = new(20, 20),
             positionPixels = new(10, 10),
-            Visible = false
+            Visible = false,
+            mouseFilter = MouseFilter.Ignore
         };
-        private Label title = new()
+        private readonly TextField title = new()
         {
-            verticalAligin = Label.Aligin.Center,
-            color = new(1f, 1f, 1f)
+            verticalAligin = TextField.Aligin.Center,
+            Color = new(1f, 1f, 1f),
+            mouseFilter = MouseFilter.Ignore
         };
-        /*******/
+        /* * * * * * */
 
         #endregion
+
+        public readonly Dictionary<string, dynamic> data = new();
+
+        public readonly Signal OnClick = new();
 
         public TreeGraphItem(TreeGraph graph)
         {
@@ -150,6 +177,8 @@ public class TreeGraph : NodeUI
             graph.AddAsChild(container);
             container.AddAsChild(icon);
             container.AddAsChild(title);
+
+            container.onClick.Connect((a,b) => OnClick.Emit(this));
         }
 
         public TreeGraphItem? GetChild(string[] path)
@@ -163,9 +192,8 @@ public class TreeGraph : NodeUI
         public void RemoveItem()
         {
             foreach (var i in children)
-            {
                 i.RemoveItem();
-            }
+            container.Free();
             parent?.children.Remove(this);
         }
     
@@ -188,6 +216,17 @@ public class TreeGraph : NodeUI
             }
 
             icon.texture = _icon;
+
+            ChildrenVisibility(!_collapsed);
+        }
+    
+        public void ChildrenVisibility(bool visible)
+        {
+            foreach (var i in children)
+            {
+                i.Visible = visible;
+                i.ChildrenVisibility(visible);
+            }
         }
     }
 

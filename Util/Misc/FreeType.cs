@@ -66,9 +66,9 @@ public class FreeType_TtfGlyphLoader
         face = Marshal.PtrToStructure<FT_FaceRec>(faceptr);
         FT.FT_Set_Char_Size(faceptr, (int)Size << 6, (int)Size << 6, 96, 96);
 
-        ascender = (int) (face.ascender >> 6);
-        descender = (int) (face.descender >> 6);
-        fontheight = (int) (((face.height >> 6) - descender + ascender) / 4);
+        ascender = face.ascender >> 6;
+        descender = face.descender >> 6;
+        fontheight = ((face.height >> 6) - descender + ascender) / 4;
         yoffset = (int) (size - ascender);
         lineheight = fontheight + yoffset - (int)(descender*1.8f);
         baseCharacter = CreateChar('a');
@@ -90,7 +90,7 @@ public class FreeType_TtfGlyphLoader
 
     public Character CreateChar(char c)
     {
-        Character ch = new Character();
+        Character ch = new();
 
         try
         {
@@ -133,7 +133,8 @@ public class FreeType_TtfGlyphLoader
         }
         catch (Exception)
         {
-            buffer.Add(c, ch);
+            if (!buffer.ContainsKey(c))
+                buffer.Add(c, ch);
         }
 
         return ch;
@@ -141,8 +142,12 @@ public class FreeType_TtfGlyphLoader
 
     public Character[] CreateStringTexture(string s)
     {
-        var temp = new Character[s.Length];
+        // check if all characters are inside the buffer
+        // if not, iterate to create JUST the characters that are not in the buffer
+        var notInBuffer = s.Distinct().Where(e => !buffer.ContainsKey(e)).ToArray();
+        foreach (var i in notInBuffer) CreateChar(i);
 
+        var temp = new Character[s.Length];
         for (int i = 0; i < s.Length; i++)
             temp[i] = CreateChar(s[i]);
         
