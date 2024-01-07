@@ -44,9 +44,9 @@ public class WriteTextField : TextField
     protected override void TextEdited()
     {
         base.TextEdited();
-        if (_textLines.Length < caretLine)
+        if (_textLines.Length <= caretLine)
         {
-            caretRow = (uint) _textLines.Length;
+            caretLine = (uint) _textLines.Length - 1;
             caretRow = (uint) _textLines[caretLine].Length;
         }
         else if (_textLines[caretLine].Length < caretRow)
@@ -84,7 +84,8 @@ public class WriteTextField : TextField
             {
                 if (caretRow < _textLines[caretLine].Length)
                     caretRow++;
-                else if (caretLine < _textLines.Length)
+                
+                else if (caretLine < _textLines.Length-1)
                 {
                     caretLine++;
                     caretRow = 0;
@@ -156,6 +157,7 @@ public class WriteTextField : TextField
                     caretLine--;
 
                     caretRow = (uint) nextCarretRow;
+                    charsToRemove--;
                 }
                 else
                 {

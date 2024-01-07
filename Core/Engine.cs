@@ -64,11 +64,12 @@ public class Engine
 
         var b = new SvgTexture(); b.LoadFromFile("Assets/Icons/textFile.svg", 200, 200);
         var c = new SvgTexture(); c.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
+        var f = new SvgTexture(); f.LoadFromFile("Assets/Icons/emptyFolder.svg", 200, 200);
         var d = new SvgTexture(); d.LoadFromFile("Assets/Icons/unknowFile.svg", 200, 200);
-        var e = new SvgTexture(); e.LoadFromFile("Assets/Icons/AnviwWKey.svg", 200, 200);
+        var e = new SvgTexture(); e.LoadFromFile("Assets/Icons/AnvilKey.svg", 200, 200);
 
         a.Root.Icon = c;
-        a.Root.Name = "Res://";
+        a.Root.Name = "res://";
 
 
         List<FileSystemInfo> itens = new();
@@ -88,8 +89,9 @@ public class Engine
 
             if (i.Extension == "")
             {
-                iconImage = c;
-                itens.AddRange(FileService.GetDirectory(i.FullName));
+                var filesInThisDirectory = FileService.GetDirectory(i.FullName);
+                iconImage = filesInThisDirectory.Length == 0 ? f : c;
+                itens.AddRange(filesInThisDirectory);
                 itens.Sort((a, b) => {
                     if (a.Extension == "" && b.Extension != "") return -1;
                     else if (a.Extension != "" && b.Extension == "") return 1;
