@@ -7,4 +7,6 @@ public class ProjectSettings
 
     public string projectPath = "";
 
+    public string entryScene = "";
+
 }

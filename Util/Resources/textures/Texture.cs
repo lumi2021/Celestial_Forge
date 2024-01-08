@@ -68,7 +68,8 @@ public abstract class Texture : Resource
     #pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
     public override void Dispose()
     {
-        Engine.gl.DeleteTexture(_textureId);
+        ResourceHeap.Delete(_textureId, ResourceHeap.DeleteTarget.Texture);
+        _textureId = 0;
         base.Dispose();
     }
 

@@ -5,7 +5,7 @@ uniform int configDrawType;
 in vec2 UV;
 
 uniform vec4 color;
-uniform sampler2D texture;
+uniform sampler2D tex0;
 
 out vec4 out_color;
 
@@ -15,11 +15,11 @@ void main()
         out_color = color;
 
     else if (configDrawType == 1) // Texture
-        out_color = texture(texture, UV);
+        out_color = texture(tex0, UV);
 
     else if (configDrawType == 2) // Text
     {
         out_color.rgb = color.rgb;
-        out_color.a = texture(texture, UV).r * color.a;
+        out_color.a = texture(tex0, UV).r * color.a;
     }
 }

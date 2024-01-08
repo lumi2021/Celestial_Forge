@@ -46,7 +46,7 @@ public struct Color
         set {alpha = MathF.Min(MathF.Max(0, value), 1);}
     }
 
-    public Color() {}
+    public Color() { alpha = 1.0f; }
     public Color(float[] data)
     {
         R = (int) data[0];
