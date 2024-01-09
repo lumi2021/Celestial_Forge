@@ -5,6 +5,7 @@ using Silk.NET.GLFW;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using System.Drawing;
 using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
@@ -97,6 +98,7 @@ public class Window : Node
 
     private void OnRender(double deltaTime)
     {
+        gl.Viewport(Size);
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         gl.Scissor(0,0, Size.X, Size.Y);
 
@@ -179,7 +181,7 @@ public class Window : Node
 
     private void OnResize(Vector2D<int> size)
     {
-        gl.Viewport(size);
+        
     }
 
     public void SupressInputEvent()

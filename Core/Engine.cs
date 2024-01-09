@@ -21,8 +21,6 @@ public class Engine
 
     public static NodeRoot root = new();
 
-    private TextField? textField;
-
     #region gl info
 
     public readonly int gl_MaxTextureUnits;
@@ -76,21 +74,18 @@ public class Engine
         while (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
         {
             foreach (var win in WindowService.windows.ToArray())
+            if (win.IsInitialized)
             {
-                if (win.IsInitialized)
-                {
-                    win.MakeCurrent();
-                    win.DoEvents();
-                    win.DoUpdate();
-                    win.DoRender();
-                }
+                DrawService.GlBinded_ShaderProgram = -1;
+                win.DoEvents();
+                win.DoUpdate();
+                win.DoRender();
             }
 
             WindowService.CallProcess();
             ResourceHeap.CallProcess();
 
             /* FPS COUNTER */
-
             double elapsedSeconds = frameTime.Elapsed.TotalSeconds;
             double fps = 1.0 / elapsedSeconds;
             fpsHistory.Add(fps);

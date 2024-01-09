@@ -26,10 +26,11 @@ public static class WindowService
             WindowState = WindowState.Normal,
             Samples = 4
         };
+
         if (mainWindow != null)
             options.SharedContext = mainWindow.GLContext;
 
-        var nWin = Silk.NET.Windowing.Window.Create(options);
+        var nWin = Window.Create(options);
 
         if (mainWindow == null)
         {
