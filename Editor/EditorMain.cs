@@ -32,20 +32,20 @@ public class EditorMain
         mainWindow.AddAsChild(scene);
 
         /* INSTANTIATE AND CONFIGURATE FILE MANANGER */
-        var fileMan = scene.GetChild("Main/LeftPannel/FileMananger");
+        var filesSection = scene.GetChild("Main/LeftPannel/FileMananger");
 
-        var a = new TreeGraph() { ClipChildren = true };
-        fileMan!.AddAsChild(a);
+        var filesList = new TreeGraph() { ClipChildren = true };
+        filesSection!.AddAsChild(filesList);
         
-        var txtFile = new SvgTexture(); txtFile.LoadFromFile("Assets/Icons/textFile.svg", 200, 200);
-        var cFolder = new SvgTexture(); cFolder.LoadFromFile("Assets/Icons/closedFolder.svg", 200, 200);
-        var eFolder = new SvgTexture(); eFolder.LoadFromFile("Assets/Icons/emptyFolder.svg", 200, 200);
-        var unkFile = new SvgTexture(); unkFile.LoadFromFile("Assets/Icons/unknowFile.svg", 200, 200);
-        var anvilWk = new SvgTexture(); anvilWk.LoadFromFile("Assets/Icons/AnvilKey.svg", 200, 200);
-        var sceFile = new SvgTexture(); sceFile.LoadFromFile("Assets/Icons/scene.svg", 200, 200);
+        var txtFile = new SvgTexture(); txtFile.LoadFromFile("Assets/Icons/textFile.svg", 50, 50);
+        var cFolder = new SvgTexture(); cFolder.LoadFromFile("Assets/Icons/closedFolder.svg", 50, 50);
+        var eFolder = new SvgTexture(); eFolder.LoadFromFile("Assets/Icons/emptyFolder.svg", 50, 50);
+        var unkFile = new SvgTexture(); unkFile.LoadFromFile("Assets/Icons/unknowFile.svg", 50, 50);
+        var anvilWk = new SvgTexture(); anvilWk.LoadFromFile("Assets/Icons/AnvilKey.svg", 50, 50);
+        var sceFile = new SvgTexture(); sceFile.LoadFromFile("Assets/Icons/scene.svg", 50, 50);
 
-        a.Root.Icon = cFolder;
-        a.Root.Name = "res://";
+        filesList.Root.Icon = cFolder;
+        filesList.Root.Name = "res://";
 
         List<FileSystemInfo> itens = new();
         itens.AddRange(FileService.GetDirectory("res://"));
@@ -86,15 +86,21 @@ public class EditorMain
             var path = FileService.GetProjRelativePath(i.FullName);
             path = path[6..][..^i.Name.Length];
 
-            var item = a.AddItem(path, i.Name, iconImage);
+            var item = filesList.AddItem(path, i.Name, iconImage);
             item!.Collapsed = type == "folder";
             item!.data.Add("type", type);
             //item!.OnClick.Connect(OnClick);
         }
-
-        RunGame();
+    
+        /* CONFIGURATE BUTTONS */
+        var runButton = scene.GetChild("TopBar/RunButton") as Button;
+        runButton?.OnPressed.Connect(RunButtonPressed);
     }
 
+    private void RunButtonPressed(object? from, dynamic[]? args)
+    {
+        RunGame();
+    }
     private void RunGame()
     {
         var gameWindow = new Window();

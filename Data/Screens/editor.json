@@ -16,7 +16,20 @@
                 "BackgroundColor" : [60, 42, 77],
                 "sizePercent" : [1, 0],
                 "sizePixels" : [0, 48],
-                "anchor" : 1
+                "anchor" : 1,
+
+                "Children" :
+                [
+                    {
+                        "NodeType" : "Button",
+                        "Name" : "RunButton",
+
+                        "anchor" : 5,
+                        "sizePercent" : [0, 0],
+                        "sizePixels" : [30, 30],
+                        "positionPixels" : [-9, 0]
+                    }
+                ]
             },
 
             {
