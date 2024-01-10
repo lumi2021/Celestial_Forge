@@ -65,7 +65,7 @@ public class PackagedScene : Resource
                         newNode.AddToOnReady(i.Key, i.Value);
 
                     else if (field.FieldType.IsAssignableTo(typeof(Resource)))
-                        field.SetValue(newNode, Convert.ChangeType(resRepo[int.Parse(i.Value!.ToString()!)], field.FieldType));
+                        field.SetValue(newNode, resRepo[int.Parse(i.Value!.ToString()!)]);
 
                     else field.SetValue(newNode, Convert.ChangeType(i.Value, field.FieldType));
                     continue;
@@ -78,7 +78,7 @@ public class PackagedScene : Resource
                         newNode.AddToOnReady(i.Key, i.Value);
 
                     else if (prop.PropertyType.IsAssignableTo(typeof(Resource)))
-                        prop.SetValue(newNode, Convert.ChangeType(resRepo[int.Parse(i.Value!.ToString()!)], prop.PropertyType));
+                        prop.SetValue(newNode, resRepo[int.Parse(i.Value!.ToString()!)]);
 
                     else prop.SetValue(newNode, Convert.ChangeType(i.Value, prop.PropertyType));
                     continue;

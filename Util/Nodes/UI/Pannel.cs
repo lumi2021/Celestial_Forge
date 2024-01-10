@@ -51,7 +51,7 @@ public class Pannel : NodeUI, ICanvasItem
         var world = MathHelper.Matrix4x4CreateRect(Position, Size)
             *Matrix4x4.CreateTranslation(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y / 2, 0);
 
-        var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
+        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X,ParentWindow!.Size.Y,-.1f,.1f);
 
         material.SetTranslation(world);
         material.SetProjection(proj);

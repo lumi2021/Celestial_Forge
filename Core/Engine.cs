@@ -34,8 +34,6 @@ public class Engine
         window = mainWin.window;
         root.AddAsChild(mainWin);
 
-        gl.ClearColor(1f, 1f, 1f, 1f);
-
         // get GL info //
         gl_MaxTextureUnits = gl.GetInteger(GLEnum.MaxTextureImageUnits);
 
@@ -47,7 +45,8 @@ public class Engine
 
         /* configurate project settings */
         projectSettings.projectLoaded = true;
-        projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/"; //projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
+        //projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
+        projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
         projectSettings.entryScene = @"res://testScene.sce";
 
         /* START EDITOR */
@@ -107,7 +106,7 @@ public class Engine
         if (item!.data["type"] == "file")
         {
             var a = "res://" + item!.Path[7..];
-            textField!.Text = new FileReference(a).ReadAllFile();
+            //textField!.Text = new FileReference(a).ReadAllFile();
         }
         else {
             item.Collapsed = !item.Collapsed;

@@ -122,10 +122,10 @@ public class TextField : NodeUI, ICanvasItem
         };
         #endregion
 
-        var world = Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0));
-        world *= Matrix4x4.CreateTranslation(new Vector3(textPosX + Position.X, textPosY + Position.Y, 0));
+        var world = Matrix4x4.CreateTranslation(new Vector3(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y/2, 0))
+        * Matrix4x4.CreateTranslation(new Vector3(textPosX + Position.X, textPosY + Position.Y, 0));
 
-        var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
+        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X,ParentWindow!.Size.Y,-.1f,.1f);
 
         material.SetTranslation(world);
         material.SetProjection(proj);
@@ -198,8 +198,7 @@ public class TextField : NodeUI, ICanvasItem
                 * Matrix4x4.CreateTranslation(lineOffset + charPosX + j.OffsetX, carPosY + j.OffsetY, 0);
                 world.AddRange(Matrix4x4.Transpose(m).ToArray());
 
-                var u = Matrix4x4.CreateScale(j.TexSize.X, j.TexSize.Y, 1)
-                * Matrix4x4.CreateTranslation(j.TexPosition.X, j.TexPosition.Y, 0)
+                var u = MathHelper.Matrix4x4CreateRect(j.TexPosition, j.TexSize)
                 * Matrix4x4.CreateOrthographic(textureSize*2,textureSize*2, -1f, 1f);
                 uv.AddRange(Matrix4x4.Transpose(u).ToArray());
 

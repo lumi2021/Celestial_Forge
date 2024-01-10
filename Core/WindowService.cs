@@ -42,6 +42,8 @@ public static class WindowService
 
         windows.Add(nWin);
 
+        Engine.gl.ClearColor(1f, 1f, 1f, 1f);
+
         return nWin;
 
     }
