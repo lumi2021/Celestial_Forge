@@ -73,7 +73,7 @@ public class Engine
             foreach (var win in WindowService.windows.ToArray())
             if (win.IsInitialized)
             {
-                //DrawService.GlBinded_ShaderProgram = -1;
+                DrawService.GlBinded_ShaderProgram = -1;
                 win.DoEvents();
                 win.DoUpdate();
                 win.DoRender();

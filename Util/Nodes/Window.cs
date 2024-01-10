@@ -5,7 +5,6 @@ using Silk.NET.GLFW;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-using System.Drawing;
 using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
@@ -79,6 +78,8 @@ public class Window : Node
 
     private void OnUpdate(double deltaTime)
     {
+        input.CallQueuedInputs();
+
         List<Node> toUpdate = new();
         toUpdate.AddRange(children);
 
@@ -221,6 +222,8 @@ public class Window : Node
                 return new String(_inputedCharList.ToArray());
             }
         }
+        public List<InputEvent> LastInputs = new();
+        
 
         private Vector2<int> lastMousePosition = new();
         public Vector2<int> mouseDelta = new();
@@ -281,6 +284,12 @@ public class Window : Node
             GlfwProvider.GLFW.Value.SetCursor((WindowHandle*)Engine.window.Handle, cursor);
         }
 
+        public void CallQueuedInputs()
+        {
+            var inputsToNotify = LastInputs.ToArray();
+            LastInputs.Clear();
+            foreach (var i in inputsToNotify) InputEventSender?.Invoke(i);
+        }
         public void CallProcess()
         {
             mouseDelta = new();
@@ -311,7 +320,7 @@ public class Window : Node
                 key, action
             );
 
-            InputEventSender?.Invoke(e);
+            LastInputs.Add(e);
         }
         private void CharCallback(WindowHandle* window, uint codepoint)
         {
@@ -336,7 +345,7 @@ public class Window : Node
 
             lastMousePosition = currentPos;
 
-            InputEventSender?.Invoke(e);
+            LastInputs.Add(e);
         }
         private void MouseButtonCallback(WindowHandle* window, MouseButton button, InputAction action, KeyModifiers mods)
         {
@@ -357,7 +366,7 @@ public class Window : Node
                 button, action, GetMousePosition()
             );
 
-            InputEventSender?.Invoke(e);
+            LastInputs.Add(e);
         }
     
 

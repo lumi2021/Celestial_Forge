@@ -113,7 +113,7 @@ public class EditorMain
         var runButton = scene.GetChild("TopBar/RunButton") as Button;
         runButton?.OnPressed.Connect(RunButtonPressed);
     
-        LoadSceneInEditor("res://testScene.sce");
+        //LoadSceneInEditor("res://testScene.sce");
 
     }
 
