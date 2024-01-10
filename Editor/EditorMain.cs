@@ -13,6 +13,8 @@ public class EditorMain
     private ProjectSettings projectSettings;
     private Window mainWindow;
 
+    private Node? editorRoot;
+
     public EditorMain(ProjectSettings settings, Window mainWin)
     {
         projectSettings = settings;
@@ -30,8 +32,10 @@ public class EditorMain
         /* INSTANTIATE EDITOR */
         var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
         mainWindow.AddAsChild(scene);
+        editorRoot = scene;
 
         /* INSTANTIATE AND CONFIGURATE FILE MANANGER */
+        #region
         var filesSection = scene.GetChild("Main/LeftPannel/FileMananger");
 
         var filesList = new TreeGraph() { ClipChildren = true };
@@ -60,7 +64,7 @@ public class EditorMain
             var i = itens[0];
             itens.RemoveAt(0);
             SvgTexture iconImage = unkFile;
-            var type = "file";
+            var type = i.Extension != "" ? i.Extension : "folder";
 
             if (i.Extension == "")
             {
@@ -89,12 +93,28 @@ public class EditorMain
             var item = filesList.AddItem(path, i.Name, iconImage);
             item!.Collapsed = type == "folder";
             item!.data.Add("type", type);
-            //item!.OnClick.Connect(OnClick);
+            item!.OnClick.Connect(OnFileClicked);
         }
-    
+        #endregion
+
+        /* INSTANTIATE AND CONFIGURATE NODE MANANGER */
+        #region
+
+        var nodesSection = scene.GetChild("Main/RightPannel/NodeMananger");
+
+        var nodesList = new TreeGraph() { ClipChildren = true };
+        nodesSection!.AddAsChild(nodesList);
+
+
+
+        #endregion
+
         /* CONFIGURATE BUTTONS */
         var runButton = scene.GetChild("TopBar/RunButton") as Button;
         runButton?.OnPressed.Connect(RunButtonPressed);
+    
+        LoadSceneInEditor("res://testScene.sce");
+
     }
 
     private void RunButtonPressed(object? from, dynamic[]? args)
@@ -111,5 +131,36 @@ public class EditorMain
         gameWindow.AddAsChild(gameScene);
     }
 
-}
 
+    private void OnFileClicked(object? from, dynamic[]? args)
+    {
+        var item = from as TreeGraph.TreeGraphItem;
+
+        var path = "res://" + item!.Path[7..];
+
+        if (item!.data["type"] == "folder")
+            item.Collapsed = !item.Collapsed;
+        
+        else
+        {
+            switch (item!.data["type"])
+            {
+                case ".sce":
+                    LoadSceneInEditor(path); break;
+            }
+        }
+    }
+
+    private void LoadSceneInEditor(string scenePath)
+    {
+
+        var viewport = editorRoot!.GetChild("Main/Center/Viewport");
+
+        viewport!.children = new();
+        
+        var packScene = PackagedScene.Load(scenePath)!.Instantiate();
+        viewport!.AddAsChild(packScene);
+
+    }
+
+}

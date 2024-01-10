@@ -37,7 +37,9 @@ public abstract class Texture : Resource
         var gl = Engine.gl;
 
         gl.BindTexture(GLEnum.Texture2D, _textureId);
-    
+
+        gl.PixelStore(GLEnum.UnpackAlignment, 4);
+        
         gl.TexImage2D<byte>(
             GLEnum.Texture2D, 0, InternalFormat.Rgba,
             size.X, size.Y, 0,
