@@ -158,8 +158,8 @@ public class EditorMain
 
         viewport!.children = new();
         
-        var packScene = PackagedScene.Load(scenePath)!.Instantiate();
-        viewport!.AddAsChild(packScene);
+        var packScene = PackagedScene.Load(scenePath);
+        viewport!.AddAsChild(packScene!.Instantiate());
 
     }
 
