@@ -8,7 +8,8 @@ namespace GameEngine.Util.Nodes;
 public class Node
 {
     /* System variables */
-    private bool _freeled = false;
+    public bool Freeled { get; private set; }
+    private bool _gcCalled = false;
     private bool _isReady = false;
     public readonly uint NID = 0;
 
@@ -17,7 +18,6 @@ public class Node
 
     
     public Node? parent;
-    protected bool _isGhostChildren = false;
 
     public List<Node> children = new();
     protected List<Node> ghostChildren = new();
@@ -60,6 +60,9 @@ public class Node
     #region vitual methods
     public void RunProcess(double deltaT)
     {
+        if (Freeled) throw new ApplicationException("A already freeled node are" +
+        "being referenciated and Process are being alled!");
+
         if (!_isReady)
         {
             Ready();
@@ -70,10 +73,16 @@ public class Node
     }
     public void RunDraw(double deltaT)
     {
+        if (Freeled) throw new ApplicationException("A already freeled node are" +
+        "being referenciated and Draw are being alled!");
+
         Draw(deltaT);
     }
     public void RunInputEvent(InputEvent e)
     {
+        if (Freeled) throw new ApplicationException("A already freeled node are" +
+        "being referenciated and InputEvent are being called!");
+
         OnInputEvent(e);
     }
 
@@ -197,14 +206,18 @@ public class Node
         return false;
     }
 
-    // TODO configure the correct node and children data dispose
-    public virtual void Free(bool fromGC=false)
+    public virtual void Free()
     {
-        if (!_freeled)
+        if (!Freeled)
         {
-            _freeled = true;
+            Freeled = true;
 
-            if (!fromGC) GC.SuppressFinalize(this);
+            ResourcesService.FreeNode(NID);
+            foreach (var i in children.ToArray()) i.Free();
+            parent?.children.Remove(this);
+            parent = null;
+
+            if (!_gcCalled) GC.SuppressFinalize(this);
         }
     }
 
@@ -213,10 +226,11 @@ public class Node
         _fieldsToLoadWhenReady.Add(field, value);
     }
 
-
     ~Node()
     {
-        Free(true);
-        // Alert of insecure dispose of the class
+        _gcCalled = true;
+        Free();
+        Console.WriteLine("Node {0} of base {1} is being freeled from GC!" +
+        "(Did you forgot to call manually Free()?)", name, GetType().Name);
     }
 }

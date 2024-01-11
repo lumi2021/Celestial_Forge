@@ -44,12 +44,12 @@ public class EditorMain
         filesList = new TreeGraph() { ClipChildren = true };
         filesSection!.AddAsChild(filesList);
         
-        var txtFile = new SvgTexture(); txtFile.LoadFromFile("Assets/Icons/Files/textFile.svg", 50, 50);
-        var cFolder = new SvgTexture(); cFolder.LoadFromFile("Assets/Icons/Files/closedFolder.svg", 50, 50);
-        var eFolder = new SvgTexture(); eFolder.LoadFromFile("Assets/Icons/Files/emptyFolder.svg", 50, 50);
-        var unkFile = new SvgTexture(); unkFile.LoadFromFile("Assets/Icons/Files/unknowFile.svg", 50, 50);
-        var anvilWk = new SvgTexture(); anvilWk.LoadFromFile("Assets/Icons/Files/AnvilKey.svg", 50, 50);
-        var sceFile = new SvgTexture(); sceFile.LoadFromFile("Assets/Icons/Files/scene.svg", 50, 50);
+        var txtFile = new SvgTexture() { Filter = false }; txtFile.LoadFromFile("Assets/Icons/Files/textFile.svg", 20, 20);
+        var cFolder = new SvgTexture() { Filter = false }; cFolder.LoadFromFile("Assets/Icons/Files/closedFolder.svg", 20, 20);
+        var eFolder = new SvgTexture() { Filter = false }; eFolder.LoadFromFile("Assets/Icons/Files/emptyFolder.svg", 20, 20);
+        var unkFile = new SvgTexture() { Filter = false }; unkFile.LoadFromFile("Assets/Icons/Files/unknowFile.svg", 20, 20);
+        var anvilWk = new SvgTexture() { Filter = false }; anvilWk.LoadFromFile("Assets/Icons/Files/AnvilKey.svg", 20, 20);
+        var sceFile = new SvgTexture() { Filter = false }; sceFile.LoadFromFile("Assets/Icons/Files/scene.svg", 20, 20);
 
         filesList.Root.Icon = cFolder;
         filesList.Root.Name = "res://";
@@ -156,18 +156,57 @@ public class EditorMain
 
     private void LoadSceneInEditor(string scenePath)
     {
-
         var viewport = editorRoot!.GetChild("Main/Center/Viewport");
 
-        viewport!.children = new();
+        nodesList!.ClearGraph();
+        viewport!.children.Clear();
         
         var scene = PackagedScene.Load(scenePath)!.Instantiate();
         viewport!.AddAsChild(scene);
         
-        nodesList!.ClearGraph();
+
+        /* LOAD NODES LIST */
+        List<KeyValuePair<string, Node>> ToList = new();
+        foreach (var i in scene.children) ToList.Add(new("", i));
+
+        Dictionary<string, Texture> IconsBuffer = new();
+
+        while ( ToList.Count > 0 )
+        {
+            var keyValue = ToList.Unqueue();
+            var path = keyValue.Key;
+            var node = keyValue.Value;
+
+            Texture nodeIcon;
+            if (IconsBuffer.ContainsKey(node.GetType().Name))
+                nodeIcon = IconsBuffer[node.GetType().Name];
+            else
+            {
+                var nTexture = new SvgTexture() { Filter = false };
+                nTexture.LoadFromFile("Assets/icons/Nodes/" + node.GetType().Name + ".svg", 20, 20);
+                IconsBuffer.Add(node.GetType().Name, nTexture);
+                nodeIcon = nTexture;
+            }
+
+            var item = nodesList!.AddItem(path, node.name, nodeIcon);
+
+            for (int i = node.children.Count-1; i >= 0 ; i--)
+                ToList.Insert(0, new(path+"/"+node.name, node.children[i]));
+        }
+
+        Texture rootIcon;
+        if (IconsBuffer.ContainsKey(scene.GetType().Name))
+            rootIcon = IconsBuffer[scene.GetType().Name];
+        else
+        {
+            var nTexture = new SvgTexture() { Filter = false };
+            nTexture.LoadFromFile("Assets/icons/Nodes/" + scene.GetType().Name + ".svg", 20, 20);
+            IconsBuffer.Add(scene.GetType().Name, nTexture);
+            rootIcon = nTexture;
+        }
 
         nodesList!.Root.Name = scene.name;
-
+        nodesList!.Root.Icon = rootIcon;
     }
 
 }

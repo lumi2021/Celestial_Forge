@@ -26,6 +26,11 @@ public static class DrawService
     {
         ResourceData.Add(NID, new ResourceDrawData());
     }
+    public static void DeleteCanvasItem(uint NID)
+    {
+        if (ResourceData.ContainsKey(NID))
+            ResourceData.Remove(NID);
+    }
 
     public static uint CreateBuffer(uint NID, string bufferName)
     {

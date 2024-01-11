@@ -39,6 +39,10 @@ public class TreeGraph : NodeUI
         }
         return null;
     }
+    public void DeleteItem(string path)
+    {
+        GetItem(path)?.Delete();
+    }
 
     public void UpdateList()
     {
@@ -61,6 +65,7 @@ public class TreeGraph : NodeUI
 
     public void ClearGraph()
     {
+        _root.Delete();
         _root = new(this) {Name = "root"};
     }
 
@@ -232,6 +237,26 @@ public class TreeGraph : NodeUI
                 i.Visible = visible;
                 i.ChildrenVisibility(visible);
             }
+        }
+
+        public void Delete()
+        {
+            Dispose();
+            foreach (var i in children.ToArray()) i.Delete();
+            children.Clear();
+            parent?.children.Remove(this);
+            parent = null;
+        }
+
+        ~TreeGraphItem()
+        {
+            Console.WriteLine("a");
+            Dispose(true);
+        }
+        public void Dispose(bool fromGC = false)
+        {
+            container.Free();
+            if (!fromGC) GC.SuppressFinalize(this);
         }
     }
 

@@ -22,6 +22,16 @@ public static class ResourcesService
         return id;
     }
 
+    public static void FreeNode(uint NID)
+    {
+        NidTable.Remove(NID);
+        DrawService.DeleteCanvasItem(NID);
+    }
+    public static void FreeResouce(uint RID)
+    {
+        RidTable.Remove(RID);
+    }
+
     public static bool IsNodeValid(uint NID)
     { return NidTable.ContainsKey(NID); }
     public static bool IsResourceValid(uint NID)
