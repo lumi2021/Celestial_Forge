@@ -43,8 +43,8 @@ public class Engine
 
         /* configurate project settings */
         projectSettings.projectLoaded = true;
-        //projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
-        projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
+        projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
+        //projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
         projectSettings.entryScene = @"res://testScene.sce";
 
         /* START EDITOR */
@@ -73,7 +73,7 @@ public class Engine
             foreach (var win in WindowService.windows.ToArray())
             if (win.IsInitialized)
             {
-                //DrawService.GlBinded_ShaderProgram = -1;
+                DrawService.GlBinded_ShaderProgram = -1;
                 win.DoEvents();
                 win.DoUpdate();
                 win.DoRender();
