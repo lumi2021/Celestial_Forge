@@ -13,7 +13,10 @@ public class EditorMain
     private ProjectSettings projectSettings;
     private Window mainWindow;
 
+    /* IMPORTANT NODES */
     private Node? editorRoot;
+    private TreeGraph? filesList;
+    private TreeGraph? nodesList;
 
     public EditorMain(ProjectSettings settings, Window mainWin)
     {
@@ -38,15 +41,15 @@ public class EditorMain
         #region
         var filesSection = scene.GetChild("Main/LeftPannel/FileMananger");
 
-        var filesList = new TreeGraph() { ClipChildren = true };
+        filesList = new TreeGraph() { ClipChildren = true };
         filesSection!.AddAsChild(filesList);
         
-        var txtFile = new SvgTexture(); txtFile.LoadFromFile("Assets/Icons/textFile.svg", 50, 50);
-        var cFolder = new SvgTexture(); cFolder.LoadFromFile("Assets/Icons/closedFolder.svg", 50, 50);
-        var eFolder = new SvgTexture(); eFolder.LoadFromFile("Assets/Icons/emptyFolder.svg", 50, 50);
-        var unkFile = new SvgTexture(); unkFile.LoadFromFile("Assets/Icons/unknowFile.svg", 50, 50);
-        var anvilWk = new SvgTexture(); anvilWk.LoadFromFile("Assets/Icons/AnvilKey.svg", 50, 50);
-        var sceFile = new SvgTexture(); sceFile.LoadFromFile("Assets/Icons/scene.svg", 50, 50);
+        var txtFile = new SvgTexture(); txtFile.LoadFromFile("Assets/Icons/Files/textFile.svg", 50, 50);
+        var cFolder = new SvgTexture(); cFolder.LoadFromFile("Assets/Icons/Files/closedFolder.svg", 50, 50);
+        var eFolder = new SvgTexture(); eFolder.LoadFromFile("Assets/Icons/Files/emptyFolder.svg", 50, 50);
+        var unkFile = new SvgTexture(); unkFile.LoadFromFile("Assets/Icons/Files/unknowFile.svg", 50, 50);
+        var anvilWk = new SvgTexture(); anvilWk.LoadFromFile("Assets/Icons/Files/AnvilKey.svg", 50, 50);
+        var sceFile = new SvgTexture(); sceFile.LoadFromFile("Assets/Icons/Files/scene.svg", 50, 50);
 
         filesList.Root.Icon = cFolder;
         filesList.Root.Name = "res://";
@@ -102,7 +105,7 @@ public class EditorMain
 
         var nodesSection = scene.GetChild("Main/RightPannel/NodeMananger");
 
-        var nodesList = new TreeGraph() { ClipChildren = true };
+        nodesList = new TreeGraph() { ClipChildren = true };
         nodesSection!.AddAsChild(nodesList);
 
 
@@ -158,8 +161,12 @@ public class EditorMain
 
         viewport!.children = new();
         
-        var packScene = PackagedScene.Load(scenePath)!.Instantiate();
-        viewport!.AddAsChild(packScene);
+        var scene = PackagedScene.Load(scenePath)!.Instantiate();
+        viewport!.AddAsChild(scene);
+        
+        nodesList!.ClearGraph();
+
+        nodesList!.Root.Name = scene.name;
 
     }
 

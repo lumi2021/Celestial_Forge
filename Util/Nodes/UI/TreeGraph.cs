@@ -59,6 +59,11 @@ public class TreeGraph : NodeUI
         }
     }
 
+    public void ClearGraph()
+    {
+        _root = new(this) {Name = "root"};
+    }
+
     #region inner classes/strucs
 
     public class TreeGraphItem
