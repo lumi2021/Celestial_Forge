@@ -2,6 +2,7 @@
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
+using GameEngine.Util.Values;
 using Silk.NET.Windowing;
 using Window = GameEngine.Util.Nodes.Window;
 
@@ -126,7 +127,9 @@ public class EditorMain
     }
     private void RunGame()
     {
-        var gameWindow = new Window();
+        var gameWindow = new Window() {
+            Size = (Vector2<uint>) projectSettings.canvasDefaultSize
+        };
 
         mainWindow.AddAsChild(gameWindow);
 

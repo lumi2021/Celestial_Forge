@@ -65,6 +65,11 @@ public class Window : Node
 
         if (!window.IsInitialized)
             window.Initialize();
+
+        window.MakeCurrent();
+
+        gl.Enable(EnableCap.Blend);
+        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
     }
 
     private void OnLoad()

@@ -130,6 +130,32 @@ public struct Vector2<T> where T : struct
     public static Vector2<T> operator / (Vector2<T> a, Vector2<T> b)
     {return DoVectorDivision(a, b);}
 
+    public static explicit operator Vector2<int>(Vector2<T> vec2)
+    {
+        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
+        return new((int) x, (int) y);
+    }
+    public static explicit operator Vector2<uint>(Vector2<T> vec2)
+    {
+        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
+        return new((uint) x, (uint) y);
+    }
+    public static explicit operator Vector2<float>(Vector2<T> vec2)
+    {
+        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
+        return new((float) x, (float) y);
+    }
+    public static explicit operator Vector2<double>(Vector2<T> vec2)
+    {
+        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
+        return new(x, y);
+    }
+    public static explicit operator Vector2<byte>(Vector2<T> vec2)
+    {
+        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
+        return new((byte) x, (byte) y);
+    }
+
     private static Vector2<T> DoAddition(Vector2<double> a, Vector2<double> b)
     {
         return new Vector2<T>(

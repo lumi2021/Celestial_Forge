@@ -32,17 +32,19 @@ public static class WindowService
 
         var nWin = Window.Create(options);
 
+        windows.Add(nWin);
+
+        if (onload!=null) nWin.Load += onload;
+
+        nWin.Initialize();
+
         if (mainWindow == null)
         {
             mainWindow = nWin;
-            if (onload!=null) nWin.Load += onload;
-            nWin.Initialize();
             Engine.gl = nWin.CreateOpenGL();
         }
 
-        windows.Add(nWin);
-
-        Engine.gl.ClearColor(1f, 1f, 1f, 1f);
+        nWin.ConfigWindow();
 
         return nWin;
 
@@ -53,6 +55,18 @@ public static class WindowService
         _windowsToClose.Add(win);
         windows.Remove(win);
         if (win == mainWindow) mainWindow = null;
+    }
+
+    private static void ConfigWindow(this IWindow win)
+    {
+        var gl = Engine.gl;
+
+        // GL configurations //
+        gl.ClearColor(1f, 1f, 1f, 1f);
+        gl.Enable(EnableCap.Multisample);
+        gl.Enable(EnableCap.ScissorTest);
+        gl.Enable(EnableCap.Blend);
+        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
     }
 
     public static void CallProcess()
