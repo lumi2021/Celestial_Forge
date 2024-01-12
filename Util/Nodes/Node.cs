@@ -16,7 +16,6 @@ public class Node
     /* Script & load variables */
     private Dictionary<string, object?> _fieldsToLoadWhenReady = new();
 
-    
     public Node? parent;
 
     public List<Node> children = new();
@@ -24,7 +23,6 @@ public class Node
 
     public string name = "";
 
-    // FIXME optimaze these two if it's possible
     private Window? _parentWin;
     protected Window? ParentWindow
     {
@@ -41,11 +39,7 @@ public class Node
     protected InputHandler Input
     {
         get {
-            var a = ParentWindow;
-            if (a != null)
-                return a.input;
-
-            else return new();
+            return ParentWindow?.input ?? new();
         }
     }
 

@@ -156,7 +156,9 @@ public class EditorMain
 
     private void LoadSceneInEditor(string scenePath)
     {
-        var viewport = editorRoot!.GetChild("Main/Center/Viewport");
+        var viewport = editorRoot!.GetChild("Main/Center/Viewport/ViewportContainer") as NodeUI;
+
+        viewport!.sizePixels = projectSettings.canvasDefaultSize;
 
         nodesList!.ClearGraph();
         viewport!.children.Clear();

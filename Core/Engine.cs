@@ -47,6 +47,8 @@ public class Engine
         projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
         projectSettings.entryScene = @"res://testScene.sce";
 
+        projectSettings.canvasDefaultSize = new(400, 300);
+
         /* START EDITOR */
         _ = new EditorMain(projectSettings, mainWin);
 
