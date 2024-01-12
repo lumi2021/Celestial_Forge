@@ -1,9 +1,7 @@
 using System.Diagnostics;
 using GameEngine.Editor;
-using GameEngine.Util;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
-using GameEngine.Util.Resources;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
@@ -37,7 +35,7 @@ public class Engine
         // get GL info //
         gl_MaxTextureUnits = gl.GetInteger(GLEnum.MaxTextureImageUnits);
 
-        // configurations //
+        // GL configurations //
         gl.Enable(EnableCap.Multisample);
         gl.Enable(EnableCap.ScissorTest);
         gl.Enable(EnableCap.Blend);
@@ -48,6 +46,8 @@ public class Engine
         //projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
         projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
         projectSettings.entryScene = @"res://testScene.sce";
+
+        projectSettings.canvasDefaultSize = new(400, 300);
 
         /* START EDITOR */
         _ = new EditorMain(projectSettings, mainWin);
@@ -96,20 +96,6 @@ public class Engine
                 Console.Title = "fps: " + Math.Round(fpsHistory.ToArray().Average());
                 fpsHistory.Clear();
             }
-        }
-    }
-
-    private void OnClick(object? from, dynamic[]? args)
-    {
-        var item = from as TreeGraph.TreeGraphItem;
-
-        if (item!.data["type"] == "file")
-        {
-            var a = "res://" + item!.Path[7..];
-            //textField!.Text = new FileReference(a).ReadAllFile();
-        }
-        else {
-            item.Collapsed = !item.Collapsed;
         }
     }
 

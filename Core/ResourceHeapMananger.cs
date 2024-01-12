@@ -48,7 +48,11 @@ public static class ResourceHeap
     {
         var gl = Engine.gl;
 
-        if (texturesToDelete.Count > 0) gl.DeleteTextures((uint) texturesToDelete.Count, texturesToDelete.ToArray());
+        if (texturesToDelete.Count > 0)
+        {
+            gl.DeleteTextures((uint) texturesToDelete.Count, texturesToDelete.ToArray());
+            texturesToDelete.Clear();
+        }
     }
     public static void CallProcess()
     {

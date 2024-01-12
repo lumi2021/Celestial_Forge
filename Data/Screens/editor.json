@@ -111,14 +111,10 @@
                                 "Children" : 
                                 [
                                     {
-                                        "NodeType" : "WriteTextField",
-                                        "Name" : "TextField",
+                                        "NodeType" : "NodeUI",
+                                        "Name" : "ViewportContainer",
 
-                                        "Color" : [255, 255, 255],
-                                        "positionPixels" : [10, 10],
-                                        "sizePixels" : [-20, -20],
-                                        "Text" : "",
-                                        "Font" : 1
+                                        "sizePercent" : [0, 0]
                                     }
                                 ]
                             },
