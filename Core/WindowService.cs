@@ -58,9 +58,7 @@ public static class WindowService
     public static void CallProcess()
     {
         foreach (var win in _windowsToClose)
-        {
             win.Dispose();
-        }
     }
 
 }

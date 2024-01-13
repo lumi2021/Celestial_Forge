@@ -10,6 +10,8 @@ public class NodeUI : Node, IClipChildren
 {
     /* SIGNALS */
     public readonly Signal onClick = new();
+    public readonly Signal onFocus = new();
+    public readonly Signal onUnfocus = new();
 
     public enum ANCHOR {
         TOP_LEFT,
@@ -108,6 +110,16 @@ public class NodeUI : Node, IClipChildren
         }
     }
 
+    public bool Focused
+    {
+        get { return this == ParentWindow?.FocusedUiNode; }
+        set
+        {
+            if (value) Focus();
+            else Unfocus();
+        }
+    }
+
     public bool ClipChildren {get;set;} = false;
 
     // Mouse options
@@ -130,21 +142,56 @@ public class NodeUI : Node, IClipChildren
         return rect;
     }
 
-    public void RunUIInputEvent(InputEvent e)
+    public void Focus()
     {
-        OnUIInputEvent(e);
+        ParentWindow!.FocusedUiNode = this;
+        onFocus.Emit();
+    }
+    public void Unfocus()
+    {
+        if (ParentWindow != null && ParentWindow.FocusedUiNode == this)
+        {
+            ParentWindow!.FocusedUiNode = null;
+            onUnfocus.Emit();
+        }
+    }
+
+    public void RunUIInputEvent(InputEvent e)
+    { OnUIInputEvent(e); }
+    public void RunFocusedUIInputEvent(InputEvent e)
+    { OnFocusedUIInputEvent(e); }
+    public void RunFocusChanged(bool focused)
+    { OnFocusChanged(focused); }
+
+    protected virtual void OnFocusedUIInputEvent(InputEvent e)
+    {
+        if (e is MouseInputEvent)
+        {
+            if (mouseFilter == MouseFilter.Ignore) return;
+
+            if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (!new Rect(Position, Size).Intersects(@event.position))
+            {
+                Unfocus();
+            }
+        }
     }
     protected virtual void OnUIInputEvent(InputEvent e)
     {
-        if (mouseFilter == MouseFilter.Ignore) return;
-
-        if (e is MouseBtnInputEvent @event)
-        if (@event.action == Silk.NET.GLFW.InputAction.Press)
-        if (new Rect(Position, Size).Intersects(@event.position))
+        if (e is MouseInputEvent)
         {
-            onClick.Emit(this);
-            if (mouseFilter == MouseFilter.Block)
-                ParentWindow?.SupressInputEvent();
+            if (mouseFilter == MouseFilter.Ignore) return;
+
+            if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (new Rect(Position, Size).Intersects(@event.position))
+            {
+                Focus();
+                onClick.Emit(this);
+                if (mouseFilter == MouseFilter.Block)
+                    ParentWindow?.SupressInputEvent();
+            }
         }
     }
+
+    protected virtual void OnFocusChanged(bool focused) {}
 }

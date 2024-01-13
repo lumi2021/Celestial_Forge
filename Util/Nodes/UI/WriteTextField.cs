@@ -1,3 +1,4 @@
+using GameEngine.Util.Attributes;
 using Silk.NET.GLFW;
 using static GameEngine.Util.Nodes.Window.InputHandler;
 
@@ -5,6 +6,20 @@ namespace GameEngine.Util.Nodes;
 
 public class WriteTextField : TextField
 {
+
+    private bool _multiLine = true;
+    [Inspect]
+    public bool MultiLine
+    {
+        get { return _multiLine; }
+        set
+        {
+            _multiLine = value;
+            if (!value)
+                Text = Text.Replace("\r", "").Replace('\n', ' ');
+
+        }
+    }
 
     private uint caretLine = 0;
     private uint caretRow = 0;
@@ -21,13 +36,11 @@ public class WriteTextField : TextField
         caret.sizePixels.X = 2;
         caret.sizePixels.Y = Font.fontheight + 2;
         caret.BackgroundColor = new(255, 255, 255);
+        caret.Visible = Focused;
     }
 
     protected override void Process(double deltaT)
     {
-        if (Input.LastInputedChars.Length > 0)
-            AppendBeforeCursor(Input.LastInputedChars);
-
         int caretPosX = 0;
         for (int i = 0; i < caretRow; i++)
             caretPosX += (int)charsList[caretLine][i].Advance;
@@ -53,12 +66,16 @@ public class WriteTextField : TextField
             caretRow = (uint) _textLines[caretLine].Length;
     }
 
-    protected override void OnUIInputEvent(InputEvent e)
+    protected override void OnFocusedUIInputEvent(InputEvent e)
     {
+        base.OnFocusedUIInputEvent(e);
+
         if (e is KeyboardInputEvent @event && @event.action != InputAction.Release)
         {
+            if (Input.LastInputedChars.Length > 0)
+                AppendBeforeCursor(Input.LastInputedChars);
 
-            if (@event.key == Keys.Enter)
+            if (MultiLine && @event.key == Keys.Enter)
             {
                 AppendBeforeCursor("\n");
                 caretLine++;
@@ -110,8 +127,16 @@ public class WriteTextField : TextField
         }
     }
 
-    protected void AppendBeforeCursor(string s)
+    protected override void OnFocusChanged(bool focused)
     {
+        caret.Visible = focused;
+    }
+
+    protected void AppendBeforeCursor(string str)
+    {
+        var s = str;
+        if (MultiLine) s = s.Replace("\r", "").Replace('\n', ' ');
+
         var line =  _textLines[caretLine];
         _textLines[caretLine] =
         line[..(int)caretRow] + s + line[(int)caretRow..];

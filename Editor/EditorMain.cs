@@ -1,4 +1,5 @@
 ﻿using GameEngine.Core;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
@@ -108,8 +109,6 @@ public class EditorMain
         nodesList = new TreeGraph() { ClipChildren = true };
         nodesSection!.AddAsChild(nodesList);
 
-
-
         #endregion
 
         /* CONFIGURATE BUTTONS */
@@ -153,6 +152,28 @@ public class EditorMain
             }
         }
     }
+    
+    private void OnNodeClicked(object? from, dynamic[]? args)
+    {
+        var item = from as TreeGraph.TreeGraphItem;
+        var node = item!.data["NodeRef"] as Node;
+
+        var inspector = editorRoot!.GetChild("Main/RightPannel/Inspector/InspectorText")! as TextField;
+
+        inspector!.Text = string.Format(
+            "Node: {0}; \n" +
+            "Name: {1}; \n" +
+            "Chid. Count: {2} \n\n",
+            node!.GetType().Name,
+            node.name, node.children.Count
+        );
+
+        inspector!.Text += "Node Fields: \n";
+        var members = node!.GetType().GetMembers().Where(e => Attribute.IsDefined(e, typeof(Inspect)));
+
+        foreach (var i in members) inspector!.Text += i.Name + ";\n";
+
+    }
 
     private void LoadSceneInEditor(string scenePath)
     {
@@ -191,6 +212,8 @@ public class EditorMain
             }
 
             var item = nodesList!.AddItem(path, node.name, nodeIcon);
+            item!.data.Add("NodeRef", node);
+            item!.OnClick.Connect(OnNodeClicked);
 
             for (int i = node.children.Count-1; i >= 0 ; i--)
                 ToList.Insert(0, new(path+"/"+node.name, node.children[i]));
@@ -209,6 +232,9 @@ public class EditorMain
 
         nodesList!.Root.Name = scene.name;
         nodesList!.Root.Icon = rootIcon;
+
+        nodesList!.Root.data.Add("NodeRef", scene);
+        nodesList!.Root.OnClick.Connect(OnNodeClicked);
     }
 
 }

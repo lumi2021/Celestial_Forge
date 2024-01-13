@@ -12,12 +12,15 @@ namespace GameEngine.Util.Nodes;
 public class Window : Node
 {
 
+    #region system things
     #pragma warning disable CS8618
     public IWindow window;
     public GL gl;
     #pragma warning restore
     public InputHandler input = new();
+    #endregion
 
+    #region window things
     private string _title = "";
     public string Title
     {
@@ -45,8 +48,25 @@ public class Window : Node
             window.WindowState = value;
         }
     }
+    #endregion
 
+    #region behaviors things
     private bool proceedInput = true;
+
+    private NodeUI? _focusedUiNode = null;
+    public NodeUI? FocusedUiNode
+    {
+        get { return _focusedUiNode; }
+        set
+        {
+            if (value ==  _focusedUiNode) return;
+
+            _focusedUiNode?.RunFocusChanged(value ==  _focusedUiNode);
+            value?.RunFocusChanged(true);
+            _focusedUiNode = value;
+        }
+    }
+    #endregion
 
     protected override void Init_()
     {
@@ -158,6 +178,9 @@ public class Window : Node
     
         // invert and iterate from top to bottom
         toEvent.Reverse();
+
+        // Focused UI event
+        _focusedUiNode?.RunFocusedUIInputEvent(e);
 
         // UI event
         proceedInput = true;

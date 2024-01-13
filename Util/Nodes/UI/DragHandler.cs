@@ -12,6 +12,9 @@ public class DragHandler : NodeUI, ICanvasItem
 
     public bool Visible { get; set; } = true;
 
+    public enum Axis {any, XAxis, YAxis}
+    public Axis dragAxis = Axis.any;
+
     public NodeUI? nodeA;
     public uint nodeASizeMin = 0;
     public uint nodeASizeMax = 0;
@@ -22,7 +25,16 @@ public class DragHandler : NodeUI, ICanvasItem
 
     public Color defaultColor = new(0.3f, 0.3f, 0.3f);
     public Color holdingColor = new(0.8f, 0.8f, 0.8f);
-    private Color color = new(0.3f, 0.3f, 0.3f);
+
+    private Color _color = new(0.3f, 0.3f, 0.3f);
+    private Color Color
+    {
+        get { return _color; }
+        set {
+            _color = value;
+            material.SetUniform("color", _color);
+        }
+    }
 
     private bool holding = false;
 
@@ -31,7 +43,7 @@ public class DragHandler : NodeUI, ICanvasItem
     protected override void Init_()
     {
 
-        color = defaultColor;
+        Color = defaultColor;
 
         float[] v = new float[] { 0.0f,0.0f, 1.0f,0.0f, 1.0f,1.0f, 0.0f,1.0f };
         float[] uv = new float[] { 0f,0f, 1f,0f, 1f,1f, 0f,1f };
@@ -49,78 +61,124 @@ public class DragHandler : NodeUI, ICanvasItem
 
     }
 
-    protected override void Process(double deltaT)
+    protected override void OnUIInputEvent(Window.InputHandler.InputEvent e)
     {
-        sizePercent.X = 0f;
-        sizePixels.X = 16;
 
         var mousePos = Input.GetMousePosition();
 
         if (mousePos.X > Position.X && mousePos.Y > Position.Y &&
         mousePos.X < Position.X+Size.X && mousePos.Y < Position.Y+Size.Y)
         {
-            color = holdingColor;
+            Color = holdingColor;
             if (Input.IsActionJustPressed(MouseButton.Left))
             {
                 holding = true;
                 Input.SetCursorShape(CursorShape.HResize);
             }
+
+            ParentWindow?.SupressInputEvent();
         }
         else {
-            color = defaultColor;
+            Color = defaultColor;
         }
-
-        material.SetUniform("color", color);
 
         if (holding && Input.IsActionJustReleased(MouseButton.Left))
         {
             holding = false;
-            Input.SetCursorShape(Silk.NET.GLFW.CursorShape.Arrow);
+            Input.SetCursorShape(CursorShape.Arrow);
         }
         
         if (holding)
         {
-            var d = Input.GetMousePosition().X - Position.X - Size.X/2;
+            if (dragAxis != Axis.YAxis)
+            {
+                var d = Input.GetMousePosition().X - Position.X - Size.X/2;
 
-            if (d > 0)
-            {
-                if (nodeA != null && nodeASizeMax != 0 && nodeA.Size.X + d >= nodeASizeMax)
+                if (d > 0)
                 {
-                    var dif = nodeA.Size.X+d - nodeASizeMax;
-                    d -= dif;
+                    if (nodeA != null && nodeASizeMax != 0 && nodeA.Size.X + d >= nodeASizeMax)
+                    {
+                        var dif = nodeA.Size.X+d - nodeASizeMax;
+                        d -= dif;
+                    }
+                    if (nodeB != null && nodeB.Size.X - d <= nodeBSizeMin)
+                    {
+                        var dif = nodeBSizeMin - nodeB.Size.X+d;
+                        d -= dif;
+                    }
                 }
-                if (nodeB != null && nodeB.Size.X - d <= nodeBSizeMin)
-                {
-                    var dif = nodeBSizeMin - nodeB.Size.X+d;
-                    d -= dif;
+                else {
+                    if (nodeA != null && nodeA.Size.X + d <= nodeASizeMin)
+                    {
+                        var dif = nodeA.Size.X+d - nodeASizeMin;
+                        d -= dif;
+                    }
+                    if (nodeB != null && nodeBSizeMax != 0 && nodeB.Size.X - d >= nodeBSizeMax)
+                    {
+                        var dif = nodeBSizeMax - nodeB.Size.X+d;
+                        d -= dif;
+                    }
                 }
-            }
-            else {
-                if (nodeA != null && nodeA.Size.X + d <= nodeASizeMin)
-                {
-                    var dif = nodeA.Size.X+d - nodeASizeMin;
-                    d -= dif;
-                }
-                if (nodeB != null && nodeBSizeMax != 0 && nodeB.Size.X - d >= nodeBSizeMax)
-                {
-                    var dif = nodeBSizeMax - nodeB.Size.X+d;
-                    d -= dif;
-                }
-            }
 
-            positionPixels.X += (int) d;
-            if (nodeA != null)
-            {
-                nodeA.sizePixels.X += (int) d;
+                positionPixels.X += (int) d;
+                if (nodeA != null)
+                {
+                    nodeA.sizePixels.X += (int) d;
+                }
+                if (nodeB != null)
+                {
+                    if (nodeB.anchor != ANCHOR.TOP_RIGHT &&
+                        nodeB.anchor != ANCHOR.CENTER_RIGHT &&
+                        nodeB.anchor != ANCHOR.BOTTOM_RIGHT)
+                        nodeB.positionPixels.X += (int) d;
+                    
+                    nodeB.sizePixels.X -= (int) d;
+                }
             }
-            if (nodeB != null)
+            if (dragAxis != Axis.XAxis)
             {
-                if (nodeB.anchor != ANCHOR.TOP_RIGHT &&
-                    nodeB.anchor != ANCHOR.CENTER_RIGHT &&
-                    nodeB.anchor != ANCHOR.BOTTOM_RIGHT)
-                    nodeB.positionPixels.X += (int) d;
-                
-                nodeB.sizePixels.X -= (int) d;
+                var d = Input.GetMousePosition().Y - Position.Y - Size.Y/2;
+
+                if (d > 0)
+                {
+                    if (nodeA != null && nodeASizeMax != 0 && nodeA.Size.Y + d >= nodeASizeMax)
+                    {
+                        var dif = nodeA.Size.Y+d - nodeASizeMax;
+                        d -= dif;
+                    }
+                    if (nodeB != null && nodeB.Size.Y - d <= nodeBSizeMin)
+                    {
+                        var dif = nodeBSizeMin - nodeB.Size.Y+d;
+                        d -= dif;
+                    }
+                }
+                else {
+                    if (nodeA != null && nodeA.Size.Y + d <= nodeASizeMin)
+                    {
+                        var dif = nodeA.Size.Y+d - nodeASizeMin;
+                        d -= dif;
+                    }
+                    if (nodeB != null && nodeBSizeMax != 0 && nodeB.Size.Y - d >= nodeBSizeMax)
+                    {
+                        var dif = nodeBSizeMax - nodeB.Size.Y+d;
+                        d -= dif;
+                    }
+                }
+
+                positionPixels.Y += (int) d;
+                if (nodeA != null)
+                {
+                    nodeA.sizePixels.Y += (int) d;
+                }
+                if (nodeB != null)
+                {
+                    if (nodeB.anchor != ANCHOR.BOTTOM_RIGHT &&
+                        nodeB.anchor != ANCHOR.BOTTOM_CENTER &&
+                        nodeB.anchor != ANCHOR.BOTTOM_RIGHT)
+                        nodeB.positionPixels.Y += (int) d;
+                    
+                    nodeB.sizePixels.Y -= (int) d;
+                }
             }
         }
 
