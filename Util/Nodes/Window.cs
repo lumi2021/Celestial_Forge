@@ -111,7 +111,7 @@ public class Window : Node
             Node current = toDraw[0];
             toDraw.RemoveAt(0);
 
-            if (current is Window) continue;
+            if (current is Window || current.Freeled) continue;
 
             if (current is ICanvasItem)
             {
@@ -164,7 +164,7 @@ public class Window : Node
         foreach(var i in toEvent.Where(e => e is NodeUI))
         {
             var a = i as NodeUI;
-            if (a is not ICanvasItem || (a as ICanvasItem)!.Visible)
+            if (a is not ICanvasItem || (a as ICanvasItem)!.Visible && !a.Freeled)
                 a!.RunUIInputEvent(e);
             
             if (!proceedInput) break;
@@ -174,7 +174,7 @@ public class Window : Node
         proceedInput = true;
         foreach(var i in toEvent)
         {
-            i.RunInputEvent(e);
+            if (!i.Freeled) i.RunInputEvent(e);
             if (!proceedInput) break;
         }
 
@@ -190,10 +190,10 @@ public class Window : Node
         proceedInput = false;
     }
 
-    public override void Free(bool fromGC = false)
+    public override void Free()
     {
         WindowService.CloseWindow(window);
-        base.Free(fromGC);
+        base.Free();
     }
 
     public unsafe class InputHandler

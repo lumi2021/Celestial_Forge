@@ -13,7 +13,10 @@ public class EditorMain
     private ProjectSettings projectSettings;
     private Window mainWindow;
 
+    /* IMPORTANT NODES */
     private Node? editorRoot;
+    private TreeGraph? filesList;
+    private TreeGraph? nodesList;
 
     public EditorMain(ProjectSettings settings, Window mainWin)
     {
@@ -38,15 +41,15 @@ public class EditorMain
         #region
         var filesSection = scene.GetChild("Main/LeftPannel/FileMananger");
 
-        var filesList = new TreeGraph() { ClipChildren = true };
+        filesList = new TreeGraph() { ClipChildren = true };
         filesSection!.AddAsChild(filesList);
         
-        var txtFile = new SvgTexture(); txtFile.LoadFromFile("Assets/Icons/textFile.svg", 50, 50);
-        var cFolder = new SvgTexture(); cFolder.LoadFromFile("Assets/Icons/closedFolder.svg", 50, 50);
-        var eFolder = new SvgTexture(); eFolder.LoadFromFile("Assets/Icons/emptyFolder.svg", 50, 50);
-        var unkFile = new SvgTexture(); unkFile.LoadFromFile("Assets/Icons/unknowFile.svg", 50, 50);
-        var anvilWk = new SvgTexture(); anvilWk.LoadFromFile("Assets/Icons/AnvilKey.svg", 50, 50);
-        var sceFile = new SvgTexture(); sceFile.LoadFromFile("Assets/Icons/scene.svg", 50, 50);
+        var txtFile = new SvgTexture() { Filter = false }; txtFile.LoadFromFile("Assets/Icons/Files/textFile.svg", 20, 20);
+        var cFolder = new SvgTexture() { Filter = false }; cFolder.LoadFromFile("Assets/Icons/Files/closedFolder.svg", 20, 20);
+        var eFolder = new SvgTexture() { Filter = false }; eFolder.LoadFromFile("Assets/Icons/Files/emptyFolder.svg", 20, 20);
+        var unkFile = new SvgTexture() { Filter = false }; unkFile.LoadFromFile("Assets/Icons/Files/unknowFile.svg", 20, 20);
+        var anvilWk = new SvgTexture() { Filter = false }; anvilWk.LoadFromFile("Assets/Icons/Files/AnvilKey.svg", 20, 20);
+        var sceFile = new SvgTexture() { Filter = false }; sceFile.LoadFromFile("Assets/Icons/Files/scene.svg", 20, 20);
 
         filesList.Root.Icon = cFolder;
         filesList.Root.Name = "res://";
@@ -102,7 +105,7 @@ public class EditorMain
 
         var nodesSection = scene.GetChild("Main/RightPannel/NodeMananger");
 
-        var nodesList = new TreeGraph() { ClipChildren = true };
+        nodesList = new TreeGraph() { ClipChildren = true };
         nodesSection!.AddAsChild(nodesList);
 
 
@@ -153,14 +156,59 @@ public class EditorMain
 
     private void LoadSceneInEditor(string scenePath)
     {
+        var viewport = editorRoot!.GetChild("Main/Center/Viewport/ViewportContainer") as NodeUI;
 
-        var viewport = editorRoot!.GetChild("Main/Center/Viewport");
+        viewport!.sizePixels = projectSettings.canvasDefaultSize;
 
-        viewport!.children = new();
+        nodesList!.ClearGraph();
+        viewport!.children.Clear();
         
-        var packScene = PackagedScene.Load(scenePath);
-        viewport!.AddAsChild(packScene!.Instantiate());
+        var scene = PackagedScene.Load(scenePath)!.Instantiate();
+        viewport!.AddAsChild(scene);
+        
 
+        /* LOAD NODES LIST */
+        List<KeyValuePair<string, Node>> ToList = new();
+        foreach (var i in scene.children) ToList.Add(new("", i));
+
+        Dictionary<string, Texture> IconsBuffer = new();
+
+        while ( ToList.Count > 0 )
+        {
+            var keyValue = ToList.Unqueue();
+            var path = keyValue.Key;
+            var node = keyValue.Value;
+
+            Texture nodeIcon;
+            if (IconsBuffer.ContainsKey(node.GetType().Name))
+                nodeIcon = IconsBuffer[node.GetType().Name];
+            else
+            {
+                var nTexture = new SvgTexture() { Filter = false };
+                nTexture.LoadFromFile("Assets/icons/Nodes/" + node.GetType().Name + ".svg", 20, 20);
+                IconsBuffer.Add(node.GetType().Name, nTexture);
+                nodeIcon = nTexture;
+            }
+
+            var item = nodesList!.AddItem(path, node.name, nodeIcon);
+
+            for (int i = node.children.Count-1; i >= 0 ; i--)
+                ToList.Insert(0, new(path+"/"+node.name, node.children[i]));
+        }
+
+        Texture rootIcon;
+        if (IconsBuffer.ContainsKey(scene.GetType().Name))
+            rootIcon = IconsBuffer[scene.GetType().Name];
+        else
+        {
+            var nTexture = new SvgTexture() { Filter = false };
+            nTexture.LoadFromFile("Assets/icons/Nodes/" + scene.GetType().Name + ".svg", 20, 20);
+            IconsBuffer.Add(scene.GetType().Name, nTexture);
+            rootIcon = nTexture;
+        }
+
+        nodesList!.Root.Name = scene.name;
+        nodesList!.Root.Icon = rootIcon;
     }
 
 }

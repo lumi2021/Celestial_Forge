@@ -50,7 +50,7 @@ public static class ResourceHeap
 
         if (texturesToDelete.Count > 0)
         {
-            gl.DeleteTextures((uint)texturesToDelete.Count, texturesToDelete.ToArray());
+            gl.DeleteTextures((uint) texturesToDelete.Count, texturesToDelete.ToArray());
             texturesToDelete.Clear();
         }
     }
