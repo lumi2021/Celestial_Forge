@@ -34,6 +34,20 @@ public class TextField : NodeUI, ICanvasItem
         }
     }
 
+    [Inspect]
+    public bool ForceTextSize = false;
+
+    public override Vector2<float> Size
+    {
+        get
+        {
+            if (!ForceTextSize)
+                return base.Size;
+            else
+                return new(TextSize.X, TextSize.Y);
+        }
+    }
+
     private Color _color =  new(0f, 0f, 0, 1f);
     [Inspect] public Color Color
     {

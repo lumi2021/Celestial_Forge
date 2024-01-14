@@ -1,4 +1,5 @@
 using GameEngine.Core;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
@@ -26,6 +27,7 @@ public class NodeUI : Node, IClipChildren
         BOTTOM_CENTER,
         BOTTOM_RIGHT,
     }
+    [Inspect]
     public ANCHOR anchor = ANCHOR.TOP_LEFT;
 
     //Get parent size
@@ -43,9 +45,9 @@ public class NodeUI : Node, IClipChildren
     }
 
     //Position
-    public Vector2<int> positionPixels = new(0,0);
-    public Vector2<float> positionPercent = new(0,0);
-    public Vector2<float> Position {
+    [Inspect] public Vector2<int> positionPixels = new(0,0);
+    [Inspect] public Vector2<float> positionPercent = new(0,0);
+    public virtual Vector2<float> Position {
         get {
             Vector2<float> parentPos = new(0, -1);
 
@@ -101,12 +103,29 @@ public class NodeUI : Node, IClipChildren
     }
     
     //Size
-    public Vector2<int> sizePixels = new(0,0);
-    public Vector2<float> sizePercent = new(1,1);
-    public Vector2<float> Size {
+    [Inspect] public Vector2<int> sizePixels = new(0,0);
+    [Inspect] public Vector2<float> sizePercent = new(1,1);
+    public virtual Vector2<float> Size {
         get {
             var a = ParentSize * sizePercent + sizePixels;
             return new(MathF.Max(0f, a.X), MathF.Max(0f, a.Y));
+        }
+    }
+
+    public Vector2<float> ContentSize
+    {
+        get
+        {
+            var resultRect = new Rect();
+
+            foreach (var i in children.Where(e => e is NodeUI))
+            {
+                var j = (NodeUI)i!;
+               resultRect.FitInside(new(j.positionPixels.X, j.positionPixels.Y,
+               j.sizePixels.X, j.sizePixels.Y));
+            }
+
+            return resultRect.Size;
         }
     }
 
@@ -120,6 +139,7 @@ public class NodeUI : Node, IClipChildren
         }
     }
 
+    [Inspect]
     public bool ClipChildren {get;set;} = false;
 
     // Mouse options

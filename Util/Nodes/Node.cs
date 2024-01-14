@@ -59,8 +59,8 @@ public class Node
 
         if (!_isReady)
         {
-            Ready();
             OnReady();
+            Ready();
             _isReady = true;
         }
         Process(deltaT);

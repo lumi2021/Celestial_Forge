@@ -103,7 +103,13 @@
                                         "NodeType" : "TextField",
                                         "Name" : "InspectorText",
                                         "Text" : "select something to inspect!",
-                                        "Color" : [255, 255, 255]
+                                        "Color" : [255, 255, 255],
+                                        "ForceTextSize" : true
+                                    },
+                                    {
+                                        "NodeType" : "ScrollBar",
+                                        "Name" : "Scrollbar",
+                                        "target" : "../InspectorText"
                                     }
                                 ]
                             },

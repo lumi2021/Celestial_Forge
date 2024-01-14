@@ -1,5 +1,6 @@
 using System.Numerics;
 using GameEngine.Core;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
@@ -10,21 +11,23 @@ namespace GameEngine.Util.Nodes;
 public class DragHandler : NodeUI, ICanvasItem
 {
 
+    [Inspect]
     public bool Visible { get; set; } = true;
 
     public enum Axis {any, XAxis, YAxis}
+    [Inspect]
     public Axis dragAxis = Axis.any;
 
-    public NodeUI? nodeA;
-    public uint nodeASizeMin = 0;
-    public uint nodeASizeMax = 0;
+    [Inspect] public NodeUI? nodeA;
+    [Inspect] public uint nodeASizeMin = 0;
+    [Inspect] public uint nodeASizeMax = 0;
 
-    public NodeUI? nodeB;
-    public uint nodeBSizeMin = 0;
-    public uint nodeBSizeMax = 0;
+    [Inspect] public NodeUI? nodeB;
+    [Inspect] public uint nodeBSizeMin = 0;
+    [Inspect] public uint nodeBSizeMax = 0;
 
-    public Color defaultColor = new(0.3f, 0.3f, 0.3f);
-    public Color holdingColor = new(0.8f, 0.8f, 0.8f);
+    [Inspect] public Color defaultColor = new(0.3f, 0.3f, 0.3f);
+    [Inspect] public Color holdingColor = new(0.8f, 0.8f, 0.8f);
 
     private Color _color = new(0.3f, 0.3f, 0.3f);
     private Color Color
@@ -38,6 +41,7 @@ public class DragHandler : NodeUI, ICanvasItem
 
     private bool holding = false;
 
+    [Inspect]
     public Material material = new Material2D( Material2D.DrawTypes.SolidColor );
 
     protected override void Init_()

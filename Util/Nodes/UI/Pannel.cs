@@ -1,5 +1,6 @@
 using System.Numerics;
 using GameEngine.Core;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
@@ -9,9 +10,11 @@ namespace GameEngine.Util.Nodes;
 public class Pannel : NodeUI, ICanvasItem
 {
 
+    [Inspect]
     public bool Visible { get; set; } = true;
 
     private Color _bgColor = new(100, 100, 100, 0.9f);
+    [Inspect]
     public Color BackgroundColor
     {
         get { return _bgColor; }
@@ -21,6 +24,7 @@ public class Pannel : NodeUI, ICanvasItem
         }
     }
 
+    [Inspect]
     public Material material = new Material2D( Material2D.DrawTypes.SolidColor );
 
     protected override void Init_()

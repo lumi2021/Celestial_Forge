@@ -1,5 +1,6 @@
 using System.Numerics;
 using GameEngine.Core;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 
@@ -8,9 +9,12 @@ namespace GameEngine.Util.Nodes;
 public class TextureRect : NodeUI, ICanvasItem
 {
 
+    [Inspect]
     public bool Visible { get; set; } = true;
 
+    [Inspect]
     public Texture? texture = null;
+    [Inspect]
     public Material material = new Material2D( Material2D.DrawTypes.Texture );
 
     protected override void Init_()

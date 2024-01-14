@@ -1,4 +1,5 @@
-﻿using GameEngine.Core;
+﻿using System.Reflection;
+using GameEngine.Core;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
@@ -158,20 +159,7 @@ public class EditorMain
         var item = from as TreeGraph.TreeGraphItem;
         var node = item!.data["NodeRef"] as Node;
 
-        var inspector = editorRoot!.GetChild("Main/RightPannel/Inspector/InspectorText")! as TextField;
-
-        inspector!.Text = string.Format(
-            "Node: {0}; \n" +
-            "Name: {1}; \n" +
-            "Chid. Count: {2} \n\n",
-            node!.GetType().Name,
-            node.name, node.children.Count
-        );
-
-        inspector!.Text += "Node Fields: \n";
-        var members = node!.GetType().GetMembers().Where(e => Attribute.IsDefined(e, typeof(Inspect)));
-
-        foreach (var i in members) inspector!.Text += i.Name + ";\n";
+        LoadInspectorInformation(node!);
 
     }
 
@@ -235,6 +223,37 @@ public class EditorMain
 
         nodesList!.Root.data.Add("NodeRef", scene);
         nodesList!.Root.OnClick.Connect(OnNodeClicked);
+    }
+
+    private void LoadInspectorInformation(Node node)
+    {
+        Type nodeType = node.GetType();
+
+        var inspector = editorRoot!.GetChild("Main/RightPannel/Inspector/InspectorText")! as TextField;
+
+        inspector!.Text = string.Format(
+            "Node: {0}; \n" +
+            "Name: {1}; \n" +
+            "Chid. Count: {2} \n\n",
+            node!.GetType().Name,
+            node.name, node.children.Count
+        );
+
+        inspector!.Text += "--- Node Fields --- \n";
+
+        Type currentType = nodeType;
+
+        while (currentType != typeof(object))
+        {
+            inspector!.Text += string.Format("\nnode {0}:\n", currentType.Name);
+
+            var members = currentType.GetMembers(BindingFlags.DeclaredOnly | BindingFlags.Instance |
+            BindingFlags.Public).Where(e => Attribute.IsDefined(e, typeof(Inspect)));
+
+            foreach (var i in members) inspector!.Text += "\t- " + i.Name + ";\n";
+
+            currentType = currentType.BaseType!;
+        }
     }
 
 }
