@@ -32,7 +32,7 @@ public class EditorMain
     {
         /* CONFIGURATE WINDOW */
         mainWindow.State = WindowState.Maximized;
-        mainWindow.Title = "Game Engine";
+        mainWindow.Title = "Celestial Forge";
 
         /* INSTANTIATE EDITOR */
         var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
