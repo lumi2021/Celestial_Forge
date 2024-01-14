@@ -107,9 +107,18 @@ public class EditorMain
 
         var nodesSection = scene.GetChild("Main/RightPannel/NodeMananger");
 
-        nodesList = new TreeGraph() { ClipChildren = true };
+        nodesList = new TreeGraph();
         nodesSection!.AddAsChild(nodesList);
 
+
+        var sb = new ScrollBar()
+        {
+            anchor = NodeUI.ANCHOR.TOP_RIGHT,
+            sizePercent = new(0, 1),
+            sizePixels = new(15, 0)
+        };
+        nodesSection.AddAsChild(sb);
+        sb!.target = nodesList;
         #endregion
 
         /* CONFIGURATE BUTTONS */

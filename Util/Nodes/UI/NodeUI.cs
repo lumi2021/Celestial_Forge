@@ -121,8 +121,7 @@ public class NodeUI : Node, IClipChildren
             foreach (var i in children.Where(e => e is NodeUI))
             {
                 var j = (NodeUI)i!;
-               resultRect.FitInside(new(j.positionPixels.X, j.positionPixels.Y,
-               j.sizePixels.X, j.sizePixels.Y));
+                resultRect = resultRect.FitInside(new(new(j.positionPixels.X, j.positionPixels.Y), j.Size));
             }
 
             return resultRect.Size;

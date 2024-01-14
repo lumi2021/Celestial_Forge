@@ -27,6 +27,18 @@ public class ScrollBar : NodeUI
     { set { _scrollButton.BackgroundColor = value; } }
 
     protected NodeUI? Container {get { return (NodeUI) parent!; }}
+    protected Vector2<float> TSize
+    {
+        get
+        {
+            if (target is TextField @Tf) return @Tf.Size;
+            else if (target is NodeUI @Nui)
+            {
+                return @Nui.ContentSize;
+            }
+            else return new();
+        }
+    }
 
     protected override void Init_()
     {
@@ -64,7 +76,7 @@ public class ScrollBar : NodeUI
                 
                 _scrollButton.positionPixels.Y += (int) d;
                 target!.positionPixels.Y = (int) ((-_scrollButton.Position.Y + Container!.Position.Y)
-                * (target.Size.Y / Container.Size.Y * 1.5));
+                * (TSize.Y / Container.Size.Y));
             }
             
             if (new Rect(_scrollButton.Position, _scrollButton.Size).Intersects(@moveEvent.position))
@@ -77,14 +89,19 @@ public class ScrollBar : NodeUI
             _scrollButton.Hide();
         }
         else {
-            if (Container.Size.Y > target.Size.Y)
+            if (Container.Size.Y > TSize.Y)
                 _scrollButton.Hide();
             else
             {
                 _scrollButton.Show();
-                _scrollButton.sizePercent.Y = 1f / (target.Size.Y / Container.Size.Y);
+                _scrollButton.sizePercent.Y = 1f / (TSize.Y / Container.Size.Y);
+                _scrollButton.sizePixels.Y = -1;
 
-               //_scrollButton.positionPixels.Y = (int)(Container.Size.Y - _scrollButton.Size.Y)-1;
+
+                if(_scrollButton.positionPixels.Y + _scrollButton.Size.Y
+                > Container.Position.Y + Container.Size.Y)
+                    _scrollButton.positionPixels.Y -= (int) (_scrollButton.positionPixels.Y
+                    + _scrollButton.Size.Y - Container.Position.Y + Container.Size.Y);
             }
         }
     }
