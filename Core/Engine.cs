@@ -44,8 +44,6 @@ public class Engine
 
         projectSettings.canvasDefaultSize = new(400, 300);
 
-        CascadingStyleSheet.Load("Data/Styles/Editor.css");
-
         /* START EDITOR */
         _ = new EditorMain(projectSettings, mainWin);
 
