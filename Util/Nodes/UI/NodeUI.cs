@@ -204,10 +204,12 @@ public class NodeUI : Node, IClipChildren
             if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
             if (new Rect(Position, Size).Intersects(@event.position))
             {
-                Focus();
                 onClick.Emit(this);
                 if (mouseFilter == MouseFilter.Block)
+                {
                     ParentWindow?.SupressInputEvent();
+                    Focus();
+                }
             }
         }
     }

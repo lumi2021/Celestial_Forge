@@ -101,16 +101,17 @@
                                 "Children" : 
                                 [
                                     {
-                                        "NodeType" : "TextField",
-                                        "Name" : "InspectorText",
-                                        "Text" : "select something to inspect!",
-                                        "Color" : [255, 255, 255],
-                                        "ForceTextSize" : true
+                                        "NodeType" : "NodeUI",
+                                        "Name" : "InspectorContainer",
+                                        "sizePixels" : [-15, 0]
                                     },
                                     {
                                         "NodeType" : "ScrollBar",
                                         "Name" : "Scrollbar",
-                                        "target" : "../InspectorText"
+                                        "target" : "../InspectorContainer",
+                                        "sizePercent" : [0, 1],
+                                        "sizePixels" : [16, 0],
+                                        "anchor" : 2
                                     }
                                 ]
                             },
