@@ -24,7 +24,8 @@ public class TextField : NodeUI, ICanvasItem
     protected Character[][] charsList = Array.Empty<Character[]>();
     protected Vector2<int> TextSize = new(); 
 
-    [Inspect] public string Text
+    [Inspect(InspectAttribute.Usage.multiline_text)]
+    public string Text
     {
         get { return _text; }
         set {

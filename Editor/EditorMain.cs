@@ -256,7 +256,7 @@ public class EditorMain
             itemPos += (int) item.Size.Y;
 
             var members = currentType.GetMembers(BindingFlags.DeclaredOnly | BindingFlags.Instance |
-            BindingFlags.Public).Where(e => Attribute.IsDefined(e, typeof(Inspect)));
+            BindingFlags.Public).Where(e => Attribute.IsDefined(e, typeof(InspectAttribute)));
 
             foreach (var i in members)
             {  
@@ -306,6 +306,8 @@ public class EditorMain
         Type fieldType = fieldInfo?.FieldType ?? properInfo!.PropertyType;
         if (fieldType.IsGenericType) fieldType = fieldType.GetGenericTypeDefinition();
 
+        InspectAttribute inspectAtt = memberInfo.GetCustomAttribute<InspectAttribute>()!;
+
         var container = new NodeUI()
         {
             sizePercent = new(1, 0),
@@ -314,7 +316,8 @@ public class EditorMain
         var label = new TextField()
         {
             Text = title,
-            sizePercent = new(0.5f, 1),
+            sizePercent = new(0.5f, 0),
+            sizePixels = new(0, 25),
             verticalAligin = TextField.Aligin.Center,
             anchor = NodeUI.ANCHOR.TOP_LEFT,
             Color = new(255, 255, 255),
@@ -338,6 +341,15 @@ public class EditorMain
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
                 Color = new(0, 0, 0)
             };
+
+            if (inspectAtt.usage == InspectAttribute.Usage.multiline_text)
+            {
+                container.sizePixels.Y = 25 + 100;
+                fieldContainer.sizePercent = new(1, 0);
+                fieldContainer.sizePixels.Y = 100;
+                fieldContainer.positionPixels.Y = 25;
+                fieldContainer.positionPercent = new();
+            }
 
             fieldContainer.AddAsChild(field);
             container.AddAsChild(fieldContainer);
