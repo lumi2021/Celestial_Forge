@@ -7,13 +7,6 @@ namespace GameEngine.Core;
 
 public static class DrawService
 {
-    /* see about performace
-    
-    ** as niki said, the use of a dictionaty to get the buffers using IDs
-    ** can be really bad when the dictionary have to be consulted a lot
-    ** of times :(
-    */
-
     public enum BufferUsage { Static, Dynamic, Stream };
 
     private static Dictionary<uint, ResourceDrawData> ResourceData = new();

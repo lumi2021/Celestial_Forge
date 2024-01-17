@@ -48,6 +48,9 @@ public class Window : Node
 
     private bool proceedInput = true;
 
+    private Thread? renderThead;
+    private ManualResetEvent renderWaitHandle = new ManualResetEvent(false);
+
     protected override void Init_()
     {
         window = WindowService.CreateNewWindow( OnLoad );
@@ -66,10 +69,9 @@ public class Window : Node
         if (!window.IsInitialized)
             window.Initialize();
 
-        window.MakeCurrent();
-
-        gl.Enable(EnableCap.Blend);
-        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        renderThead = new(SwapBuffersMethod);
+        renderThead.Priority = ThreadPriority.Normal;
+        renderThead.Start();
     }
 
     private void OnLoad()
@@ -138,6 +140,9 @@ public class Window : Node
             for (int i = current.children.Count - 1; i >= 0; i--)
                 toDraw.Insert(0,  current.children[i]);
         }
+    
+        // After render get finished
+        renderWaitHandle.Set();
     }
 
     private void OnInput(InputEvent e)
@@ -188,6 +193,16 @@ public class Window : Node
     private void OnResize(Vector2D<int> size)
     {
         
+    }
+
+    private void SwapBuffersMethod()
+    {
+        renderWaitHandle.WaitOne();
+
+        while(!window.IsClosing)
+        {
+            window.SwapBuffers();
+        }
     }
 
     public void SupressInputEvent()

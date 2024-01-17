@@ -24,6 +24,7 @@ public static class WindowService
             Title = title,
             Size = size.GetAsSilkInt(),
             WindowState = WindowState.Normal,
+            ShouldSwapAutomatically = false,
             Samples = 4
         };
 
