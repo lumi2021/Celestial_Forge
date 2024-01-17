@@ -34,7 +34,7 @@ public class NodeUI : Node, IClipChildren
             if (parent != null && parent is NodeUI)
                 parentSize = (parent as NodeUI)!.Size;
             else
-                parentSize = new Vector2<float>(Engine.window.Size.X, Engine.window.Size.Y+1);
+                parentSize = new Vector2<float>(ParentWindow!.Size.X, ParentWindow!.Size.Y+1);
 
             return parentSize;
         }

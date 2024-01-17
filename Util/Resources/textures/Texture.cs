@@ -37,7 +37,9 @@ public abstract class Texture : Resource
         var gl = Engine.gl;
 
         gl.BindTexture(GLEnum.Texture2D, _textureId);
-    
+
+        gl.PixelStore(GLEnum.UnpackAlignment, 4);
+        
         gl.TexImage2D<byte>(
             GLEnum.Texture2D, 0, InternalFormat.Rgba,
             size.X, size.Y, 0,
@@ -68,7 +70,8 @@ public abstract class Texture : Resource
     #pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
     public override void Dispose()
     {
-        Engine.gl.DeleteTexture(_textureId);
+        ResourceHeap.Delete(_textureId, ResourceHeap.DeleteTarget.Texture);
+        _textureId = 0;
         base.Dispose();
     }
 

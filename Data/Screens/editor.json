@@ -16,7 +16,20 @@
                 "BackgroundColor" : [60, 42, 77],
                 "sizePercent" : [1, 0],
                 "sizePixels" : [0, 48],
-                "anchor" : 1
+                "anchor" : 1,
+
+                "Children" :
+                [
+                    {
+                        "NodeType" : "Button",
+                        "Name" : "RunButton",
+
+                        "anchor" : 5,
+                        "sizePercent" : [0, 0],
+                        "sizePixels" : [30, 30],
+                        "positionPixels" : [-9, 0]
+                    }
+                ]
             },
 
             {
@@ -98,14 +111,10 @@
                                 "Children" : 
                                 [
                                     {
-                                        "NodeType" : "WriteTextField",
-                                        "Name" : "TextField",
+                                        "NodeType" : "NodeUI",
+                                        "Name" : "ViewportContainer",
 
-                                        "Color" : [255, 255, 255],
-                                        "positionPixels" : [10, 10],
-                                        "sizePixels" : [-20, -20],
-                                        "Text" : "",
-                                        "Font" : 1
+                                        "sizePercent" : [0, 0]
                                     }
                                 ]
                             },

@@ -28,7 +28,6 @@ public static class FileService
         return itens;
     }
 
-
     public static string GetProjRelativePath(string path)
     {
         string p = path.Replace("\\", "/");

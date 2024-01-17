@@ -58,12 +58,18 @@ public class Window : Node
         window.Render += OnRender;
         window.Resize += OnResize;
 
-        input.Start(window, OnInput);
+        if(window == WindowService.mainWindow)
+            input.Start(window, OnInput);
 
         gl = Engine.gl;
 
         if (!window.IsInitialized)
             window.Initialize();
+
+        window.MakeCurrent();
+
+        gl.Enable(EnableCap.Blend);
+        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
     }
 
     private void OnLoad()
@@ -77,6 +83,8 @@ public class Window : Node
 
     private void OnUpdate(double deltaTime)
     {
+        input.CallQueuedInputs();
+
         List<Node> toUpdate = new();
         toUpdate.AddRange(children);
 
@@ -96,6 +104,7 @@ public class Window : Node
 
     private void OnRender(double deltaTime)
     {
+        gl.Viewport(Size);
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         gl.Scissor(0,0, Size.X, Size.Y);
 
@@ -107,7 +116,7 @@ public class Window : Node
             Node current = toDraw[0];
             toDraw.RemoveAt(0);
 
-            if (current is Window) continue;
+            if (current is Window || current.Freeled) continue;
 
             if (current is ICanvasItem)
             {
@@ -160,7 +169,7 @@ public class Window : Node
         foreach(var i in toEvent.Where(e => e is NodeUI))
         {
             var a = i as NodeUI;
-            if (a is not ICanvasItem || (a as ICanvasItem)!.Visible)
+            if (a is not ICanvasItem || (a as ICanvasItem)!.Visible && !a.Freeled)
                 a!.RunUIInputEvent(e);
             
             if (!proceedInput) break;
@@ -170,7 +179,7 @@ public class Window : Node
         proceedInput = true;
         foreach(var i in toEvent)
         {
-            i.RunInputEvent(e);
+            if (!i.Freeled) i.RunInputEvent(e);
             if (!proceedInput) break;
         }
 
@@ -178,7 +187,7 @@ public class Window : Node
 
     private void OnResize(Vector2D<int> size)
     {
-        gl.Viewport(size);
+        
     }
 
     public void SupressInputEvent()
@@ -186,10 +195,10 @@ public class Window : Node
         proceedInput = false;
     }
 
-    public override void Free(bool fromGC = false)
+    public override void Free()
     {
         WindowService.CloseWindow(window);
-        base.Free(fromGC);
+        base.Free();
     }
 
     public unsafe class InputHandler
@@ -218,6 +227,8 @@ public class Window : Node
                 return new String(_inputedCharList.ToArray());
             }
         }
+        public List<InputEvent> LastInputs = new();
+        
 
         private Vector2<int> lastMousePosition = new();
         public Vector2<int> mouseDelta = new();
@@ -278,6 +289,12 @@ public class Window : Node
             GlfwProvider.GLFW.Value.SetCursor((WindowHandle*)Engine.window.Handle, cursor);
         }
 
+        public void CallQueuedInputs()
+        {
+            var inputsToNotify = LastInputs.ToArray();
+            LastInputs.Clear();
+            foreach (var i in inputsToNotify) InputEventSender?.Invoke(i);
+        }
         public void CallProcess()
         {
             mouseDelta = new();
@@ -308,7 +325,7 @@ public class Window : Node
                 key, action
             );
 
-            InputEventSender?.Invoke(e);
+            LastInputs.Add(e);
         }
         private void CharCallback(WindowHandle* window, uint codepoint)
         {
@@ -333,7 +350,7 @@ public class Window : Node
 
             lastMousePosition = currentPos;
 
-            InputEventSender?.Invoke(e);
+            LastInputs.Add(e);
         }
         private void MouseButtonCallback(WindowHandle* window, MouseButton button, InputAction action, KeyModifiers mods)
         {
@@ -354,7 +371,7 @@ public class Window : Node
                 button, action, GetMousePosition()
             );
 
-            InputEventSender?.Invoke(e);
+            LastInputs.Add(e);
         }
     
 

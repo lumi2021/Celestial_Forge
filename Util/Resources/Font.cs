@@ -16,9 +16,7 @@ public class Font : Resource
     {
         get {return _size;}
         set
-        {
-            LoadFont(_path, value);
-        }
+        { LoadFont(_path, value); }
     }
     public string Path
     {

@@ -1,10 +1,27 @@
 using GameEngine.Util;
 using GameEngine.Util.Resources;
+using Silk.NET.OpenGL;
 
 namespace GameEngine.Core;
 
 public static class ResourceHeap
 {
+
+    #region to delete
+    private static List<uint> texturesToDelete = new();
+
+    public enum DeleteTarget { Texture }
+    public static void Delete(uint id, DeleteTarget target)
+    {
+        switch (target)
+        {
+            case DeleteTarget.Texture:
+                texturesToDelete.Add(id); break;
+
+            default: return;
+        }
+    }
+    #endregion
 
     #region shader programs
     private static List<GlShaderProgram> _GlShaderPrograms = new();
@@ -26,5 +43,20 @@ public static class ResourceHeap
         program.Dispose();
     }
     #endregion
+
+    public static void Collect()
+    {
+        var gl = Engine.gl;
+
+        if (texturesToDelete.Count > 0)
+        {
+            gl.DeleteTextures((uint) texturesToDelete.Count, texturesToDelete.ToArray());
+            texturesToDelete.Clear();
+        }
+    }
+    public static void CallProcess()
+    {
+        Collect();
+    }
 
 }

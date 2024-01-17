@@ -26,20 +26,25 @@ public static class WindowService
             WindowState = WindowState.Normal,
             Samples = 4
         };
+
         if (mainWindow != null)
             options.SharedContext = mainWindow.GLContext;
 
-        var nWin = Silk.NET.Windowing.Window.Create(options);
+        var nWin = Window.Create(options);
+
+        windows.Add(nWin);
+
+        if (onload!=null) nWin.Load += onload;
+
+        nWin.Initialize();
 
         if (mainWindow == null)
         {
             mainWindow = nWin;
-            if (onload!=null) nWin.Load += onload;
-            nWin.Initialize();
             Engine.gl = nWin.CreateOpenGL();
         }
 
-        windows.Add(nWin);
+        nWin.ConfigWindow();
 
         return nWin;
 
@@ -50,6 +55,18 @@ public static class WindowService
         _windowsToClose.Add(win);
         windows.Remove(win);
         if (win == mainWindow) mainWindow = null;
+    }
+
+    private static void ConfigWindow(this IWindow win)
+    {
+        var gl = Engine.gl;
+
+        // GL configurations //
+        gl.ClearColor(1f, 1f, 1f, 1f);
+        gl.Enable(EnableCap.Multisample);
+        gl.Enable(EnableCap.ScissorTest);
+        gl.Enable(EnableCap.Blend);
+        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
     }
 
     public static void CallProcess()

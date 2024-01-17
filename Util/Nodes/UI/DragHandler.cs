@@ -132,10 +132,9 @@ public class DragHandler : NodeUI, ICanvasItem
 
         material.Use();
 
-        var world = Matrix4x4.CreateScale(Size.X, Size.Y, 1)
-        * Matrix4x4.CreateTranslation(new Vector3(-Engine.window.Size.X/2, -Engine.window.Size.Y/2, 0))
-        * Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0));
-        var proj = Matrix4x4.CreateOrthographic(Engine.window.Size.X,Engine.window.Size.Y,-.1f,.1f);
+        var world = MathHelper.Matrix4x4CreateRect(Position, Size)
+        * Matrix4x4.CreateTranslation(new Vector3(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y/2, 0));
+        var proj = Matrix4x4.CreateOrthographic(ParentWindow.Size.X, ParentWindow.Size.Y,-.1f,.1f);
 
         material.SetTranslation(world);
         material.SetProjection(proj);

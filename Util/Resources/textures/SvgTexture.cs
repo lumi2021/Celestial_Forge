@@ -21,7 +21,10 @@ public unsafe class SvgTexture : Texture
         
         var bitmap = new Bitmap((int) size.X, (int) size.Y);
         using (var graphics = Graphics.FromImage(bitmap))
-        { svgDocument.Draw(graphics); }
+        {
+            //graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            svgDocument.Draw(graphics);
+        }
 
         BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
         ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);

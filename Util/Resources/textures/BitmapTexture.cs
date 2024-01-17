@@ -16,10 +16,13 @@ public unsafe class BitmapTexture : Texture
 
     protected override void LoadTextureBytes(byte[] data, Vector2<uint> size)
     {
+        
         var gl = Engine.gl;
 
         gl.BindTexture(GLEnum.Texture2D, _textureId);
     
+        gl.PixelStore(GLEnum.UnpackAlignment, 1);
+
         fixed (byte* buf = data)
         gl.TexImage2D(
             GLEnum.Texture2D, 0, InternalFormat.Rgba,
@@ -27,10 +30,11 @@ public unsafe class BitmapTexture : Texture
             GLEnum.Red, GLEnum.UnsignedByte, buf
         );
         
-        gl.GenerateMipmap(TextureTarget.Texture2D);
+       // gl.GenerateMipmap(TextureTarget.Texture2D);
 
         _data = data;
         Size = size;
+
     }
 
 }
