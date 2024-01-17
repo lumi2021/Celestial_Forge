@@ -136,7 +136,9 @@ public class EditorMain
     }
     private void RunGame()
     {
-        var gameWindow = new Window();
+        var gameWindow = new Window() {
+            Size = (Vector2<uint>) projectSettings.canvasDefaultSize
+        };
 
         mainWindow.AddAsChild(gameWindow);
 

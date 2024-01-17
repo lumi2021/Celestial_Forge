@@ -35,12 +35,6 @@ public class Engine
         // get GL info //
         gl_MaxTextureUnits = gl.GetInteger(GLEnum.MaxTextureImageUnits);
 
-        // GL configurations //
-        gl.Enable(EnableCap.Multisample);
-        gl.Enable(EnableCap.ScissorTest);
-        gl.Enable(EnableCap.Blend);
-        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
         /* configurate project settings */
         projectSettings.projectLoaded = true;
         //projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
