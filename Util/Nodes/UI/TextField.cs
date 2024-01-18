@@ -10,7 +10,7 @@ namespace GameEngine.Util.Nodes;
 
 public class TextField : NodeUI, ICanvasItem
 {
-
+    [Inspect]
     public bool Visible { get; set; } = true;
 
     public enum Aligin {

@@ -364,17 +364,43 @@ public class EditorMain
         {
             bool value = (bool) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
 
+            var fieldContainer = new Pannel()
+            {
+                BackgroundColor = new(149, 173, 190),
+                sizePercent = new(0.5f, 1),
+                anchor = NodeUI.ANCHOR.TOP_RIGHT
+            };
             var checkbox = new Pannel()
             {
-                anchor = NodeUI.ANCHOR.CENTER_RIGHT,
-                sizePixels = new(16, 16),
+                sizePixels = new(14, 14),
                 sizePercent = new(0, 0),
-                positionPixels = new(8, 0),
-                positionPercent = new(-0.25f, 0),
-                BackgroundColor = value ? new(0, 0, 255) : new(0, 0, 0)
+                positionPixels = new(2, 0),
+                anchor = NodeUI.ANCHOR.CENTER_LEFT,
+                BackgroundColor = value ? new(0, 0, 255) : new(0, 0, 0),
+                mouseFilter = NodeUI.MouseFilter.Ignore
+            };
+            var text = new TextField()
+            {
+                Text = value ? "enabled" : "disabled",
+                anchor = NodeUI.ANCHOR.TOP_RIGHT,
+                verticalAligin = TextField.Aligin.Center,
+                sizePixels = new(-20, 0),
+                mouseFilter = NodeUI.MouseFilter.Ignore
             };
 
-            container.AddAsChild(checkbox);
+            fieldContainer.onClick.Connect((object? from, dynamic[]? args) =>
+            {
+                bool value = !(bool) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
+                checkbox.BackgroundColor = value ? new(0, 0, 255) : new(0, 0, 0);
+                text.Text = value ? "enabled" : "disabled";
+
+                fieldInfo?.SetValue(obj, value);
+                properInfo?.SetValue(obj, value);
+            });
+
+            container.AddAsChild(fieldContainer);
+            fieldContainer.AddAsChild(checkbox);
+            fieldContainer.AddAsChild(text);
         }
         
         else if (fieldType == typeof(Vector2<>).GetGenericTypeDefinition())
