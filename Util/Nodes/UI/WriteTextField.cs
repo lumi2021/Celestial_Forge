@@ -1,4 +1,5 @@
 using GameEngine.Util.Attributes;
+using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.GLFW;
 using static GameEngine.Util.Nodes.Window.InputHandler;
@@ -22,11 +23,23 @@ public class WriteTextField : TextField
         }
     }
 
+    public override string Text
+    {
+        get => base.Text;
+        set
+        {
+            base.Text = value;
+            OnTextEdited.Emit(this, value);
+        }
+    }
+
     private uint caretLine = 0;
     private uint caretRow = 0;
     //private uint caretRowMax = 0;
 
     private readonly Pannel caret = new();
+
+    public readonly Signal OnTextEdited = new();
 
     protected override void Init_()
     {

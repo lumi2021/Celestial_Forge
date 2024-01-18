@@ -342,6 +342,11 @@ public class EditorMain
                 Color = new(0, 0, 0)
             };
 
+            field.OnTextEdited.Connect((object? from, dynamic[]? args) => {
+                fieldInfo?.SetValue(obj, args![0]);
+                properInfo?.SetValue(obj, args![0]);
+            });
+
             if (inspectAtt.usage == InspectAttribute.Usage.multiline_text)
             {
                 container.sizePixels.Y = 25 + 100;
