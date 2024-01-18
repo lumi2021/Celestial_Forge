@@ -3,6 +3,7 @@ using GameEngine.Core;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
+using GameEngine.Util.Nodes.UI;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.Windowing;
@@ -364,34 +365,39 @@ public class EditorMain
         {
             bool value = (bool) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
 
-            var fieldContainer = new Pannel()
+            var texture_check = new SvgTexture(); texture_check.LoadFromFile("Assets/icons/Misc/checkbox-checked.svg", 20, 20);
+            var texture_uncheck = new SvgTexture(); texture_uncheck.LoadFromFile("Assets/icons/Misc/checkbox-unchecked.svg", 20, 20);
+
+            var fieldContainer = new NodeUI()
             {
-                BackgroundColor = new(149, 173, 190),
                 sizePercent = new(0.5f, 1),
                 anchor = NodeUI.ANCHOR.TOP_RIGHT
             };
-            var checkbox = new Pannel()
+            var checkbox = new Checkbox()
             {
-                sizePixels = new(14, 14),
+                sizePixels = new(20, 20),
                 sizePercent = new(0, 0),
                 positionPixels = new(2, 0),
                 anchor = NodeUI.ANCHOR.CENTER_LEFT,
-                BackgroundColor = value ? new(0, 0, 255) : new(0, 0, 0),
-                mouseFilter = NodeUI.MouseFilter.Ignore
+                value = value,
+                mouseFilter = NodeUI.MouseFilter.Ignore,
+                actived_texture = texture_check,
+                unactived_texture = texture_uncheck
             };
             var text = new TextField()
             {
                 Text = value ? "enabled" : "disabled",
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
                 verticalAligin = TextField.Aligin.Center,
-                sizePixels = new(-20, 0),
+                sizePixels = new(-28, 0),
+                Color = new(255, 255, 255),
                 mouseFilter = NodeUI.MouseFilter.Ignore
             };
 
             fieldContainer.onClick.Connect((object? from, dynamic[]? args) =>
             {
                 bool value = !(bool) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
-                checkbox.BackgroundColor = value ? new(0, 0, 255) : new(0, 0, 0);
+                checkbox.value = value;
                 text.Text = value ? "enabled" : "disabled";
 
                 fieldInfo?.SetValue(obj, value);
