@@ -37,8 +37,8 @@ public class Engine
 
         /* configurate project settings */
         projectSettings.projectLoaded = true;
-        //projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
-        projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
+        projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
+        //projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
         projectSettings.entryScene = @"res://testScene.sce";
 
         projectSettings.canvasDefaultSize = new(400, 300);
@@ -73,7 +73,13 @@ public class Engine
                 win.DoEvents();
                 win.DoUpdate();
                 win.DoRender();
+
+                if (win != WindowService.mainWindow)
+                win.SwapBuffers();
             }
+
+            if (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
+            WindowService.mainWindow.SwapBuffers();
 
             WindowService.CallProcess();
             ResourceHeap.CallProcess();
