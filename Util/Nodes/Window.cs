@@ -48,6 +48,8 @@ public class Window : Node
 
     private bool proceedInput = true;
 
+    private ManualResetEvent renderWaitHandle = new ManualResetEvent(false);
+
     protected override void Init_()
     {
         window = WindowService.CreateNewWindow( OnLoad );
@@ -65,11 +67,6 @@ public class Window : Node
 
         if (!window.IsInitialized)
             window.Initialize();
-
-        window.MakeCurrent();
-
-        gl.Enable(EnableCap.Blend);
-        gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
     }
 
     private void OnLoad()
@@ -138,6 +135,9 @@ public class Window : Node
             for (int i = current.children.Count - 1; i >= 0; i--)
                 toDraw.Insert(0,  current.children[i]);
         }
+    
+        // After render get finished
+        renderWaitHandle.Set();
     }
 
     private void OnInput(InputEvent e)

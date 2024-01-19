@@ -24,11 +24,15 @@ public static class WindowService
             Title = title,
             Size = size.GetAsSilkInt(),
             WindowState = WindowState.Normal,
-            Samples = 4
+            ShouldSwapAutomatically = false,
+            Samples = 4,
+            VSync = false
         };
 
         if (mainWindow != null)
             options.SharedContext = mainWindow.GLContext;
+        else
+            options.VSync = true;
 
         var nWin = Window.Create(options);
 
