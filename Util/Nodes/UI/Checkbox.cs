@@ -5,7 +5,7 @@ using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using System.Numerics;
 
-namespace GameEngine.Util.Nodes.UI
+namespace GameEngine.Util.Nodes
 {
     internal class Checkbox : NodeUI, ICanvasItem
     {

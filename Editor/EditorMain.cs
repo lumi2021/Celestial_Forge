@@ -3,7 +3,6 @@ using GameEngine.Core;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
-using GameEngine.Util.Nodes.UI;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.Windowing;
@@ -361,7 +360,7 @@ public class EditorMain
             container.AddAsChild(fieldContainer);
         }
 
-        if (fieldType == typeof(bool))
+        else if (fieldType == typeof(bool))
         {
             bool value = (bool) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
 
@@ -449,6 +448,29 @@ public class EditorMain
             fieldContainer2.AddAsChild(field2);
             container.AddAsChild(fieldContainer1);
             container.AddAsChild(fieldContainer2);
+        }
+
+        else if (fieldType.IsEnum)
+        {
+            int value = (int) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
+            Console.WriteLine("Enum value as int is: " + value);
+
+            var values = Enum.GetValues(fieldType);
+
+            //for (int i = 0; i < values.Length; i++)
+            //{
+            //    Console.WriteLine("{0}\t{1}\t{2}", i == value? "=>" : "",
+            //    Convert.ChangeType(values.GetValue(i), Enum.GetUnderlyingType(fieldType)),
+            //    values.GetValue(i));
+            //}
+
+            var field = new Select()
+            {
+                sizePercent = new(0.5f, 1),
+                anchor = NodeUI.ANCHOR.TOP_RIGHT
+            };
+
+            container.AddAsChild(field);
         }
 
         return container;
