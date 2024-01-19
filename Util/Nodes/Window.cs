@@ -48,7 +48,6 @@ public class Window : Node
 
     private bool proceedInput = true;
 
-    private Thread? renderThead;
     private ManualResetEvent renderWaitHandle = new ManualResetEvent(false);
 
     protected override void Init_()
@@ -68,10 +67,6 @@ public class Window : Node
 
         if (!window.IsInitialized)
             window.Initialize();
-
-        renderThead = new(SwapBuffersMethod);
-        renderThead.Priority = ThreadPriority.Normal;
-        renderThead.Start();
     }
 
     private void OnLoad()
@@ -193,16 +188,6 @@ public class Window : Node
     private void OnResize(Vector2D<int> size)
     {
         
-    }
-
-    private void SwapBuffersMethod()
-    {
-        renderWaitHandle.WaitOne();
-
-        while(!window.IsClosing)
-        {
-            window.SwapBuffers();
-        }
     }
 
     public void SupressInputEvent()
