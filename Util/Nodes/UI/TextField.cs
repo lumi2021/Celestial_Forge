@@ -1,6 +1,7 @@
 using System.Numerics;
 using GameEngine.Core;
 using GameEngine.Text;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
@@ -9,7 +10,7 @@ namespace GameEngine.Util.Nodes;
 
 public class TextField : NodeUI, ICanvasItem
 {
-
+    [Inspect]
     public bool Visible { get; set; } = true;
 
     public enum Aligin {
@@ -20,7 +21,11 @@ public class TextField : NodeUI, ICanvasItem
 
     private string _text = "";
     protected string[] _textLines = new string[] {""};
-    public string Text
+    protected Character[][] charsList = Array.Empty<Character[]>();
+    protected Vector2<int> TextSize = new(); 
+
+    [Inspect(InspectAttribute.Usage.multiline_text)]
+    public virtual string Text
     {
         get { return _text; }
         set {
@@ -29,11 +34,23 @@ public class TextField : NodeUI, ICanvasItem
             TextEdited();
         }
     }
-    protected Character[][] charsList = Array.Empty<Character[]>();
-    protected Vector2<int> TextSize = new(); 
+
+    [Inspect]
+    public bool ForceTextSize = false;
+
+    public override Vector2<float> Size
+    {
+        get
+        {
+            if (!ForceTextSize)
+                return base.Size;
+            else
+                return new(TextSize.X, TextSize.Y);
+        }
+    }
 
     private Color _color =  new(0f, 0f, 0, 1f);
-    public Color Color
+    [Inspect] public Color Color
     {
         get { return _color; }
         set {
@@ -41,15 +58,15 @@ public class TextField : NodeUI, ICanvasItem
             material.SetUniform("color", _color);
         }
     }
-    public Aligin horizontalAligin = Aligin.Start;
-    public Aligin verticalAligin = Aligin.Start;
+    [Inspect] public Aligin horizontalAligin = Aligin.Start;
+    [Inspect] public Aligin verticalAligin = Aligin.Start;
 
     private readonly BitmapTexture tex = new();
 
-    public Material material = new Material2D( Material2D.DrawTypes.Text );
+    [Inspect] public Material material = new Material2D( Material2D.DrawTypes.Text );
 
     private Font _font = new("Assets/Fonts/calibri.ttf", 18);
-    public Font Font
+    [Inspect] public Font Font
     {
         get { return _font; }
         set

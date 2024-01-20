@@ -1,4 +1,5 @@
 using GameEngine.Core;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
@@ -10,6 +11,8 @@ public class NodeUI : Node, IClipChildren
 {
     /* SIGNALS */
     public readonly Signal onClick = new();
+    public readonly Signal onFocus = new();
+    public readonly Signal onUnfocus = new();
 
     public enum ANCHOR {
         TOP_LEFT,
@@ -24,6 +27,7 @@ public class NodeUI : Node, IClipChildren
         BOTTOM_CENTER,
         BOTTOM_RIGHT,
     }
+    [Inspect]
     public ANCHOR anchor = ANCHOR.TOP_LEFT;
 
     //Get parent size
@@ -41,9 +45,9 @@ public class NodeUI : Node, IClipChildren
     }
 
     //Position
-    public Vector2<int> positionPixels = new(0,0);
-    public Vector2<float> positionPercent = new(0,0);
-    public Vector2<float> Position {
+    [Inspect] public Vector2<int> positionPixels = new(0,0);
+    [Inspect] public Vector2<float> positionPercent = new(0,0);
+    public virtual Vector2<float> Position {
         get {
             Vector2<float> parentPos = new(0, -1);
 
@@ -99,15 +103,42 @@ public class NodeUI : Node, IClipChildren
     }
     
     //Size
-    public Vector2<int> sizePixels = new(0,0);
-    public Vector2<float> sizePercent = new(1,1);
-    public Vector2<float> Size {
+    [Inspect] public Vector2<int> sizePixels = new(0,0);
+    [Inspect] public Vector2<float> sizePercent = new(1,1);
+    public virtual Vector2<float> Size {
         get {
             var a = ParentSize * sizePercent + sizePixels;
             return new(MathF.Max(0f, a.X), MathF.Max(0f, a.Y));
         }
     }
 
+    public Vector2<float> ContentSize
+    {
+        get
+        {
+            var resultRect = new Rect();
+
+            foreach (var i in children.Where(e => e is NodeUI))
+            {
+                var j = (NodeUI)i!;
+                resultRect = resultRect.FitInside(new(new(j.positionPixels.X, j.positionPixels.Y), j.Size));
+            }
+
+            return resultRect.Size;
+        }
+    }
+
+    public bool Focused
+    {
+        get { return this == ParentWindow?.FocusedUiNode; }
+        set
+        {
+            if (value) Focus();
+            else Unfocus();
+        }
+    }
+
+    [Inspect]
     public bool ClipChildren {get;set;} = false;
 
     // Mouse options
@@ -130,21 +161,58 @@ public class NodeUI : Node, IClipChildren
         return rect;
     }
 
-    public void RunUIInputEvent(InputEvent e)
+    public void Focus()
     {
-        OnUIInputEvent(e);
+        ParentWindow!.FocusedUiNode = this;
+        onFocus.Emit();
+    }
+    public void Unfocus()
+    {
+        if (ParentWindow != null && ParentWindow.FocusedUiNode == this)
+        {
+            ParentWindow!.FocusedUiNode = null;
+            onUnfocus.Emit();
+        }
+    }
+
+    public void RunUIInputEvent(InputEvent e)
+    { OnUIInputEvent(e); }
+    public void RunFocusedUIInputEvent(InputEvent e)
+    { OnFocusedUIInputEvent(e); }
+    public void RunFocusChanged(bool focused)
+    { OnFocusChanged(focused); }
+
+    protected virtual void OnFocusedUIInputEvent(InputEvent e)
+    {
+        if (e is MouseInputEvent)
+        {
+            if (mouseFilter == MouseFilter.Ignore) return;
+
+            if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (!new Rect(Position, Size).Intersects(@event.position))
+            {
+                Unfocus();
+            }
+        }
     }
     protected virtual void OnUIInputEvent(InputEvent e)
     {
-        if (mouseFilter == MouseFilter.Ignore) return;
-
-        if (e is MouseBtnInputEvent @event)
-        if (@event.action == Silk.NET.GLFW.InputAction.Press)
-        if (new Rect(Position, Size).Intersects(@event.position))
+        if (e is MouseInputEvent)
         {
-            onClick.Emit(this);
-            if (mouseFilter == MouseFilter.Block)
-                ParentWindow?.SupressInputEvent();
+            if (mouseFilter == MouseFilter.Ignore) return;
+
+            if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (new Rect(Position, Size).Intersects(@event.position))
+            {
+                onClick.Emit(this);
+                if (mouseFilter == MouseFilter.Block)
+                {
+                    ParentWindow?.SupressInputEvent();
+                    Focus();
+                }
+            }
         }
     }
+
+    protected virtual void OnFocusChanged(bool focused) {}
 }

@@ -1,3 +1,6 @@
+using GameEngine.Util.Attributes;
+using GameEngine.Util.Resources;
+using GameEngine.Util.Values;
 using Silk.NET.GLFW;
 using static GameEngine.Util.Nodes.Window.InputHandler;
 
@@ -6,11 +9,37 @@ namespace GameEngine.Util.Nodes;
 public class WriteTextField : TextField
 {
 
+    private bool _multiLine = false;
+    [Inspect]
+    public bool MultiLine
+    {
+        get { return _multiLine; }
+        set
+        {
+            _multiLine = value;
+            if (!value)
+                Text = Text.Replace("\r", "").Replace('\n', ' ');
+
+        }
+    }
+
+    public override string Text
+    {
+        get => base.Text;
+        set
+        {
+            base.Text = value;
+            OnTextEdited.Emit(this, value);
+        }
+    }
+
     private uint caretLine = 0;
     private uint caretRow = 0;
     //private uint caretRowMax = 0;
 
     private readonly Pannel caret = new();
+
+    public readonly Signal OnTextEdited = new();
 
     protected override void Init_()
     {
@@ -21,13 +50,11 @@ public class WriteTextField : TextField
         caret.sizePixels.X = 2;
         caret.sizePixels.Y = Font.fontheight + 2;
         caret.BackgroundColor = new(255, 255, 255);
+        caret.Visible = Focused;
     }
 
     protected override void Process(double deltaT)
     {
-        if (Input.LastInputedChars.Length > 0)
-            AppendBeforeCursor(Input.LastInputedChars);
-
         int caretPosX = 0;
         for (int i = 0; i < caretRow; i++)
             caretPosX += (int)charsList[caretLine][i].Advance;
@@ -55,10 +82,63 @@ public class WriteTextField : TextField
 
     protected override void OnUIInputEvent(InputEvent e)
     {
+        if (e is MouseInputEvent)
+        {
+            if (mouseFilter == MouseFilter.Ignore) return;
+
+            if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (new Rect(Position, Size).Intersects(@event.position))
+            {
+                onClick.Emit(this);
+                if (mouseFilter == MouseFilter.Block)
+                {
+                    ParentWindow?.SupressInputEvent();
+                    Focus();
+
+                    Vector2<int> relativeMousePos = @event.position - Position;
+                    // put the carret on the right position
+                    caretLine = (uint) (relativeMousePos.Y / Font.lineheight);
+
+                    if (caretLine > _textLines.Length-1)
+                    {
+                        caretLine = (uint) _textLines.Length-1;
+                        caretRow = (uint) _textLines[^1].Length;
+                    }
+                    else
+                    {
+                        int advance = 0;
+                        int index = 0;
+                        foreach (var c in charsList[caretLine])
+                        {
+                            if (advance + c.Advance > relativeMousePos.X) break;
+                            advance += (int) c.Advance;
+                            index++;
+                        }
+                        
+                        if (charsList[caretLine].Length < index-1)
+                        {
+                            double d1 = Math.Abs(relativeMousePos.X - advance);
+                            double d2 = Math.Abs(relativeMousePos.X
+                            - (advance + charsList[caretLine][index+1].Advance));
+                            if (d1 > d2) index++;
+                        }
+                        
+                        caretRow = (uint) index;
+                    }
+                }
+            }
+        }
+    }
+    protected override void OnFocusedUIInputEvent(InputEvent e)
+    {
+        base.OnFocusedUIInputEvent(e);
+
         if (e is KeyboardInputEvent @event && @event.action != InputAction.Release)
         {
+            if (Input.LastInputedChars.Length > 0)
+                AppendBeforeCursor(Input.LastInputedChars);
 
-            if (@event.key == Keys.Enter)
+            if (!MultiLine && @event.key == Keys.Enter)
             {
                 AppendBeforeCursor("\n");
                 caretLine++;
@@ -110,8 +190,16 @@ public class WriteTextField : TextField
         }
     }
 
-    protected void AppendBeforeCursor(string s)
+    protected override void OnFocusChanged(bool focused)
     {
+        caret.Visible = focused;
+    }
+
+    protected void AppendBeforeCursor(string str)
+    {
+        var s = str;
+        if (MultiLine) s = s.Replace("\r", "").Replace('\n', ' ');
+
         var line =  _textLines[caretLine];
         _textLines[caretLine] =
         line[..(int)caretRow] + s + line[(int)caretRow..];
