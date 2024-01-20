@@ -19,46 +19,46 @@
                 "anchor" : 1,
 
               "Children": [
-                {
-                  "NodeType": "NodeUI",
-                  "Name": "MainOptions",
-
-                  "sizePercent": [ 0, 0 ],
-                  "sizePixels": [ 200, 20 ],
-
-                  "anchor":  4,
-
-                  "Children": [
-
                     {
-                      "NodeType": "Button",
-                      "Name": "SceneEditor",
+                    "NodeType": "NodeUI",
+                    "Name": "MainOptions",
 
-                      "sizePercent": [ 0.5, 1 ],
-                      "sizePixels": [ -8, 0 ],
-                      "anchor": 3
+                    "sizePercent": [ 0, 0 ],
+                    "sizePixels": [ 200, 20 ],
+
+                    "anchor":  4,
+
+                    "Children": [
+
+                        {
+                        "NodeType": "Button",
+                        "Name": "SceneEditor",
+
+                        "sizePercent": [ 0.5, 1 ],
+                        "sizePixels": [ -8, 0 ],
+                        "anchor": 3
+                        },
+
+                        {
+                        "NodeType": "Button",
+                        "Name": "ScriptEditor",
+
+                        "sizePercent": [ 0.5, 1 ],
+                        "sizePixels": [ -8, 0 ],
+                        "anchor": 5
+                        }
+
+                    ]
                     },
-
                     {
-                      "NodeType": "Button",
-                      "Name": "ScriptEditor",
+                    "NodeType": "Button",
+                    "Name": "RunButton",
 
-                      "sizePercent": [ 0.5, 1 ],
-                      "sizePixels": [ -8, 0 ],
-                      "anchor": 5
+                    "anchor": 5,
+                    "sizePercent": [ 0, 0 ],
+                    "sizePixels": [ 30, 30 ],
+                    "positionPixels": [ -9, 0 ]
                     }
-
-                  ]
-                },
-                {
-                  "NodeType": "Button",
-                  "Name": "RunButton",
-
-                  "anchor": 5,
-                  "sizePercent": [ 0, 0 ],
-                  "sizePixels": [ 30, 30 ],
-                  "positionPixels": [ -9, 0 ]
-                }
               ]
             },
 
@@ -156,7 +156,19 @@
                               "anchor": 1,
                               "ClipChildren": true,
                               "positionPixels": [ 0, 32 ],
-                              "Visible": false
+                              "Visible": false,
+                              "BackgroundColor" : [255, 255, 255],
+
+                              "Children" : [
+
+                                {
+                                    "NodeType" : "WriteTextField",
+                                    "Name" : "FileContent",
+                                    "sizePixels" : [ -10, -10 ],
+                                    "positionPixels" : [ 5, 5 ]
+                                }
+
+                              ]
                             },
 
                             {

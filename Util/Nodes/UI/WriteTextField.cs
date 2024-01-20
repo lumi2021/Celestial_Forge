@@ -18,8 +18,8 @@ public class WriteTextField : TextField
 
         AddAsChild(caret);
         caret.sizePercent = new();
-        caret.sizePixels.X = 2;
-        caret.sizePixels.Y = Font.fontheight + 2;
+        caret.sizePixels.X = 1;
+        caret.sizePixels.Y = Font.fontheight;
         caret.BackgroundColor = new(255, 255, 255);
     }
 
@@ -33,7 +33,8 @@ public class WriteTextField : TextField
             caretPosX += (int)charsList[caretLine][i].Advance;
         
         caret.positionPixels.X = caretPosX;
-        caret.positionPixels.Y = (int)caretLine * Font.lineheight;
+        caret.positionPixels.Y = (int)caretLine * Font.lineheight + 2;
+        caret.BackgroundColor = Color;
     }
 
     protected override void OnFontUpdate()

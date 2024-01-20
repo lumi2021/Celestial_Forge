@@ -1,4 +1,5 @@
 ﻿using GameEngine.Core;
+using GameEngine.Util;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
@@ -23,6 +24,8 @@ public class EditorMain
 
     /* ETC */
     private int maintab = 0;
+
+    private FileReference? fileBeingEdited = null;
 
     public EditorMain(ProjectSettings settings, Window mainWin)
     {
@@ -54,6 +57,8 @@ public class EditorMain
 
         sceneBtn.OnPressed.Connect((object? from, dynamic[]? args) => ChangeMainView(0));
         scriptBtn.OnPressed.Connect((object? from, dynamic[]? args) => ChangeMainView(1));
+
+        //var textEditorField = textEditor!.GetChild("FileContent") as WriteTextField;
 
         #endregion
 
@@ -140,6 +145,8 @@ public class EditorMain
 
     private void ChangeMainView(int to)
     {
+        if (maintab == to) return;
+
         switch (to)
         {
             case 0:
@@ -152,6 +159,8 @@ public class EditorMain
                 textEditor!.Show();
                 break;
         }
+    
+        maintab = to;
     }
 
     private void RunButtonPressed(object? from, dynamic[]? args)
@@ -186,13 +195,16 @@ public class EditorMain
             {
                 case ".sce":
                     LoadSceneInEditor(path); break;
+
+                default:
+                    OpenTextFile(path); break;
             }
         }
     }
 
     private void LoadSceneInEditor(string scenePath)
     {
-        var viewport = editorRoot!.GetChild("Main/Center/Viewport/ViewportContainer") as NodeUI;
+        var viewport = sceneViewport!.GetChild("ViewportContainer") as NodeUI;
 
         viewport!.sizePixels = projectSettings.canvasDefaultSize;
 
@@ -245,6 +257,23 @@ public class EditorMain
 
         nodesList!.Root.Name = scene.name;
         nodesList!.Root.Icon = rootIcon;
+    
+        ChangeMainView(0);
+    }
+
+    private void OpenTextFile(string filePath)
+    {
+        var textField = (textEditor!.GetChild("FileContent") as WriteTextField)!;
+
+        var file = new FileReference(filePath);
+
+        var content = file.ReadAllFile();
+
+        textField.Text = content;
+
+        fileBeingEdited = file;
+
+        ChangeMainView(1);
     }
 
 }
