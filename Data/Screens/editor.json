@@ -110,10 +110,59 @@
                                 "Name" : "NodeMananger",
 
                                 "BackgroundColor" : [60, 42, 77],
-                                "anchor" : 4,
-                                "sizePixels" : [-32, -32]
-                            }
+                                "anchor" : 1,
+                                "sizePixels" : [-32, -32],
+                                "sizePercent" : [1, 0.5],
+                                "positionPixels" : [0, 16],
+                                "ClipChildren" : true
+                            },
 
+                            {
+                                "NodeType" : "Pannel",
+                                "Name" : "Inspector",
+
+                                "BackgroundColor" : [60, 42, 77],
+                                "anchor" : 7,
+                                "sizePixels" : [-32, -32],
+                                "sizePercent" : [1, 0.5],
+                                "positionPixels" : [0, -16],
+                                "ClipChildren" : true,
+
+                                "Children" : 
+                                [
+                                    {
+                                        "NodeType" : "NodeUI",
+                                        "Name" : "InspectorContainer",
+                                        "sizePixels" : [-15, 0]
+                                    },
+                                    {
+                                        "NodeType" : "ScrollBar",
+                                        "Name" : "Scrollbar",
+                                        "target" : "../InspectorContainer",
+                                        "sizePercent" : [0, 1],
+                                        "sizePixels" : [16, 0],
+                                        "anchor" : 2
+                                    }
+                                ]
+                            },
+
+                            {
+                                "NodeType" : "DragHandler",
+                                "Name" : "CenterHandler",
+        
+                                "nodeA" : "../NodeMananger",
+                                "nodeB" : "../Inspector",
+        
+                                "dragAxis" : 2,
+        
+                                "sizePercent" : [1, 0],
+                                "sizePixels" : [0, 32],
+        
+                                "positionPercent" : [0, 0.5],
+                                "positionPixels" : [0, -16],
+                                "defaultColor" : [255, 255, 255, 0],
+                                "holdingColor" : [255, 255, 255, 0.3]
+                            }
                         ]
                     },
 
@@ -190,6 +239,11 @@
                         "nodeA" : "../LeftPannel",
                         "nodeB" : "../Center",
 
+                        "dragAxis" : 1,
+
+                        "sizePercent" : [0, 1],
+                        "sizePixels" : [16, 0],
+
                         "positionPercent" : [0.2, 0],
                         "nodeBSizeMin" : 300,
                         "defaultColor" : [255, 255, 255, 0],
@@ -202,6 +256,11 @@
 
                         "nodeA" : "../Center",
                         "nodeB" : "../RightPannel",
+
+                        "dragAxis" : 1,
+
+                        "sizePercent" : [0, 1],
+                        "sizePixels" : [16, 0],
 
                         "positionPercent" : [0.8, 0],
                         "positionPixels" : [-16, 0],
