@@ -277,6 +277,9 @@ public class EditorMain
 
         nodesList!.Root.Name = scene.name;
         nodesList!.Root.Icon = rootIcon;
+
+        nodesList!.Root.data.Add("NodeRef", scene);
+        nodesList!.Root.OnClick.Connect(OnNodeClicked);
     
         ChangeMainView(0);
     }
@@ -294,9 +297,6 @@ public class EditorMain
         fileBeingEdited = file;
 
         ChangeMainView(1);
-
-        nodesList!.Root.data.Add("NodeRef", scene);
-        nodesList!.Root.OnClick.Connect(OnNodeClicked);
     }
 
     private void LoadInspectorInformation(Node node)
