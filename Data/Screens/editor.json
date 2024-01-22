@@ -201,20 +201,57 @@
                             {
                               "NodeType": "Pannel",
                               "Name": "TextEditor",
-                              "sizePixels": [ 0, -96 ],
+
                               "anchor": 1,
-                              "ClipChildren": true,
-                              "positionPixels": [ 0, 32 ],
                               "Visible": false,
-                              "BackgroundColor" : [255, 255, 255],
+                              "BackgroundColor" : [0, 0, 255, 0],
+                              "sizePixels" : [0, -64],
 
                               "Children" : [
+                                
+                                {
+                                    "NodeType" : "Pannel",
+                                    "Name" : "FileContentContainer",
+
+                                    "sizePixels": [ 0, -80 ],
+                                    "positionPixels": [ 0, 32 ],
+                                    "BackgroundColor" : [255, 255, 255],
+
+                                    "ClipChildren" : true,
+
+                                    "Children" : [
+                                        {
+                                            "NodeType" : "WriteTextField",
+                                            "Name" : "FileContent",
+
+                                            "Font" : 1,
+        
+                                            "sizePixels" : [ -10, -10 ],
+                                            "positionPixels" : [ 5, 5 ]
+                                        }
+
+                                    ]
+                                },
 
                                 {
-                                    "NodeType" : "WriteTextField",
-                                    "Name" : "FileContent",
-                                    "sizePixels" : [ -10, -10 ],
-                                    "positionPixels" : [ 5, 5 ]
+                                    "NodeType" : "Pannel",
+                                    "Name" : "Toolbar",
+
+                                    "sizePixels" : [0, 32],
+                                    "sizePercent" : [1, 0],
+                                    "BackgroundColor" : [60, 42, 77],
+                                    "anchor" : 6,
+
+                                    "Children" : [
+                                        {
+                                            "NodeType" : "Button",
+                                            "Name" : "SaveBtn",
+                                            "sizePercent" : [0,0],
+                                            "sizePixels" : [25, 25],
+                                            "positionPixels" : [3.5, 0],
+                                            "anchor" : 3
+                                        }
+                                    ]
                                 }
 
                               ]
@@ -286,7 +323,7 @@
         {
             "ResourceType" : "Font",
             "Path" : "Assets/Fonts/consola.ttf",
-            "Size" : 18
+            "Size" : 12
         }
     ]
 }

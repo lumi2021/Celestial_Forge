@@ -1,5 +1,3 @@
-using System;
-
 namespace GameEngine.Core;
 
 public static class FileService
@@ -36,7 +34,7 @@ public static class FileService
         var gPath = GetGlobalPath(path);
         try
         {
-            File.WriteAllText(path, content);
+            File.WriteAllText(gPath, content);
         }
         catch(Exception e)
         {

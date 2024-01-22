@@ -61,6 +61,8 @@ public class EditorMain
         scriptBtn.OnPressed.Connect((object? from, dynamic[]? args) => ChangeMainView(1));
 
         //var textEditorField = textEditor!.GetChild("FileContent") as WriteTextField;
+        var textSaveBtn = (textEditor!.GetChild("Toolbar/SaveBtn") as Button)!;
+        textSaveBtn.OnPressed.Connect( (object? from, dynamic[]? args) => SaveOpenTextFile() );
 
         #endregion
 
@@ -286,7 +288,7 @@ public class EditorMain
 
     private void OpenTextFile(string filePath)
     {
-        var textField = (textEditor!.GetChild("FileContent") as WriteTextField)!;
+        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
 
         var file = new FileReference(filePath);
 
@@ -297,6 +299,11 @@ public class EditorMain
         fileBeingEdited = file;
 
         ChangeMainView(1);
+    }
+    private void SaveOpenTextFile()
+    {
+        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
+        fileBeingEdited?.Write(textField.Text);
     }
 
     private void LoadInspectorInformation(Node node)
