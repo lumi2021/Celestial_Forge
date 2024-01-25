@@ -250,6 +250,14 @@
                                             "sizePixels" : [25, 25],
                                             "positionPixels" : [3.5, 0],
                                             "anchor" : 3
+                                        },
+                                        {
+                                            "NodeType" : "Button",
+                                            "Name" : "CompileBtn",
+                                            "sizePercent" : [0,0],
+                                            "sizePixels" : [25, 25],
+                                            "positionPixels" : [-3.5, 0],
+                                            "anchor" : 5
                                         }
                                     ]
                                 }

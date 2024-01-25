@@ -64,6 +64,9 @@ public class EditorMain
         var textSaveBtn = (textEditor!.GetChild("Toolbar/SaveBtn") as Button)!;
         textSaveBtn.OnPressed.Connect( (object? from, dynamic[]? args) => SaveOpenTextFile() );
 
+        var textCompileBtn = (textEditor!.GetChild("Toolbar/CompileBtn") as Button)!;
+        textCompileBtn.OnPressed.Connect( (object? from, dynamic[]? args) => CompileOpenTextFile() );
+
         #endregion
 
         /* INSTANTIATE AND CONFIGURATE FILE MANANGER */
@@ -304,6 +307,16 @@ public class EditorMain
     {
         var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
         fileBeingEdited?.Write(textField.Text);
+    }
+    private void CompileOpenTextFile()
+    {
+        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
+        var code = textField.Text;
+
+        Console.WriteLine("Compiling:\n");
+
+        var drasmc = new DrasmCompiler();
+        drasmc.Compile(code);
     }
 
     private void LoadInspectorInformation(Node node)
