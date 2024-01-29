@@ -1,6 +1,8 @@
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
+using GameEngine.Core.Scripting;
 using GameEngine.Util.Interfaces;
+using GameEngine.Util.Resources.Scripting;
 
 namespace GameEngine.Util.Resources;
 
@@ -8,10 +10,10 @@ public class DrasmCompiler : Resource, IScriptCompiler
 {
     public void Compile(string src)
     {
-        
         string[] lines = Preprocess(src);
-
         var tokens = Tokenize(lines);
+        var data = ConvertToData(tokens);
+        ScriptService.Compile(data);
     }
 
     private string[] Preprocess(string src)
@@ -37,7 +39,7 @@ public class DrasmCompiler : Resource, IScriptCompiler
         for (int i = 0; i < src.Length; i++)
         {
             var line = src[i];
-            tokens.Add(new());
+            tokens.Add([]);
 
             string token = "";
             bool insideString = false;
@@ -51,15 +53,15 @@ public class DrasmCompiler : Resource, IScriptCompiler
                     if (specialChars.Contains(c))
                     {
                         if (token != "")
-                        Console.WriteLine(ConvertToToken(token));
-                        Console.WriteLine(ConvertToToken("" + c));
+                        tokens[i].Add( ConvertToToken(token) );
+                        tokens[i].Add( ConvertToToken("" + c) );
                         token = "";
                         continue;
                     }
                     if (c == ' ')
                     {
                         if (token != "")
-                        Console.WriteLine(ConvertToToken(token));
+                        tokens[i].Add( ConvertToToken(token) );
                         token = "";
                         continue;
                     }
@@ -68,17 +70,18 @@ public class DrasmCompiler : Resource, IScriptCompiler
                 token += c;
             }
             if (token != "")
-            Console.WriteLine(ConvertToToken(token));
-            Console.WriteLine();
+            tokens[i].Add( ConvertToToken(token) );
         }
 
-        Token[][] result = Array.Empty<Token[]>();
+        Token[][] result = [];
         foreach (var i in tokens) result = result.Append(i.ToArray()).ToArray();
         return result;
     }
 
     private Token ConvertToToken(dynamic value)
     {
+        dynamic finalValue = value;
+
         var type = value switch
         {
             "class"     => TokenType.ClassDef,
@@ -87,6 +90,7 @@ public class DrasmCompiler : Resource, IScriptCompiler
 
             "public" or
             "private" or
+            "abstract" or
             "override"  => TokenType.Attribute,
 
             "end"       => TokenType.RegionEnd,
@@ -101,18 +105,145 @@ public class DrasmCompiler : Resource, IScriptCompiler
         };
         if (value.StartsWith("\"") && value.EndsWith("\""))
         {
-            value = ((string) value)[1..^1];
+            finalValue = ((string) value)[1..^1];
             type = TokenType.StringValue;
         }
         if (double.TryParse((string) value, out var numericValue))
         {
             type = TokenType.NumberValue;
-            value = numericValue;
+            finalValue = numericValue;
         }
 
-        return new Token(type, value);
+        var a = new Token(type, finalValue);
+
+        return a;
     }
 
+    private ScriptData ConvertToData(Token[][] script)
+    {
+        ScriptData newAsm = new();
+
+        ClassData? insideClass = null;
+        MethodData? insideMethod = null;
+        ConstructorData? insideConstructor = null;
+
+        foreach (var line in script)
+        switch (line[0].value)
+        {
+            case "class":
+                if (insideClass == null)
+                {
+                    ClassData nClass = new();
+                    nClass.name = line[1].value;
+                    
+                    var atributes = (from e in line where e.type == TokenType.Attribute
+                    select e.value).ToArray();
+
+                    nClass.isPrivate  = !atributes.Contains("public");
+                    nClass.isAbstract = atributes.Contains("abstract");
+
+                    newAsm.classes = [.. newAsm.classes, nClass];
+                    insideClass = nClass;
+                }
+                else throw new ApplicationException(
+                    "Compilation error! A class can't be declarated inside another!");
+                
+                break;
+            case "func":
+                if (insideMethod == null && insideConstructor == null && insideClass != null)
+                {
+                    MethodData nMethod = new();
+                    nMethod.name = line[1].value;
+
+                    var atributes = (from e in line where e.type == TokenType.Attribute
+                    select e.value).ToArray();
+
+                    nMethod.isPrivate  = !atributes.Contains("public");
+                    insideClass.methods = [.. insideClass.methods, nMethod];
+
+                    insideMethod = nMethod;
+                }
+                else throw new ApplicationException("Compilation Error! invalid definition of a method!");
+
+                break;
+            case "ctr":
+                if (insideMethod == null && insideConstructor == null && insideClass != null)
+                {
+                    ConstructorData nConstruc = new();
+
+                    var atributes = (from e in line where e.type == TokenType.Attribute
+                    select e.value).ToArray();
+
+                    nConstruc.isPrivate  = !atributes.Contains("public");
+                    insideClass.constructors = [.. insideClass.constructors, nConstruc];
+
+                    insideConstructor = nConstruc;
+                }
+                else throw new ApplicationException("Compilation Error! invalid definition of a constructor!");
+
+                break;
+        
+            case "field":
+                if (insideClass != null && insideMethod == null && insideConstructor == null)
+                {
+
+                    FieldData nField = new();
+                    nField.name = line[1].value;
+
+                    if (line[2].type == TokenType.char_colom)
+                        nField.fieldType = Type.GetType( (string) line[3].value )!;
+                    
+                    string[] attributes = (from a in line[4 ..] select (string) a.value).ToArray();
+                    nField.isPrivate = !attributes.Contains("private");
+
+                    insideClass.fields = [.. insideClass.fields, nField];
+
+                }
+                break;
+
+            case "end":
+                if (insideMethod != null) insideMethod = null;
+                else if (insideConstructor != null) insideConstructor = null;
+                else if (insideClass != null) insideClass = null;
+                
+                break;
+        
+            default:
+                var DrasmOps = Enum.GetNames(typeof(DrasmOperations));
+                if (DrasmOps.Contains("op_" + ((string)line[0].value).ToLower()))
+                {
+                    List<Token> args = line.Skip(1).ToList();
+
+                    var op = new DrasmOperation()
+                    {
+                    operation = (DrasmOperations)
+                    Enum.Parse(typeof(DrasmOperations), "op_" + ((string)line[0].value).ToLower()),
+                    args = []
+                    };
+
+                    foreach (var a in args)
+                    {
+                        OpArg argument = new();
+                        argument.type = a.type switch
+                        {
+                            TokenType.Identfier   => DrasmParameterTypes.pt_identifier,
+                            TokenType.StringValue => DrasmParameterTypes.pt_string,
+                            TokenType.NumberValue => DrasmParameterTypes.pt_number,
+                            _                     => throw new NotImplementedException()
+                        };
+                        argument.value = a.value;
+                        op.args = [.. op.args, argument];
+                    }
+
+                    if (insideConstructor != null) insideConstructor.script = [.. insideConstructor.script, op];
+                    if (insideMethod != null) insideMethod.script = [.. insideMethod.script, op];
+                }
+                
+                break;
+        }
+
+        return newAsm;
+    }
 
     private struct Token
     {
