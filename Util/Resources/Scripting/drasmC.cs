@@ -196,6 +196,10 @@ public class DrasmCompiler : Resource, IScriptCompiler
                     string[] attributes = (from a in line[4 ..] select (string) a.value).ToArray();
                     nField.isPrivate = !attributes.Contains("private");
 
+                    int valueIdx = Array.FindIndex(line, e => e.type == TokenType.char_equal) + 1;
+
+                    nField.defaultValue = line[valueIdx].value;
+
                     insideClass.fields = [.. insideClass.fields, nField];
 
                 }

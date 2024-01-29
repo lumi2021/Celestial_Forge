@@ -1,4 +1,5 @@
 using GameEngine.Core.Scripting;
+using System.Reflection.Emit;
 
 namespace GameEngine.Util.Resources.Scripting;
 
@@ -52,6 +53,8 @@ public class FieldData
     public bool isPrivate;
     public Type fieldType = typeof(void);
     public dynamic? defaultValue = null;
+
+    public FieldBuilder? fieldRef;
 }
 
 public class MethodData

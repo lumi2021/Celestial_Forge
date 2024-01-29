@@ -1,6 +1,9 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using GameEngine.Util.Resources.Scripting;
+using FieldAttributes = System.Reflection.FieldAttributes;
+using MethodAttributes = System.Reflection.MethodAttributes;
+using TypeAttributes = System.Reflection.TypeAttributes;
 
 namespace GameEngine.Core.Scripting;
 
@@ -26,11 +29,14 @@ public static class ScriptService
         {
             TypeBuilder nType = moduleBuilder.DefineType(classData.name, TypeAttributes.Public);
 
+            Dictionary<string, FieldData> fields = [];
+
             /* CREATE CLASS FIELDS */
             foreach (var fieldData in classData.fields)
             {
                 FieldBuilder fieldBuilder = nType.DefineField(fieldData.name, fieldData.fieldType, FieldAttributes.Public);
-                fieldBuilder.
+                fieldData.fieldRef = fieldBuilder;
+                fields.Add(fieldData.name, fieldData);
             }
 
             /* CREATE CLASS CONSTRUCTORS */
@@ -42,23 +48,48 @@ public static class ScriptService
                 ILGenerator ilGen = ctrBuilder.GetILGenerator();
 
                 // base constructor code
-                ilGen.Emit(OpCodes.Ldarg_0);
+                ilGen.Emit(OpCodes.Ldarg_0); // arg 0 is 'this'
                 ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
                 ilGen.Emit(OpCodes.Call, baseConstructor);
-                
+
+                // set fields initial data
+                /*
+                foreach (var f in fields)
+                {
+                    dynamic? value = f.Value.defaultValue;
+                    FieldBuilder fieldRef = f.Value.fieldRef!;
+
+                    if (value == null) continue;
+
+                    if (fieldRef.FieldType == typeof(string))
+                        ilGen.Emit(OpCodes.Ldstr, "Test");
+
+                    ilGen.Emit(OpCodes.Stfld, fieldRef);
+                }
+
+                ilGen.Emit(OpCodes.Ldstr, "Test");
+                */
+
+                // script code
                 BuildIl(ilGen, ctrData.script);
-
+                
                 ilGen.Emit(OpCodes.Ret);
-
             }
 
             dynamicClass = nType.CreateType();
 
         }
 
-        dynamic instance = Activator.CreateInstance(dynamicClass!)!;
+        try
+        {
+            dynamic instance = Activator.CreateInstance(dynamicClass!)!;
+            Console.WriteLine("{0}", instance.message ?? "null");
 
-        Console.WriteLine("{0}", instance.message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: {0}", ex.InnerException!.Message);
+        }
 
     }
 
@@ -85,7 +116,6 @@ public static class ScriptService
         }
 
     }
-
 }
 
 public enum DrasmOperations
