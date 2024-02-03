@@ -17,9 +17,14 @@ After the first version release, i'm plainning to try to make a little dev group
 
 
 ## Expecifications & Requirements:
+| spec             | required values     |
 |:-----------------|--------------------:|
 | .NET SDK version | 8.0                 |
 | OpenGL version   | 4.3                 |
 | CPU (min)        | Intel Core i3-5005  |
 | GPU (min)        | Intel Graphics 5500 |
 | Memory (min)     | 4.00 Gb             |
+
+## Contact, suport and devlogs
+[GDN devlog post](https://discord.com/channels/280521930371760138/1179210910410211419)
+Discord: @lumi_nya
