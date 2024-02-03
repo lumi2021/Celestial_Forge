@@ -47,7 +47,15 @@ public class Engine
         _ = new EditorMain(projectSettings, mainWin);
 
         /* START RUN */
-        Run();
+        try {
+            Run();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Something goes verry wrong!");
+            Console.WriteLine("Exeption:\n{0}", ex);
+            Console.ReadKey();
+        }
 
         /* END PROGRAM */
         root.Free();

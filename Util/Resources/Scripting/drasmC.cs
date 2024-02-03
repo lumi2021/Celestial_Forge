@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 using GameEngine.Core.Scripting;
 using GameEngine.Util.Interfaces;
@@ -101,17 +100,26 @@ public class DrasmCompiler : Resource, IScriptCompiler
             "("         => TokenType.char_Rbracked,
             ")"         => TokenType.char_Lbracked,        
 
-            _           => TokenType.Identfier,
+            _           => TokenType.Identfier
         };
         if (value.StartsWith("\"") && value.EndsWith("\""))
         {
             finalValue = ((string) value)[1..^1];
             type = TokenType.StringValue;
         }
-        if (double.TryParse((string) value, out var numericValue))
+        
+        if (double.TryParse(((string)value).Replace(".", ","), out double numericValue))
         {
-            type = TokenType.NumberValue;
-            finalValue = numericValue;
+            if (numericValue == Math.Floor(numericValue))
+            {
+                type = TokenType.IntNumberValue;
+                finalValue = (int) numericValue;
+            }
+            else
+            {
+                type = TokenType.FloatNumberValue;
+                finalValue = (float) numericValue;
+            }
         }
 
         var a = new Token(type, finalValue);
@@ -166,7 +174,7 @@ public class DrasmCompiler : Resource, IScriptCompiler
                 else throw new ApplicationException("Compilation Error! invalid definition of a method!");
 
                 break;
-            case "ctr":
+            case "constructor":
                 if (insideMethod == null && insideConstructor == null && insideClass != null)
                 {
                     ConstructorData nConstruc = new();
@@ -193,7 +201,12 @@ public class DrasmCompiler : Resource, IScriptCompiler
                     if (line[2].type == TokenType.char_colom)
                         nField.fieldType = Type.GetType( (string) line[3].value )!;
                     
-                    string[] attributes = (from a in line[4 ..] select (string) a.value).ToArray();
+                    List<string> attributes = [];
+                    foreach (var t in line[4 ..])
+                    {
+                        if (t.value == "=") break;
+                        attributes.Add((string) t.value);
+                    }
                     nField.isPrivate = !attributes.Contains("private");
 
                     int valueIdx = Array.FindIndex(line, e => e.type == TokenType.char_equal) + 1;
@@ -228,13 +241,17 @@ public class DrasmCompiler : Resource, IScriptCompiler
                     foreach (var a in args)
                     {
                         OpArg argument = new();
+                        #region
                         argument.type = a.type switch
                         {
-                            TokenType.Identfier   => DrasmParameterTypes.pt_identifier,
-                            TokenType.StringValue => DrasmParameterTypes.pt_string,
-                            TokenType.NumberValue => DrasmParameterTypes.pt_number,
-                            _                     => throw new NotImplementedException()
+                            TokenType.Identfier        => DrasmParameterTypes.pt_identifier,
+                            TokenType.StringValue      => DrasmParameterTypes.pt_string,
+                            TokenType.IntNumberValue   => DrasmParameterTypes.pt_number_int,
+                            TokenType.FloatNumberValue => DrasmParameterTypes.pt_number_single,
+                            _                          => throw new NotImplementedException()
                         };
+                        #endregion
+
                         argument.value = a.value;
                         op.args = [.. op.args, argument];
                     }
@@ -278,7 +295,9 @@ public class DrasmCompiler : Resource, IScriptCompiler
         Instruction,
 
         StringValue,
-        NumberValue,
+
+        IntNumberValue,
+        FloatNumberValue,
 
         char_equal,
         char_greaterThan,
