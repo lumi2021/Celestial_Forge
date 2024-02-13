@@ -59,29 +59,23 @@ public class FieldData
 
 public class MethodData
 {
+    
     public string name = "";
     public bool isPrivate;
     public Type returnType = typeof(void);
 
     public DrasmOperation[] script = [];
 
-    public override string ToString()
-    {
-        return string.Format("{0}{1} -> {2} ({3} ops)", GetAttributesString(), name, returnType.Name, script.Length);
-    }
-    public string GetAttributesString()
-    {
-        var str = "";
-        if (isPrivate) str += "[private] ";
-        else str += "[public] ";
-        return str;
-    }
+    public MethodBuilder? methodRef;
+
 }
 
 public class ConstructorData
 {
     public bool isPrivate;
     public DrasmOperation[] script = [];
+
+    public ConstructorBuilder? constructorRef;
 }
 
 public struct DrasmOperation

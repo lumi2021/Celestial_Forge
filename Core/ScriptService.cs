@@ -15,7 +15,10 @@ public static class ScriptService
     private static LocalBuilder? _selected_val;
     private static Type? _selected_type;
 
-    private static readonly List<Type?> _stack = [];
+    private static Dictionary<string, FieldData> _fields = [];
+    private static Dictionary<string, MethodData> _methods = [];
+
+    private static readonly List<DrasmParameterTypes> _stack = [];
 
     static ScriptService()
     {
@@ -25,78 +28,109 @@ public static class ScriptService
     public static void Compile(ScriptData script)
     {
 
-        AssemblyBuilder asmBuilder = AssemblyBuilder.DefineDynamicAssembly(asmName, AssemblyBuilderAccess.RunAndCollect);
-        ModuleBuilder moduleBuilder = asmBuilder.DefineDynamicModule("UserContent");
+        try {
+            AssemblyBuilder asmBuilder = AssemblyBuilder.DefineDynamicAssembly(asmName, AssemblyBuilderAccess.RunAndCollect);
+            ModuleBuilder moduleBuilder = asmBuilder.DefineDynamicModule("UserContent");
 
-        Type? dynamicClass = null;
+            Type? dynamicClass = null;
 
-        foreach (var classData in script.classes)
-        {
-            TypeBuilder nType = moduleBuilder.DefineType(classData.name, TypeAttributes.Public);
-
-            Dictionary<string, FieldData> fields = [];
-
-            /* CREATE CLASS FIELDS */
-            foreach (var fieldData in classData.fields)
-            {
-                FieldBuilder fieldBuilder = nType.DefineField(fieldData.name, fieldData.fieldType, FieldAttributes.Public);
-                fieldData.fieldRef = fieldBuilder;
-                fields.Add(fieldData.name, fieldData);
-            }
-
-            /* CREATE CLASS CONSTRUCTORS */
-            foreach (var ctrData in classData.constructors)
+            foreach (var classData in script.classes)
             {
 
-                ConstructorBuilder ctrBuilder = nType.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
+                TypeBuilder nType = moduleBuilder.DefineType(classData.name, TypeAttributes.Public);
 
-                ILGenerator ilGen = ctrBuilder.GetILGenerator();
 
-                // base constructor code
-                ilGen.Emit(OpCodes.Ldarg_0);
-                ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
-                ilGen.Emit(OpCodes.Call, baseConstructor);
-
-                // set fields initial data
-                foreach (var f in fields)
+                /* DECLARE CLASS FIELDS */
+                foreach (var fieldData in classData.fields)
                 {
-                    dynamic? value = f.Value.defaultValue;
-                    FieldBuilder fieldRef = f.Value.fieldRef!;
-
-                    if (value == null) continue;
-
-                    ilGen.Emit(OpCodes.Ldarg_0);
-
-                    LoadInStack(value, ilGen);
-                    ilGen.Emit(OpCodes.Stfld, fieldRef);
-                    PopFromStack();
+                    FieldBuilder fieldBuilder = nType.DefineField(fieldData.name, fieldData.fieldType, FieldAttributes.Public);
+                    fieldData.fieldRef = fieldBuilder;
+                    _fields.Add(fieldData.name, fieldData);
                 }
 
-                // script code
-                BuildIl(ilGen, ctrData.script, fields);
-                
-                ilGen.Emit(OpCodes.Ret);
+                /* DECLARE CLASS METHODS */
+                foreach (var methodData in classData.methods)
+                {
+                    MethodBuilder methodBuilder = nType.DefineMethod(methodData.name, MethodAttributes.Public, methodData.returnType, []);
+                    methodData.methodRef = methodBuilder;
+                    _methods.Add(methodData.name, methodData);
+                }
+
+                /* COMPILE CLASS CONSTRUCTORS */
+                foreach (var ctrData in classData.constructors)
+                {
+
+                    ConstructorBuilder ctrBuilder = nType.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
+
+                    ILGenerator ilGen = ctrBuilder.GetILGenerator();
+
+                    // base constructor code
+                    ilGen.Emit(OpCodes.Ldarg_0);
+                    ConstructorInfo baseConstructor = typeof(object).GetConstructor(Type.EmptyTypes)!;
+                    ilGen.Emit(OpCodes.Call, baseConstructor);
+
+                    // set fields initial data
+                    foreach (var f in _fields)
+                    {
+                        dynamic? value = f.Value.defaultValue;
+                        FieldBuilder fieldRef = f.Value.fieldRef!;
+
+                        if (value == null) continue;
+
+                        ilGen.Emit(OpCodes.Ldarg_0);
+
+                        LoadInStack(value, ilGen);
+                        ilGen.Emit(OpCodes.Stfld, fieldRef);
+                        PopFromStack();
+                    }
+
+                    // script code
+                    BuildIl(ilGen, ctrData.script);
+                    
+                    ilGen.Emit(OpCodes.Ret);
+                }
+
+                /* COMPILE CLASS METHODS */
+                foreach (var mtdData in _methods)
+                {
+                    MethodBuilder methodBuilder = mtdData.Value.methodRef!;
+
+                    ILGenerator ilGen = methodBuilder.GetILGenerator();
+
+                    BuildIl(ilGen, mtdData.Value.script);
+                }
+
+
+                dynamicClass = nType.CreateType();
+
             }
 
-            dynamicClass = nType.CreateType();
+            try
+            {
+                dynamic instance = Activator.CreateInstance(dynamicClass!)!;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: {0}", ex.InnerException!.Message);
+            }
 
+            Console.WriteLine("\n-------------------------");
+            Console.WriteLine("Printing assembly...\n");
+            LogAssembly(dynamicClass!.Assembly);
+        
         }
-
-        try
+        catch(Exception e)
         {
-            dynamic instance = Activator.CreateInstance(dynamicClass!)!;
+            Console.WriteLine("Error while compiling! (step 2/2)");
+            Console.WriteLine(e);
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error: {0}", ex.InnerException!.Message);
+        finally {
+            CleanUp();
         }
-        Console.WriteLine("\n-------------------------");
-        Console.WriteLine("Printing assembly...\n");
-        LogAssembly(dynamicClass!.Assembly);
 
     }
 
-    private static void BuildIl(ILGenerator ilGen, DrasmOperation[] script, Dictionary<string, FieldData> fields)
+    private static void BuildIl(ILGenerator ilGen, DrasmOperation[] script)
     {
         
         foreach (var i in script)
@@ -110,7 +144,7 @@ public static class ScriptService
                 case DrasmOperations.op_select:
 
                     Type type = i.args[0].value!.GetType();
-                    LoadInStack(i.args[0].value, ilGen);
+                    LoadInStack(i.args[0].value, i.args[0].type, ilGen);
                     SelectValue(ilGen, type);
 
                     break;
@@ -120,52 +154,214 @@ public static class ScriptService
                     // args -> op2 : number
                     //         op1 : number, op2: number
 
-                    if (i.args.Length == 2)
+                    if (i.args.Length > 1)
                     {
                         if (
-                            i.args[0].type == DrasmParameterTypes.pt_number_single ||
-                            i.args[1].type == DrasmParameterTypes.pt_number_single
+                            DiscoverType(i.args[0].value, i.args[0].type) == DrasmParameterTypes.pt_number_single ||
+                            DiscoverType(i.args[1].value, i.args[1].type) == DrasmParameterTypes.pt_number_single
                         )
                         {
-                            LoadInStack(i.args[0].value!, ilGen);
-                            if (i.args[0].type == DrasmParameterTypes.pt_number_int)
+                            LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                            if (DiscoverType(i.args[0].value, i.args[0].type) == DrasmParameterTypes.pt_number_int)
                                 ilGen.Emit(OpCodes.Conv_R4);
 
-                            LoadInStack(i.args[1].value!, ilGen);
-                            if (i.args[1].type == DrasmParameterTypes.pt_number_int)
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+                            if (DiscoverType(i.args[1].value, i.args[1].type) == DrasmParameterTypes.pt_number_int)
                                 ilGen.Emit(OpCodes.Conv_R4);
                         }
                         else
                         {
-                            LoadInStack(i.args[0].value!, ilGen);
-                            LoadInStack(i.args[1].value!, ilGen);
+                            LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
                         }
                     }
                     else {
                         LoadSelected(ilGen);
-                        LoadInStack(i.args[0].value!, ilGen);
+                        LoadInStack(i.args[0].value, i.args[0].type, ilGen);
                     }
 
                     ilGen.Emit(OpCodes.Add);
                     PopFromStack(2);
-                    _stack.Add(typeof(float));
+                    _stack.Add(DrasmParameterTypes.pt_number_single);
+                    SetValueInRTV(ilGen, typeof(float));
+
+                    break;
+                case DrasmOperations.op_sub:
+                    // args -> op2 : number
+                    //         op1 : number, op2: number
+
+                    if (i.args.Length > 1)
+                    {
+                        if (
+                            DiscoverType(i.args[0].value, i.args[0].type) == DrasmParameterTypes.pt_number_single ||
+                            DiscoverType(i.args[1].value, i.args[1].type) == DrasmParameterTypes.pt_number_single
+                        )
+                        {
+                            LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                            if (DiscoverType(i.args[0].value, i.args[0].type) == DrasmParameterTypes.pt_number_int)
+                                ilGen.Emit(OpCodes.Conv_R4);
+
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+                            if (DiscoverType(i.args[1].value, i.args[1].type) == DrasmParameterTypes.pt_number_int)
+                                ilGen.Emit(OpCodes.Conv_R4);
+                        }
+                        else
+                        {
+                            LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+                        }
+                    }
+                    else {
+                        LoadSelected(ilGen);
+                        LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                    }
+
+                    ilGen.Emit(OpCodes.Sub);
+                    PopFromStack(2);
+                    _stack.Add(DrasmParameterTypes.pt_number_single);
+                    SetValueInRTV(ilGen, typeof(float));
+
+                    break;
+                case DrasmOperations.op_mul:
+                    // args -> op2 : number
+                    //         op1 : number, op2: number
+
+                    if (i.args.Length > 1)
+                    {
+                        if (
+                            DiscoverType(i.args[0].value, i.args[0].type) == DrasmParameterTypes.pt_number_single ||
+                            DiscoverType(i.args[1].value, i.args[1].type) == DrasmParameterTypes.pt_number_single
+                        )
+                        {
+                            LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                            if (DiscoverType(i.args[0].value, i.args[0].type) == DrasmParameterTypes.pt_number_int)
+                                ilGen.Emit(OpCodes.Conv_R4);
+
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+                            if (DiscoverType(i.args[1].value, i.args[1].type) == DrasmParameterTypes.pt_number_int)
+                                ilGen.Emit(OpCodes.Conv_R4);
+                        }
+                        else
+                        {
+                            LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+                        }
+                    }
+                    else {
+                        LoadSelected(ilGen);
+                        LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                    }
+
+                    ilGen.Emit(OpCodes.Mul);
+                    PopFromStack(2);
+                    _stack.Add(DrasmParameterTypes.pt_number_single);
+                    SetValueInRTV(ilGen, typeof(float));
+
+                    break;
+                case DrasmOperations.op_div:
+                    // args -> op2 : number
+                    //         op1 : number, op2: number
+
+                    if (i.args.Length > 1)
+                    {
+                        if (
+                            DiscoverType(i.args[0].value, i.args[0].type) == DrasmParameterTypes.pt_number_single ||
+                            DiscoverType(i.args[1].value, i.args[1].type) == DrasmParameterTypes.pt_number_single
+                        )
+                        {
+                            LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                            if (DiscoverType(i.args[0].value, i.args[0].type) == DrasmParameterTypes.pt_number_int)
+                                ilGen.Emit(OpCodes.Conv_R4);
+
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+                            if (DiscoverType(i.args[1].value, i.args[1].type) == DrasmParameterTypes.pt_number_int)
+                                ilGen.Emit(OpCodes.Conv_R4);
+                        }
+                        else
+                        {
+                            LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+                        }
+                    }
+                    else {
+                        LoadSelected(ilGen);
+                        LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                    }
+
+                    ilGen.Emit(OpCodes.Div);
+                    PopFromStack(2);
+                    _stack.Add(DrasmParameterTypes.pt_number_single);
+                    SetValueInRTV(ilGen, typeof(float));
+
+                    break;
+                case DrasmOperations.op_rem:
+                    // args -> op2 : number
+                    //         op1 : number, op2: number
+
+                    if (i.args.Length > 1)
+                    {
+                        if (
+                            DiscoverType(i.args[0].value, i.args[0].type) == DrasmParameterTypes.pt_number_single ||
+                            DiscoverType(i.args[1].value, i.args[1].type) == DrasmParameterTypes.pt_number_single
+                        )
+                        {
+                            LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                            if (DiscoverType(i.args[0].value, i.args[0].type) == DrasmParameterTypes.pt_number_int)
+                                ilGen.Emit(OpCodes.Conv_R4);
+
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+                            if (DiscoverType(i.args[1].value, i.args[1].type) == DrasmParameterTypes.pt_number_int)
+                                ilGen.Emit(OpCodes.Conv_R4);
+                        }
+                        else
+                        {
+                            LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+                        }
+                    }
+                    else {
+                        LoadSelected(ilGen);
+                        LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                    }
+
+                    ilGen.Emit(OpCodes.Rem);
+                    PopFromStack(2);
+                    _stack.Add(DrasmParameterTypes.pt_number_single);
                     SetValueInRTV(ilGen, typeof(float));
 
                     break;
 
+                // process
+                case DrasmOperations.op_call:
+                    ilGen.Emit(OpCodes.Ldarg_0);
+                    ilGen.EmitCall(OpCodes.Call, _methods[i.args[0].value].methodRef, Type.EmptyTypes);
+                    break;
+                case DrasmOperations.op_return:
+                    ilGen.Emit(OpCodes.Ret);
+                    break;
+
                 // output
-                case DrasmOperations.op_print:
-                    // args -> any : targetToprint
+                case DrasmOperations.op_write:
+                {
+                    // args -> any : target2Log
                     if (i.ArgCount > 0)
                     {
-                        if (i.args[0].type == DrasmParameterTypes.pt_string)
-                            ilGen.EmitWriteLine( (string) i.args[0].value! );
-                            
-                        else if (i.args[0].type == DrasmParameterTypes.pt_identifier)
-                            if (i.args[0].value == "rtv")
-                                ilGen.EmitWriteLine( _rtv! );
-                            else
-                                ilGen.EmitWriteLine( fields[i.args[0].value].fieldRef! );
+                        LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                        var mi = typeof(Console).GetMethod("Write", [ ParamType2DotNetType(_stack.Last<DrasmParameterTypes>())! ]);
+                        ilGen.EmitCall(OpCodes.Call, mi!, [ ParamType2DotNetType(_stack.Last<DrasmParameterTypes>())! ]);
+                        PopFromStack();
+                    }
+
+                    break;
+                }
+                case DrasmOperations.op_print:
+                    // args -> any : target2Log
+                    if (i.ArgCount > 0)
+                    {
+                        LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                        var mi = typeof(Console).GetMethod("WriteLine", [ ParamType2DotNetType(_stack.Last<DrasmParameterTypes>())! ]);
+                        ilGen.EmitCall(OpCodes.Call, mi!, [ ParamType2DotNetType(_stack.Last<DrasmParameterTypes>())! ]);
+                        PopFromStack();
                     }
 
                     break;
@@ -182,8 +378,56 @@ public static class ScriptService
         _stack.Clear();
 
     }
+    
+    private static void LoadInStack(dynamic? value, DrasmParameterTypes type, ILGenerator il)
+    {
+
+        switch (type)
+        {
+            case DrasmParameterTypes.pt_null:
+                il.Emit(OpCodes.Ldnull); break;
+
+            case DrasmParameterTypes.pt_identifier:
+                var fi = _fields[(string)value!].fieldRef;
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldfld, fi!);
+                type = DotNetType2ParamType(fi!.FieldType);
+                break;
+
+            case DrasmParameterTypes.pt_boolean:
+                il.Emit(value ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0); break;
+
+            case DrasmParameterTypes.pt_string:
+                il.Emit(OpCodes.Ldstr, value); break;
+            
+            case DrasmParameterTypes.pt_number_byte:
+                il.Emit(OpCodes.Ldc_I4_S, value);
+                il.Emit(OpCodes.Conv_U1);
+                break;
+
+            case DrasmParameterTypes.pt_number_int:
+                il.Emit(OpCodes.Ldc_I4, value); break;
+
+            case DrasmParameterTypes.pt_number_single:
+                il.Emit(OpCodes.Ldc_R4, value); break;
+
+            case DrasmParameterTypes.pt_number_double:
+                il.Emit(OpCodes.Ldc_R8, value); break;
+
+            case DrasmParameterTypes.pt_data_returnValue:
+                il.Emit(OpCodes.Ldloc, _rtv!);
+                il.Emit(OpCodes.Unbox_Any, _rtv_type!);
+                break;
+
+            default:
+                throw new NotImplementedException();
+        }
+
+        _stack.Add(type);
+    }
     private static void LoadInStack(dynamic? value, ILGenerator il)
     {
+        
         Type? type = value?.GetType();
 
         if (type == null) il.Emit(OpCodes.Ldnull);
@@ -199,14 +443,15 @@ public static class ScriptService
             il.Emit(OpCodes.Conv_U1);
         }
         else if (type == typeof(string)) il.Emit(OpCodes.Ldstr, value);
-    
-        _stack.Add(type);
+
+        _stack.Add( DotNetType2ParamType(type) );
+
     }
     private static void LoadSelected(ILGenerator il)
     {
         il.Emit(OpCodes.Ldloc, _selected_val!);
         il.Emit(OpCodes.Unbox_Any, _selected_type!);
-        _stack.Add(_selected_type);
+        _stack.Add( DotNetType2ParamType(_selected_type) );
     }
 
     private static void SelectValue(ILGenerator il, Type t)
@@ -230,6 +475,66 @@ public static class ScriptService
     {
         for (int i = 0; i < count; i++)
             _stack.RemoveAt(_stack.Count-1);
+    }
+
+    private static Type? ParamType2DotNetType(DrasmParameterTypes t)
+    {
+        return t switch
+        {
+            DrasmParameterTypes.pt_null => null,
+
+            DrasmParameterTypes.pt_string => typeof(string),
+            DrasmParameterTypes.pt_boolean => typeof(bool),
+
+            DrasmParameterTypes.pt_number_byte => typeof(byte),
+            DrasmParameterTypes.pt_number_int => typeof(int),
+            DrasmParameterTypes.pt_number_single => typeof(float),
+            DrasmParameterTypes.pt_number_double => typeof(double),
+
+            DrasmParameterTypes.pt_data_returnValue => _rtv_type,
+
+            _ => throw new NotImplementedException()
+        };
+    }
+    private static DrasmParameterTypes DotNetType2ParamType(Type? t)
+    {
+
+        DrasmParameterTypes rtn = DrasmParameterTypes._undefined;
+
+        if (t == null) rtn = DrasmParameterTypes.pt_null;
+
+        else if (t == typeof(string)) rtn = DrasmParameterTypes.pt_string;
+        else if (t == typeof(bool)) rtn = DrasmParameterTypes.pt_boolean;
+
+        else if (t == typeof(byte)) rtn = DrasmParameterTypes.pt_number_byte;
+        else if (t == typeof(int)) rtn = DrasmParameterTypes.pt_number_int;
+        else if (t == typeof(float)) rtn = DrasmParameterTypes.pt_number_single;
+        else if (t == typeof(double)) rtn = DrasmParameterTypes.pt_number_double;
+
+        return rtn;
+
+    }
+    private static DrasmParameterTypes DiscoverType(dynamic value, DrasmParameterTypes t)
+    {
+        if (t != DrasmParameterTypes.pt_identifier && t != DrasmParameterTypes.pt_data_returnValue)
+            return t;
+        
+        if (t == DrasmParameterTypes.pt_data_returnValue)
+            return DotNetType2ParamType(_rtv_type);
+        
+        else return t;
+    }
+
+    private static void CleanUp()
+    {
+        _rtv = null;
+        _rtv_type = null;
+        _selected_val = null;
+        _selected_type = null;
+        _stack.Clear();
+
+        _fields.Clear();
+        _methods.Clear();
     }
 
     private static void LogAssembly(Assembly assembly)
@@ -318,18 +623,25 @@ public enum DrasmOperations : byte
     op_sub,
     op_mul,
     op_div,
+    op_rem,
 }
 
 public enum DrasmParameterTypes : byte
 {
     pt_identifier,
+    pt_null,
     pt_string,
+    pt_boolean,
 
     // numbers (why there's so much)
     pt_number,
+    pt_number_byte,
     pt_number_int,
     pt_number_single,
     pt_number_double,
+
+    // build-in data
+    pt_data_returnValue,
 
     _undefined
 

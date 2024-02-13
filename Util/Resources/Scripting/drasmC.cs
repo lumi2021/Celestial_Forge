@@ -9,10 +9,19 @@ public class DrasmCompiler : Resource, IScriptCompiler
 {
     public void Compile(string src)
     {
-        string[] lines = Preprocess(src);
-        var tokens = Tokenize(lines);
-        var data = ConvertToData(tokens);
-        ScriptService.Compile(data);
+        try {
+
+            string[] lines = Preprocess(src);
+            var tokens = Tokenize(lines);
+            var data = ConvertToData(tokens);
+            ScriptService.Compile(data);
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error while compiling! (step 1/2)");
+            Console.WriteLine(e);
+        }
     }
 
     private string[] Preprocess(string src)
@@ -98,7 +107,7 @@ public class DrasmCompiler : Resource, IScriptCompiler
             ":"         => TokenType.char_colom,
             ">"         => TokenType.char_greaterThan,
             "("         => TokenType.char_Rbracked,
-            ")"         => TokenType.char_Lbracked,        
+            ")"         => TokenType.char_Lbracked,    
 
             _           => TokenType.Identfier
         };
@@ -241,18 +250,27 @@ public class DrasmCompiler : Resource, IScriptCompiler
                     foreach (var a in args)
                     {
                         OpArg argument = new();
-                        #region
-                        argument.type = a.type switch
-                        {
-                            TokenType.Identfier        => DrasmParameterTypes.pt_identifier,
-                            TokenType.StringValue      => DrasmParameterTypes.pt_string,
-                            TokenType.IntNumberValue   => DrasmParameterTypes.pt_number_int,
-                            TokenType.FloatNumberValue => DrasmParameterTypes.pt_number_single,
-                            _                          => throw new NotImplementedException()
-                        };
-                        #endregion
 
-                        argument.value = a.value;
+                        if (a.type == TokenType.Identfier && a.value.StartsWith("%"))
+                        {
+                            if (a.value == "%rtv")
+                                argument.type = DrasmParameterTypes.pt_data_returnValue;
+                            
+                        }
+                        else
+                        {
+                            argument.type = a.type switch
+                            {
+                                TokenType.Identfier => DrasmParameterTypes.pt_identifier,
+                                TokenType.StringValue => DrasmParameterTypes.pt_string,
+                                TokenType.IntNumberValue => DrasmParameterTypes.pt_number_int,
+                                TokenType.FloatNumberValue => DrasmParameterTypes.pt_number_single,
+                                _ => throw new NotImplementedException()
+                            };
+
+                            argument.value = a.value;
+                        }
+
                         op.args = [.. op.args, argument];
                     }
 

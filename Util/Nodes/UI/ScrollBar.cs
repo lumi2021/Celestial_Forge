@@ -50,6 +50,8 @@ public class ScrollBar : NodeUI
     protected override void OnUIInputEvent(InputEvent e)
     {
         base.OnUIInputEvent(e);
+
+        if (!_scrollButton.Visible) return;
         
         if (e is MouseBtnInputEvent @btnEvent)
         {
@@ -83,7 +85,14 @@ public class ScrollBar : NodeUI
                 Col = holdingColor;
             else Col = defaultColor;
         }
-    
+    }
+
+    protected override void OnInputEvent(InputEvent e)
+    {
+        if (e is MouseBtnInputEvent @event && _holding
+        && @event.action == Silk.NET.GLFW.InputAction.Release)
+            _holding = false;
+
         if (Container == null || target == null)
         {
             _scrollButton.Hide();
@@ -106,10 +115,4 @@ public class ScrollBar : NodeUI
         }
     }
 
-    protected override void OnInputEvent(InputEvent e)
-    {
-        if (e is MouseBtnInputEvent @event && _holding
-        && @event.action == Silk.NET.GLFW.InputAction.Release)
-            _holding = false;
-    }
 }
