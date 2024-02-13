@@ -1,4 +1,5 @@
 {
+
     "NodeTree" :
     {
         "NodeType" : "Pannel",
@@ -225,9 +226,18 @@
                                             "Name" : "FileContent",
 
                                             "Font" : 1,
+                                            "ForceTextSize" : true,
         
-                                            "sizePixels" : [ -10, -10 ],
-                                            "positionPixels" : [ 5, 5 ]
+                                            "sizePixels" : [ -16, 0 ]
+                                        },
+                                        {
+                                            "NodeType" : "ScrollBar",
+                                            "Name" : "Scrollbar",
+                                            "target" : "../FileContent",
+
+                                            "sizePercent" : [0, 1],
+                                            "sizePixels" : [16, 0],
+                                            "anchor" : 2
                                         }
 
                                     ]
@@ -334,4 +344,5 @@
             "Size" : 12
         }
     ]
+
 }

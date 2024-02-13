@@ -52,7 +52,7 @@ public class Engine
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Something goes verry wrong!");
+            Console.WriteLine("Something goes very wrong!");
             Console.WriteLine("Exeption:\n{0}", ex);
             Console.ReadKey();
         }
