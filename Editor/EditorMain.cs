@@ -453,22 +453,24 @@ public class EditorMain
         else if (fieldType.IsEnum)
         {
             int value = (int) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
-            Console.WriteLine("Enum value as int is: " + value);
 
             var values = Enum.GetValues(fieldType);
-
-            //for (int i = 0; i < values.Length; i++)
-            //{
-            //    Console.WriteLine("{0}\t{1}\t{2}", i == value? "=>" : "",
-            //    Convert.ChangeType(values.GetValue(i), Enum.GetUnderlyingType(fieldType)),
-            //    values.GetValue(i));
-            //}
 
             var field = new Select()
             {
                 sizePercent = new(0.5f, 1),
                 anchor = NodeUI.ANCHOR.TOP_RIGHT
             };
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                field.AddValue(
+                    (int) Convert.ChangeType(values.GetValue(i), Enum.GetUnderlyingType(fieldType))!,
+                    values.GetValue(i)!.ToString()!
+                );
+            }
+
+            field.SetValue(value);
 
             container.AddAsChild(field);
         }
