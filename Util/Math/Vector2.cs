@@ -229,7 +229,7 @@ public struct Vector2<T> where T : struct
         );
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return string.Format("v2({0}, {1})", X, Y);
     }

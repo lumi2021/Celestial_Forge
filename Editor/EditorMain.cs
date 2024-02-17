@@ -20,6 +20,11 @@ public class EditorMain
     private Node? editorRoot;
     private TreeGraph? filesList;
     private TreeGraph? nodesList;
+    private Pannel? sceneViewport;
+    private Pannel? textEditor;
+
+    /* ETC */
+    private int maintab = 0;
 
     public EditorMain(ProjectSettings settings, Window mainWin)
     {
@@ -39,6 +44,20 @@ public class EditorMain
         var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
         mainWindow.AddAsChild(scene);
         editorRoot = scene;
+
+        /* CONFIGURATE MAIN SCREEN */
+        #region
+
+        sceneViewport = editorRoot!.GetChild("Main/Center/Viewport") as Pannel;
+        textEditor = editorRoot!.GetChild("Main/Center/TextEditor") as Pannel;
+
+        Button sceneBtn = (editorRoot!.GetChild("TopBar/MainOptions/SceneEditor") as Button)!;
+        Button scriptBtn = (editorRoot!.GetChild("TopBar/MainOptions/ScriptEditor") as Button)!;
+
+        sceneBtn.OnPressed.Connect((object? from, dynamic[]? args) => ChangeMainView(0));
+        scriptBtn.OnPressed.Connect((object? from, dynamic[]? args) => ChangeMainView(1));
+
+        #endregion
 
         /* INSTANTIATE AND CONFIGURATE FILE MANANGER */
         #region
@@ -125,9 +144,23 @@ public class EditorMain
         /* CONFIGURATE BUTTONS */
         var runButton = scene.GetChild("TopBar/RunButton") as Button;
         runButton?.OnPressed.Connect(RunButtonPressed);
-    
-        //LoadSceneInEditor("res://testScene.sce");
 
+    }
+
+    private void ChangeMainView(int to)
+    {
+        switch (to)
+        {
+            case 0:
+                sceneViewport!.Show();
+                textEditor!.Hide();
+                break;
+
+            case 1:
+                sceneViewport!.Hide();
+                textEditor!.Show();
+                break;
+        }
     }
 
     private void RunButtonPressed(object? from, dynamic[]? args)
@@ -453,8 +486,16 @@ public class EditorMain
         else if (fieldType.IsEnum)
         {
             int value = (int) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
+            Console.WriteLine("Enum value as int is: " + value);
 
             var values = Enum.GetValues(fieldType);
+
+            //for (int i = 0; i < values.Length; i++)
+            //{
+            //    Console.WriteLine("{0}\t{1}\t{2}", i == value? "=>" : "",
+            //    Convert.ChangeType(values.GetValue(i), Enum.GetUnderlyingType(fieldType)),
+            //    values.GetValue(i));
+            //}
 
             var field = new Select()
             {
@@ -463,14 +504,8 @@ public class EditorMain
             };
 
             for (int i = 0; i < values.Length; i++)
-            {
-                field.AddValue(
-                    (int) Convert.ChangeType(values.GetValue(i), Enum.GetUnderlyingType(fieldType))!,
-                    values.GetValue(i)!.ToString()!
-                );
-            }
-
-            field.SetValue(value);
+                field.AddValue( (int) values.GetValue(i)!, values.GetValue(i)!.ToString()! );
+            
 
             container.AddAsChild(field);
         }

@@ -9,85 +9,93 @@ public class Select : NodeUI
     [Inspect]
     public int Value
     {
-        get { return _value; }
+        get { return values.Count <= 0 ? 0 : values.Keys.ToArray()[_value]; }
         set
         {
-            _value = value;
+            _value = (int) Math.Min(Math.Max(0, value), values.Count);
             UpdateValue();
         }
     }
 
-    //[Inspect]
-    private Dictionary<int, string> values = new();
-    private Dictionary<int, Button> buttons = new();
+    [Inspect]
+    public Dictionary<int, string> values = new();
 
-    private readonly Pannel Container = new() { mouseFilter = MouseFilter.Ignore };
+    private readonly Pannel Container = new();
     private readonly TextField Label = new() { mouseFilter = MouseFilter.Ignore };
     private readonly Pannel OptionsContainer = new()
     {
         positionPercent = new(0, 1),
-        sizePercent = new(1, 0),
-        sizePixels = new(0, 25),
+        sizePercent = new(1,0),
         Visible = false
     };
+    private readonly Dictionary<int, Button> options = new();
 
     public readonly Signal OnValueChange = new();
 
     protected override void Init_()
     {
         AddAsChild(Container);
-        AddAsChild(Label);
+        Container.AddAsChild(Label);
         AddAsChild(OptionsContainer);
+        UpdateValue();
+
+        Container.onFocus.Connect((object? _, dynamic[]? _) => ToggleOptionsList());
+        Container.onUnfocus.Connect((object? _, dynamic[]? _) => CloseOptionsList());
     }
 
-    public void AddValue(int value, string label)
+    private void ToggleOptionsList()
     {
-        if (!values.ContainsKey(value))
-        {
-            values.Add(value, label);
-            UpdateValue();
+        OptionsContainer.Visible = !OptionsContainer.Visible;
+    }
+    //private void OpenOptionsList()
+    //{
+    //    OptionsContainer.Visible = true;
+    //}
+    private void CloseOptionsList()
+    {
+        OptionsContainer.Visible = false;
+    }
 
-            // Creating a button here
-            var nBtn = new Button()
+    public void AddValue(int number, string label)
+    {
+        if (!values.ContainsKey(number))
+        {
+            values.Add(number, label);
+
+            var nOp = new Button()
             {
                 sizePercent = new(1, 0),
-                sizePixels = new(0, 25)
+                sizePixels = new(0, 16)
             };
-            var btnLabel = new TextField()
-            { Text = label };
+            var nLb = new TextField()
+            {
+                Text = label
+            };
+            nOp.AddAsChild(nLb);
 
-            nBtn.AddAsChild(btnLabel);
-            OptionsContainer.AddAsChild(nBtn);
-            buttons.Add(value, nBtn);
+            OptionsContainer.AddAsChild(nOp);
+            options.Add(number, nOp);
 
-            UpdateList();
+            SortButtons();
+            UpdateValue();
         }
-    }
-    public void SetValue(int value)
-    {
-        _value = value;
-        UpdateValue();
-    }
-
-    private void UpdateList()
-    {
-        int height = 0;
-        foreach (var i in buttons)
-        {
-            i.Value.positionPixels.Y = height;
-            height += i.Value.sizePixels.Y;
-        }
-        OptionsContainer.sizePixels.Y = height;
     }
 
     private void UpdateValue()
     {
-        Label.Text = values[_value];
+        Label.Text = values.Count <= 0 ? "" : values[ Value ];
     }
-
-    protected override void OnFocusChanged(bool focused)
+    private void SortButtons()
     {
-        OptionsContainer.Visible = focused && !OptionsContainer.Visible;
-    }
+        var btnList = options.ToList();
+        btnList.Sort((a, b) => a.Key - b.Key);
 
+        int position = 0;
+        foreach (var btn in btnList)
+        {
+            btn.Value.positionPixels.Y = position;
+            position += btn.Value.sizePixels.Y;
+        }
+        OptionsContainer.sizePixels.Y = position;
+    }
 }
