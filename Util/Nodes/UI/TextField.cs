@@ -12,6 +12,8 @@ public class TextField : NodeUI, ICanvasItem
 {
     [Inspect]
     public bool Visible { get; set; } = true;
+    [Inspect]
+    public int ZIndex { get; set; } = 0;
 
     public enum Aligin {
         Start,

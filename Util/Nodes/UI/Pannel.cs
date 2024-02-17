@@ -12,6 +12,8 @@ public class Pannel : NodeUI, ICanvasItem
 
     [Inspect]
     public bool Visible { get; set; } = true;
+    [Inspect]
+    public int ZIndex { get; set; } = 0;
 
     private Color _bgColor = new(100, 100, 100, 0.9f);
     [Inspect]

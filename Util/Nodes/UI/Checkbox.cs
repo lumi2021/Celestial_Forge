@@ -12,6 +12,8 @@ namespace GameEngine.Util.Nodes
 
         [Inspect]
         public bool Visible { get; set; } = true;
+        [Inspect]
+        public int ZIndex { get; set; } = 0;
 
         [Inspect]
         public bool value = false;
