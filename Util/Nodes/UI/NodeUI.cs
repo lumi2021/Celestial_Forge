@@ -7,7 +7,7 @@ using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
-public class NodeUI : Node, IClipChildren
+public class NodeUI : Node, ICanvasItem, IClipChildren
 {
     /* SIGNALS */
     public readonly Signal onClick = new();
@@ -143,7 +143,26 @@ public class NodeUI : Node, IClipChildren
 
     // Mouse options
     public enum MouseFilter {Block, Pass, Ignore}
+    [Inspect]
     public MouseFilter mouseFilter = MouseFilter.Block;
+
+    [Inspect]
+    public bool Visible { get; set; } = true;
+    [Inspect]
+    public int ZIndex { get; set; } = 0;
+    public int GlobalZIndex
+    {
+        get {
+
+            int pz = 0;
+
+            if (parent is ICanvasItem @p) pz = @p.GlobalZIndex;
+
+            return ZIndex + pz;
+
+        }
+    }
+
 
     public Rect GetClippingArea()
     {
@@ -215,4 +234,8 @@ public class NodeUI : Node, IClipChildren
     }
 
     protected virtual void OnFocusChanged(bool focused) {}
+
+    public void Hide() => Visible = false;
+    public void Show() => Visible = true;
+
 }

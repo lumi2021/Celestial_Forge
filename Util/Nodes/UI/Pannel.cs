@@ -10,11 +10,6 @@ namespace GameEngine.Util.Nodes;
 public class Pannel : NodeUI, ICanvasItem
 {
 
-    [Inspect]
-    public bool Visible { get; set; } = true;
-    [Inspect]
-    public int ZIndex { get; set; } = 0;
-
     private Color _bgColor = new(100, 100, 100, 0.9f);
     [Inspect]
     public Color BackgroundColor
@@ -55,17 +50,14 @@ public class Pannel : NodeUI, ICanvasItem
         material.Use();
 
         var world = MathHelper.Matrix4x4CreateRect(Position, Size)
-            *Matrix4x4.CreateTranslation(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y / 2, 0);
+        *Matrix4x4.CreateTranslation(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y / 2, GlobalZIndex);
 
-        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X,ParentWindow!.Size.Y,-.1f,.1f);
+        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X,ParentWindow!.Size.Y,-1000f,1000f);
 
         material.SetTranslation(world);
         material.SetProjection(proj);
 
         DrawService.Draw(NID);
     }
-
-    public void Show() { Visible = true; }
-    public void Hide() { Visible = false; }
 
 }

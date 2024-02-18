@@ -26,7 +26,8 @@ public class Select : NodeUI
     {
         positionPercent = new(0, 1),
         sizePercent = new(1,0),
-        Visible = false
+        Visible = false,
+        ZIndex = 999
     };
     private readonly Dictionary<int, Button> options = new();
 
@@ -65,7 +66,7 @@ public class Select : NodeUI
             var nOp = new Button()
             {
                 sizePercent = new(1, 0),
-                sizePixels = new(0, 16)
+                sizePixels = new(0, 25)
             };
             var nLb = new TextField()
             {

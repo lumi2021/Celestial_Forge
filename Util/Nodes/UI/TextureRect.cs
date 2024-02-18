@@ -6,13 +6,8 @@ using GameEngine.Util.Resources;
 
 namespace GameEngine.Util.Nodes;
 
-public class TextureRect : NodeUI, ICanvasItem
+public class TextureRect : NodeUI
 {
-
-    [Inspect]
-    public bool Visible { get; set; } = true;
-    [Inspect]
-    public int ZIndex { get; set; } = 0;
 
     [Inspect]
     public Texture? texture = null;
@@ -44,16 +39,13 @@ public class TextureRect : NodeUI, ICanvasItem
         material.Use();
 
         var world = MathHelper.Matrix4x4CreateRect(Position, Size)
-        * Matrix4x4.CreateTranslation(new Vector3(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y/2, 0));
-        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X,ParentWindow!.Size.Y,-.1f,.1f);
+        * Matrix4x4.CreateTranslation(new Vector3(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y/2, GlobalZIndex));
+        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X,ParentWindow!.Size.Y,-1000f,1000f);
 
         material.SetTranslation(world);
         material.SetProjection(proj);
 
         DrawService.Draw(NID);
     }
-
-    public void Show() { Visible = true; }
-    public void Hide() { Visible = false; }
 
 }

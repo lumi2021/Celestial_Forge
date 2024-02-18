@@ -8,13 +8,8 @@ using GameEngine.Util.Values;
 
 namespace GameEngine.Util.Nodes;
 
-public class TextField : NodeUI, ICanvasItem
+public class TextField : NodeUI
 {
-    [Inspect]
-    public bool Visible { get; set; } = true;
-    [Inspect]
-    public int ZIndex { get; set; } = 0;
-
     public enum Aligin {
         Start,
         Center,
@@ -141,10 +136,13 @@ public class TextField : NodeUI, ICanvasItem
         };
         #endregion
 
-        var world = Matrix4x4.CreateTranslation(new Vector3(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y/2, 0))
-        * Matrix4x4.CreateTranslation(new Vector3(textPosX + Position.X, textPosY + Position.Y, 0));
+        var world = Matrix4x4.CreateTranslation(
+            -ParentWindow!.Size.X/2 + textPosX + Position.X,
+            -ParentWindow!.Size.Y/2 + textPosY + Position.Y,
+            GlobalZIndex
+        );
 
-        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X,ParentWindow!.Size.Y,-.1f,.1f);
+        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X,ParentWindow!.Size.Y,-1000f,1000f);
 
         material.SetTranslation(world);
         material.SetProjection(proj);
@@ -161,9 +159,6 @@ public class TextField : NodeUI, ICanvasItem
     {
         TextEdited();
     }
-
-    public void Show() { Visible = true; }
-    public void Hide() { Visible = false; }
 
     private void ReconfigurateDraw()
     {
