@@ -18,7 +18,11 @@ public static class ScriptService
     private static Dictionary<string, FieldData> _fields = [];
     private static Dictionary<string, MethodData> _methods = [];
 
+    private static Dictionary<string, LocalBuilder> _scopeData = [];
+
     private static readonly List<DrasmParameterTypes> _stack = [];
+
+    private static Assembly? lastAsm;
 
     static ScriptService()
     {
@@ -31,6 +35,8 @@ public static class ScriptService
         try {
             AssemblyBuilder asmBuilder = AssemblyBuilder.DefineDynamicAssembly(asmName, AssemblyBuilderAccess.RunAndCollect);
             ModuleBuilder moduleBuilder = asmBuilder.DefineDynamicModule("UserContent");
+
+            lastAsm = moduleBuilder.Assembly;
 
             Type? dynamicClass = null;
 
@@ -86,8 +92,6 @@ public static class ScriptService
 
                     // script code
                     BuildIl(ilGen, ctrData.script);
-                    
-                    ilGen.Emit(OpCodes.Ret);
                 }
 
                 /* COMPILE CLASS METHODS */
@@ -112,12 +116,10 @@ public static class ScriptService
             catch (Exception ex)
             {
                 Console.WriteLine("Error: {0}", ex.InnerException!.Message);
+                Console.WriteLine("Printing assembly...\n");
+                LogAssembly(lastAsm);
             }
 
-            Console.WriteLine("\n-------------------------");
-            Console.WriteLine("Printing assembly...\n");
-            LogAssembly(dynamicClass!.Assembly);
-        
         }
         catch(Exception e)
         {
@@ -132,11 +134,13 @@ public static class ScriptService
 
     private static void BuildIl(ILGenerator ilGen, DrasmOperation[] script)
     {
-        
+
+        var returned = false;
+
         foreach (var i in script)
         {
 
-            Console.WriteLine("A:\t{0}", _stack.Count);
+            // Console.WriteLine("A:\t{0}", _stack.Count);
 
             switch (i.operation)
             {
@@ -147,6 +151,33 @@ public static class ScriptService
                     LoadInStack(i.args[0].value, i.args[0].type, ilGen);
                     SelectValue(ilGen, type);
 
+                    break;
+                case DrasmOperations.op_define:
+                    if (i.ArgCount == 3 && i.args[1].type == DrasmParameterTypes.pt_identifier && i.args[1].value == "as")
+                    {
+                        if (Type.GetType(i.args[2].value) != null)
+                        {
+                            LocalBuilder newVar = ilGen.DeclareLocal(Type.GetType(i.args[2].value));
+                            _scopeData.Add(i.args[0].value, newVar);
+                        }
+                        else throw new Exception($"Inexistent type \"{i.args[2].value}\" reference");
+                    }
+                    else throw new Exception("Op_define can only accept 3 arguments, being the seccond the operator \"as\"");
+                    
+                    break;
+
+                case DrasmOperations.op_set:
+                    if (i.ArgCount == 2)
+                    {
+                        if (_scopeData.ContainsKey(i.args[0].value))
+                        {
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+                            ilGen.Emit(OpCodes.Stloc, _scopeData[i.args[0].value]);
+                            PopFromStack();
+                        }
+                        else throw new Exception($"Inexistent field \"{i.args[0].value}\"");
+                    }
+                    else throw new Exception("Op_set can only accept 2 arguments");
                     break;
 
                 // math
@@ -338,6 +369,7 @@ public static class ScriptService
                     break;
                 case DrasmOperations.op_return:
                     ilGen.Emit(OpCodes.Ret);
+                    returned = true;
                     break;
 
                 // output
@@ -367,15 +399,17 @@ public static class ScriptService
                     break;
             }
 
-            Console.WriteLine("B:\t{0}", _stack.Count);
+            // Console.WriteLine("B:\t{0}", _stack.Count);
 
         }
+        if (!returned) ilGen.Emit(OpCodes.Ret);
 
         _rtv = null;
         _rtv_type = null;
         _selected_val = null;
         _selected_type = null;
         _stack.Clear();
+        _scopeData.Clear();
 
     }
     
@@ -388,10 +422,19 @@ public static class ScriptService
                 il.Emit(OpCodes.Ldnull); break;
 
             case DrasmParameterTypes.pt_identifier:
-                var fi = _fields[(string)value!].fieldRef;
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldfld, fi!);
-                type = DotNetType2ParamType(fi!.FieldType);
+                if (_fields.ContainsKey((string) value!))
+                {
+                    var fi = _fields[(string)value!].fieldRef;
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldfld, fi!);
+                    type = DotNetType2ParamType(fi!.FieldType);
+                }
+                else if (_scopeData.ContainsKey((string) value!))
+                {
+                    var lb = _scopeData[(string)value!];
+                    il.Emit(OpCodes.Ldloc, lb);
+                    type = DotNetType2ParamType(lb.LocalType);
+                }
                 break;
 
             case DrasmParameterTypes.pt_boolean:
@@ -532,6 +575,7 @@ public static class ScriptService
         _selected_val = null;
         _selected_type = null;
         _stack.Clear();
+        _scopeData.Clear();
 
         _fields.Clear();
         _methods.Clear();
