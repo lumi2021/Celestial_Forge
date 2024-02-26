@@ -64,7 +64,7 @@ public class MethodData
     public bool isPrivate;
     public Type returnType = typeof(void);
 
-    public DrasmOperation[] script = [];
+    public CodeData script = new();
 
     public MethodBuilder? methodRef;
 
@@ -73,7 +73,7 @@ public class MethodData
 public class ConstructorData
 {
     public bool isPrivate;
-    public DrasmOperation[] script = [];
+    public CodeData script = new();
 
     public ConstructorBuilder? constructorRef;
 }
@@ -89,4 +89,10 @@ public struct OpArg
 {
     public DrasmParameterTypes type;
     public dynamic? value;
+}
+
+public class CodeData
+{
+    public string[] labels = [];
+    public DrasmOperation[] script = [];
 }

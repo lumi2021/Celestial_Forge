@@ -9,18 +9,27 @@ public static class ScriptService
 
     static readonly AssemblyName asmName = new();
 
+    #region execution data
     private static LocalBuilder? _rtv;
     private static Type? _rtv_type;
 
-    private static LocalBuilder? _selected_val;
-    private static Type? _selected_type;
+    private static dynamic? _selected_val;
+    private static DrasmParameterTypes _selected_type;
+    private static dynamic? _comparing_val;
+    private static DrasmParameterTypes _comparing_type;
+    #endregion
+
+    private static TypeBuilder? _currentType = null;
 
     private static Dictionary<string, FieldData> _fields = [];
     private static Dictionary<string, MethodData> _methods = [];
 
     private static Dictionary<string, LocalBuilder> _scopeData = [];
+    private static Dictionary<string, Label> _scopeLabels = [];
+    private static List<Label> _scopeLoops = [];
 
-    private static readonly List<DrasmParameterTypes> _stack = [];
+    private static readonly List<DrasmParameterTypes> _DrasmStack = [];
+    private static readonly List<Type?> _DotnetStack = [];
 
     private static Assembly? lastAsm;
 
@@ -44,7 +53,7 @@ public static class ScriptService
             {
 
                 TypeBuilder nType = moduleBuilder.DefineType(classData.name, TypeAttributes.Public);
-
+                _currentType = nType;
 
                 /* DECLARE CLASS FIELDS */
                 foreach (var fieldData in classData.fields)
@@ -85,9 +94,38 @@ public static class ScriptService
 
                         ilGen.Emit(OpCodes.Ldarg_0);
 
-                        LoadInStack(value, ilGen);
-                        ilGen.Emit(OpCodes.Stfld, fieldRef);
-                        PopFromStack();
+                        if (!f.Value.fieldType.IsArray)
+                        {
+                            LoadInStack(value, ilGen);
+                            ilGen.Emit(OpCodes.Stfld, fieldRef);
+                            PopFromStack();
+                        }
+                        else
+                        {
+                            var elType = f.Value.fieldType.GetElementType()!;
+                            if (value is int v)
+                            {
+                                ilGen.Emit(OpCodes.Ldc_I4, v);
+                                ilGen.Emit(OpCodes.Newarr, elType);
+                                ilGen.Emit(OpCodes.Stfld, fieldRef);
+                            }
+                            else if (value.GetType().IsArray)
+                            {   
+                                ilGen.Emit(OpCodes.Ldc_I4, value.Length);
+                                ilGen.Emit(OpCodes.Newarr, elType);
+
+                                for (var i = 0; i < value.Length; i++)
+                                {
+                                    ilGen.Emit(OpCodes.Dup);
+                                    ilGen.Emit(OpCodes.Ldc_I4, i);
+                                    LoadInStack(value[i], ilGen);
+                                    ilGen.Emit(OpCodes.Stelem, elType!);
+                                    PopFromStack();
+                                }
+
+                                ilGen.Emit(OpCodes.Stfld, fieldRef);
+                            }
+                        }
                     }
 
                     // script code
@@ -104,7 +142,7 @@ public static class ScriptService
                     BuildIl(ilGen, mtdData.Value.script);
                 }
 
-
+                _currentType = null;
                 dynamicClass = nType.CreateType();
 
             }
@@ -127,37 +165,46 @@ public static class ScriptService
             Console.WriteLine(e);
         }
         finally {
-            CleanUp();
+            GeneralCleanUp();
         }
 
     }
 
-    private static void BuildIl(ILGenerator ilGen, DrasmOperation[] script)
+    private static void BuildIl(ILGenerator ilGen, CodeData code)
     {
 
+        Label[] opRefs = new Label[code.script.Length+1];
         var returned = false;
 
-        foreach (var i in script)
+        foreach (var i in code.labels)
+            _scopeLabels.Add(i, ilGen.DefineLabel());
+        for (int i = 0; i <= code.script.Length; i++)
         {
+            opRefs[i] = ilGen.DefineLabel();
+        }
+        
+        for (int lineIndex = 0; lineIndex < code.script.Length; lineIndex++)
+        {
+            var i = code.script[lineIndex];
 
-            // Console.WriteLine("A:\t{0}", _stack.Count);
+            //Console.WriteLine("A:\t{0}", _DrasmStack.Count);
 
+            ilGen.MarkLabel(opRefs[lineIndex]);
             switch (i.operation)
             {
                 // data
                 case DrasmOperations.op_select:
-
-                    Type type = i.args[0].value!.GetType();
-                    LoadInStack(i.args[0].value, i.args[0].type, ilGen);
-                    SelectValue(ilGen, type);
-
+                    SelectValue(i.args[0].value, i.args[0].type, ilGen);
+                    break;
+                case DrasmOperations.op_compare:
+                    CompareValue(i.args[0].value, i.args[0].type, ilGen);
                     break;
                 case DrasmOperations.op_define:
                     if (i.ArgCount == 3 && i.args[1].type == DrasmParameterTypes.pt_identifier && i.args[1].value == "as")
                     {
                         if (Type.GetType(i.args[2].value) != null)
                         {
-                            LocalBuilder newVar = ilGen.DeclareLocal(Type.GetType(i.args[2].value));
+                            LocalBuilder newVar = ilGen.DeclareLocal(GetReferencedType(i.args[2].value));
                             _scopeData.Add(i.args[0].value, newVar);
                         }
                         else throw new Exception($"Inexistent type \"{i.args[2].value}\" reference");
@@ -165,19 +212,38 @@ public static class ScriptService
                     else throw new Exception("Op_define can only accept 3 arguments, being the seccond the operator \"as\"");
                     
                     break;
-
                 case DrasmOperations.op_set:
                     if (i.ArgCount == 2)
                     {
                         if (_scopeData.ContainsKey(i.args[0].value))
                         {
                             LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+
+                            var lType = _scopeData[i.args[0].value].LocalType;
+                            
+                            if (lType == typeof(int)) ilGen.Emit(OpCodes.Conv_I4);
+
                             ilGen.Emit(OpCodes.Stloc, _scopeData[i.args[0].value]);
+                            PopFromStack();
+                        }
+                        else if (_fields.ContainsKey(i.args[0].value))
+                        {
+                            ilGen.Emit(OpCodes.Ldarg_0);
+                            LoadInStack(i.args[1].value, i.args[1].type, ilGen);
+                            ilGen.Emit(OpCodes.Stfld, _fields[i.args[0].value].fieldRef!);
                             PopFromStack();
                         }
                         else throw new Exception($"Inexistent field \"{i.args[0].value}\"");
                     }
                     else throw new Exception("Op_set can only accept 2 arguments");
+                    break;
+                case DrasmOperations.op_delete:
+                    if (_scopeData.ContainsKey(i.args[0].value))
+                    {
+                        _scopeData.Remove(i.args[0].value);
+                    }
+                    else throw new Exception($"Inexistent local variable \"{i.args[0].value}\"");
+
                     break;
 
                 // math
@@ -213,7 +279,8 @@ public static class ScriptService
 
                     ilGen.Emit(OpCodes.Add);
                     PopFromStack(2);
-                    _stack.Add(DrasmParameterTypes.pt_number_single);
+                    _DrasmStack.Add(DrasmParameterTypes.pt_number_single);
+                    _DotnetStack.Add(typeof(float));
                     SetValueInRTV(ilGen, typeof(float));
 
                     break;
@@ -249,7 +316,8 @@ public static class ScriptService
 
                     ilGen.Emit(OpCodes.Sub);
                     PopFromStack(2);
-                    _stack.Add(DrasmParameterTypes.pt_number_single);
+                    _DrasmStack.Add(DrasmParameterTypes.pt_number_single);
+                    _DotnetStack.Add(typeof(float));
                     SetValueInRTV(ilGen, typeof(float));
 
                     break;
@@ -285,7 +353,8 @@ public static class ScriptService
 
                     ilGen.Emit(OpCodes.Mul);
                     PopFromStack(2);
-                    _stack.Add(DrasmParameterTypes.pt_number_single);
+                    _DrasmStack.Add(DrasmParameterTypes.pt_number_single);
+                    _DotnetStack.Add(typeof(float));
                     SetValueInRTV(ilGen, typeof(float));
 
                     break;
@@ -321,7 +390,8 @@ public static class ScriptService
 
                     ilGen.Emit(OpCodes.Div);
                     PopFromStack(2);
-                    _stack.Add(DrasmParameterTypes.pt_number_single);
+                    _DrasmStack.Add(DrasmParameterTypes.pt_number_single);
+                    _DotnetStack.Add(typeof(float));
                     SetValueInRTV(ilGen, typeof(float));
 
                     break;
@@ -357,7 +427,8 @@ public static class ScriptService
 
                     ilGen.Emit(OpCodes.Rem);
                     PopFromStack(2);
-                    _stack.Add(DrasmParameterTypes.pt_number_single);
+                    _DrasmStack.Add(DrasmParameterTypes.pt_number_single);
+                    _DotnetStack.Add(typeof(float));
                     SetValueInRTV(ilGen, typeof(float));
 
                     break;
@@ -371,6 +442,61 @@ public static class ScriptService
                     ilGen.Emit(OpCodes.Ret);
                     returned = true;
                     break;
+                case DrasmOperations.op_goto:
+                    ilGen.Emit(OpCodes.Br_S, _scopeLabels[i.args[0].value]);
+                    break;
+                case DrasmOperations.op_nop:
+                    ilGen.Emit(OpCodes.Nop);
+                    break;
+                case DrasmOperations.op_loop:
+                    _scopeLoops.Add(opRefs[lineIndex]);
+                    break;
+                case DrasmOperations.op_doop:
+                    ilGen.Emit(OpCodes.Br_S, _scopeLoops[^1]);
+                    break;
+                case DrasmOperations.op_break:
+                    _scopeLoops.Pop();
+                    break;
+
+                // conditional
+                case DrasmOperations.op_istrue:
+                    LoadComparing(ilGen);
+                    ilGen.Emit(OpCodes.Brfalse_S, opRefs[lineIndex+2]);
+                    PopFromStack();
+                    break;
+                case DrasmOperations.op_isfalse:
+                    LoadComparing(ilGen);
+                    ilGen.Emit(OpCodes.Brtrue_S, opRefs[lineIndex+2]);
+                    PopFromStack();
+                    break;
+                case DrasmOperations.op_iseqls:
+                    LoadComparing(ilGen);
+                    LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+
+                    ilGen.Emit(OpCodes.Ceq);
+                    ilGen.Emit(OpCodes.Brfalse_S, opRefs[lineIndex+2]);
+                    PopFromStack(2);
+                    break;
+                case DrasmOperations.op_isneqls:
+                    LoadComparing(ilGen);
+                    LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+
+                    ilGen.Emit(OpCodes.Ceq);
+                    ilGen.Emit(OpCodes.Brtrue_S, opRefs[lineIndex+2]);
+                    PopFromStack(2);
+                    break;
+                case DrasmOperations.op_islstn:
+                    LoadComparing(ilGen);
+                    LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                    ilGen.Emit(OpCodes.Bge_S, opRefs[lineIndex+2]);
+                    PopFromStack(2);
+                    break;
+                case DrasmOperations.op_isgrtn:
+                    LoadComparing(ilGen);
+                    LoadInStack(i.args[0].value, i.args[0].type, ilGen);
+                    ilGen.Emit(OpCodes.Ble_S, opRefs[lineIndex+2]);
+                    PopFromStack(2);
+                    break;
 
                 // output
                 case DrasmOperations.op_write:
@@ -379,8 +505,8 @@ public static class ScriptService
                     if (i.ArgCount > 0)
                     {
                         LoadInStack(i.args[0].value, i.args[0].type, ilGen);
-                        var mi = typeof(Console).GetMethod("Write", [ ParamType2DotNetType(_stack.Last<DrasmParameterTypes>())! ]);
-                        ilGen.EmitCall(OpCodes.Call, mi!, [ ParamType2DotNetType(_stack.Last<DrasmParameterTypes>())! ]);
+                        var mi = typeof(Console).GetMethod("Write", [ _DotnetStack[^1]! ]);
+                        ilGen.EmitCall(OpCodes.Call, mi!, [ _DotnetStack[^1]! ]);
                         PopFromStack();
                     }
 
@@ -391,30 +517,40 @@ public static class ScriptService
                     if (i.ArgCount > 0)
                     {
                         LoadInStack(i.args[0].value, i.args[0].type, ilGen);
-                        var mi = typeof(Console).GetMethod("WriteLine", [ ParamType2DotNetType(_stack.Last<DrasmParameterTypes>())! ]);
-                        ilGen.EmitCall(OpCodes.Call, mi!, [ ParamType2DotNetType(_stack.Last<DrasmParameterTypes>())! ]);
+                        var mi = typeof(Console).GetMethod("WriteLine", [ _DotnetStack[^1]! ]);
+                        ilGen.EmitCall(OpCodes.Call, mi!, [ _DotnetStack[^1]! ]);
                         PopFromStack();
                     }
 
                     break;
+            
+                // misc
+                case DrasmOperations.def_label:
+                    if (_scopeLabels.ContainsKey(i.args[0].value))
+                        ilGen.MarkLabel(_scopeLabels[i.args[0].value]);
+
+                    else throw new Exception(string.Format("Already declared label \"{0}\"", i.args[0].value));
+
+                    break;
+
+                // error
+                default:
+                    throw new Exception(string.Format("Undefined operator {0}", i.operation));
             }
 
-            // Console.WriteLine("B:\t{0}", _stack.Count);
+            //Console.WriteLine("B:\t{0}", _DrasmStack.Count);
 
         }
         if (!returned) ilGen.Emit(OpCodes.Ret);
 
-        _rtv = null;
-        _rtv_type = null;
-        _selected_val = null;
-        _selected_type = null;
-        _stack.Clear();
-        _scopeData.Clear();
+        CleanUp();
 
     }
     
     private static void LoadInStack(dynamic? value, DrasmParameterTypes type, ILGenerator il)
     {
+
+        Type? netType = ParamType2DotNetType(type) ?? value?.GetType();
 
         switch (type)
         {
@@ -422,19 +558,8 @@ public static class ScriptService
                 il.Emit(OpCodes.Ldnull); break;
 
             case DrasmParameterTypes.pt_identifier:
-                if (_fields.ContainsKey((string) value!))
-                {
-                    var fi = _fields[(string)value!].fieldRef;
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldfld, fi!);
-                    type = DotNetType2ParamType(fi!.FieldType);
-                }
-                else if (_scopeData.ContainsKey((string) value!))
-                {
-                    var lb = _scopeData[(string)value!];
-                    il.Emit(OpCodes.Ldloc, lb);
-                    type = DotNetType2ParamType(lb.LocalType);
-                }
+                netType = LoadReference(((string)value!).Split('.'), false, null, il);
+                type = DotNetType2ParamType(netType);
                 break;
 
             case DrasmParameterTypes.pt_boolean:
@@ -466,7 +591,8 @@ public static class ScriptService
                 throw new NotImplementedException();
         }
 
-        _stack.Add(type);
+        _DrasmStack.Add(type);
+        _DotnetStack.Add(netType);
     }
     private static void LoadInStack(dynamic? value, ILGenerator il)
     {
@@ -487,23 +613,117 @@ public static class ScriptService
         }
         else if (type == typeof(string)) il.Emit(OpCodes.Ldstr, value);
 
-        _stack.Add( DotNetType2ParamType(type) );
+        _DrasmStack.Add( DotNetType2ParamType(type) );
+        _DotnetStack.Add(type);
 
     }
     private static void LoadSelected(ILGenerator il)
     {
-        il.Emit(OpCodes.Ldloc, _selected_val!);
-        il.Emit(OpCodes.Unbox_Any, _selected_type!);
-        _stack.Add( DotNetType2ParamType(_selected_type) );
+        LoadInStack(_selected_val, _selected_type, il);
+    }
+    private static void LoadComparing(ILGenerator il)
+    {
+        LoadInStack(_comparing_val, _comparing_type, il);
     }
 
-    private static void SelectValue(ILGenerator il, Type t)
+    private static Type? LoadReference(string[] path, bool insideSelf, Type? from, ILGenerator il)
     {
-        _selected_val ??= il.DeclareLocal(typeof(object));
+
+        if (path[0] == "this")
+        {
+            if (from == null && !insideSelf)
+            {
+                il.Emit(OpCodes.Ldarg_0);
+                insideSelf = true;
+            }
+            else throw new Exception("You can't use the keyword \"this\" inside another reference!");
+        }
+
+        else if (from == null && insideSelf)
+        {
+            var field = _fields[path[0]].fieldRef!;
+
+            if (field != null)
+            {
+                il.Emit(OpCodes.Ldfld, field);
+                from = field.FieldType;
+            }
+            
+            else throw new Exception(string.Format("Field \"{0}\" don't exist in base {1}!", path[0], from));
+        }
+
+        else if (from != null)
+        {
+            if (path[0].StartsWith('[') && path[0].EndsWith(']'))
+            {
+                if (from.IsArray)
+                {
+                    if (int.TryParse(path[0][1 .. ^1], out int index))
+                    {
+                        from = from.GetElementType()!;
+                        il.Emit(OpCodes.Ldc_I4, index);
+                        il.Emit(OpCodes.Ldelem, from);
+                    }
+                    else 
+                    {
+                        LoadReference(path[0][1 .. ^1].Split('.'), false, null, il);
+                        from = from.GetElementType()!;
+                        il.Emit(OpCodes.Ldelem, from);
+                    }
+                }
+            }
+            else if (from.GetMember(path[0]) != null)
+            {
+                FieldInfo? fi = from.GetField(path[0]);
+
+                if (fi != null)
+                {
+                    il.Emit(OpCodes.Ldfld, fi);
+                    from = fi.FieldType;
+                }
+                else
+                {
+                    PropertyInfo? pi = from.GetProperty(path[0]);
+                    if (pi != null)
+                    {
+                        il.Emit(OpCodes.Call, pi.GetMethod!);
+                        from = pi.PropertyType;
+                    }
+                }
+            }
+            else throw new Exception(string.Format("Field \"{0}\" don't exist in base {1}!", path[0], from));
+        }
+
+        else if (from == null && !insideSelf)
+        {
+            if (_scopeData.ContainsKey(path[0]))
+            {
+                LocalBuilder lb = _scopeData[path[0]]!;
+                il.Emit(OpCodes.Ldloc, lb);
+                from = lb.LocalType;
+            }
+            else throw new Exception(string.Format("Field \"{0}\" does not exist in this scope!", path[0]));
+        }
+
+        if (path.Length > 1)
+            return LoadReference(path[1 ..], insideSelf, from, il);
+        else return from;
+
+    }
+    private static Type? GetReferencedType(string path)
+    {
+        return Type.GetType(path);
+    }
+
+    private static void SelectValue(dynamic? val, DrasmParameterTypes t, ILGenerator il)
+    {
+        _selected_val = val;
         _selected_type = t;
-        il.Emit(OpCodes.Box, t);
-        il.Emit(OpCodes.Stloc, _selected_val);
-        PopFromStack();
+    }
+    private static void CompareValue(dynamic? val, DrasmParameterTypes t, ILGenerator il)
+    {
+        _comparing_val = val;
+        _comparing_type = t;
     }
     private static void SetValueInRTV(ILGenerator il, Type t)
     {
@@ -517,7 +737,10 @@ public static class ScriptService
     private static void PopFromStack(int count = 1)
     {
         for (int i = 0; i < count; i++)
-            _stack.RemoveAt(_stack.Count-1);
+        {
+            _DrasmStack.RemoveAt(_DrasmStack.Count-1);
+            _DotnetStack.RemoveAt(_DotnetStack.Count-1);
+        }
     }
 
     private static Type? ParamType2DotNetType(DrasmParameterTypes t)
@@ -536,7 +759,7 @@ public static class ScriptService
 
             DrasmParameterTypes.pt_data_returnValue => _rtv_type,
 
-            _ => throw new NotImplementedException()
+            _ => null //throw new NotImplementedException()
         };
     }
     private static DrasmParameterTypes DotNetType2ParamType(Type? t)
@@ -554,6 +777,8 @@ public static class ScriptService
         else if (t == typeof(float)) rtn = DrasmParameterTypes.pt_number_single;
         else if (t == typeof(double)) rtn = DrasmParameterTypes.pt_number_double;
 
+        else if (t.IsArray) rtn = DrasmParameterTypes.pt_array;
+
         return rtn;
 
     }
@@ -568,17 +793,26 @@ public static class ScriptService
         else return t;
     }
 
+    private static void GeneralCleanUp()
+    {
+        CleanUp();
+
+        _fields.Clear();
+        _methods.Clear();
+    }
     private static void CleanUp()
     {
         _rtv = null;
         _rtv_type = null;
         _selected_val = null;
-        _selected_type = null;
-        _stack.Clear();
+        _selected_type = DrasmParameterTypes._undefined;
+        _comparing_val = null;
+        _comparing_type = DrasmParameterTypes._undefined;
+        _DrasmStack.Clear();
         _scopeData.Clear();
+        _scopeLabels.Clear();
 
-        _fields.Clear();
-        _methods.Clear();
+        _scopeLoops.Clear();
     }
 
     private static void LogAssembly(Assembly assembly)
@@ -645,18 +879,21 @@ public enum DrasmOperations : byte
     op_call,
     op_loop,
     op_doop,
+    op_break,
     op_nop,
 
     // conditional operators
     op_compare,
     op_istrue,
     op_isfalse,
-    op_isnum,
-    op_isnan,
-    op_istext,
+//  op_isnum,
+//  op_isnan,
+//  op_istext,
     op_iseqls,
+    op_isneqls,
     op_isgrtn,
     op_islstn,
+    op_istype,
 
     // output instructions
     op_print,
@@ -668,6 +905,9 @@ public enum DrasmOperations : byte
     op_mul,
     op_div,
     op_rem,
+
+    // misc
+    def_label
 }
 
 public enum DrasmParameterTypes : byte
@@ -677,12 +917,18 @@ public enum DrasmParameterTypes : byte
     pt_string,
     pt_boolean,
 
-    // numbers (why there's so much)
+    // numbers
     pt_number,
     pt_number_byte,
     pt_number_int,
     pt_number_single,
     pt_number_double,
+
+    // arrays
+    pt_array,
+    pt_arrayIndex,
+    pt_arrayLength,
+    pt_arrayList,
 
     // build-in data
     pt_data_returnValue,
