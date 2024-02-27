@@ -1,11 +1,10 @@
 using GameEngine.Util.Interfaces;
-using GameEngine.Util.Resources;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
-using Basic.Reference.Assemblies;
 using System.Reflection;
 
+namespace GameEngine.Util.Resources;
 
 public class CSharpCompiler : Resource, IScriptCompiler
 {
@@ -16,10 +15,15 @@ public class CSharpCompiler : Resource, IScriptCompiler
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(src);
 
         string assemblyName = "DynamicAss.dll";
+        List<MetadataReference> assembliesRefs = [];
+
+        assembliesRefs.AddRange(Basic.Reference.Assemblies.Net80.References.All);
+        assembliesRefs.Add(MetadataReference.CreateFromFile(typeof(Program).Assembly.Location));
+
         var compilation = CSharpCompilation.Create(
             assemblyName,
             syntaxTrees: [ syntaxTree ],
-            references: ReferenceAssemblies.Net60,
+            references: assembliesRefs,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );
 

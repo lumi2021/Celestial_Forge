@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using GameEngine.Core.Scripting;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources.Scripting;
+
 namespace GameEngine.Util.Resources;
 
 //TOFIX rework on all this

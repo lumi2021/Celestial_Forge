@@ -51,8 +51,8 @@ public class EditorMain
         /* CONFIGURATE MAIN SCREEN */
         #region
 
-        sceneViewport = editorRoot!.GetChild("Main/Center/Viewport") as Pannel;
-        textEditor = editorRoot!.GetChild("Main/Center/TextEditor") as Pannel;
+        sceneViewport = editorRoot!.GetChild("Main/Center/Main/Viewport") as Pannel;
+        textEditor = editorRoot!.GetChild("Main/Center/Main/TextEditor") as Pannel;
 
         Button sceneBtn = (editorRoot!.GetChild("TopBar/MainOptions/SceneEditor") as Button)!;
         Button scriptBtn = (editorRoot!.GetChild("TopBar/MainOptions/ScriptEditor") as Button)!;

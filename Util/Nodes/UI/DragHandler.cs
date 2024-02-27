@@ -77,7 +77,15 @@ public class DragHandler : NodeUI, ICanvasItem
             if (Input.IsActionJustPressed(MouseButton.Left))
             {
                 holding = true;
-                Input.SetCursorShape(CursorShape.HResize);
+                switch (dragAxis)
+                {
+                    case Axis.any:
+                        Input.SetCursorShape(CursorShape.Crosshair); break;
+                    case Axis.XAxis:
+                        Input.SetCursorShape(CursorShape.HResize); break;
+                    case Axis.YAxis:
+                        Input.SetCursorShape(CursorShape.VResize); break;
+                }
             }
 
             ParentWindow?.SupressInputEvent();

@@ -5,6 +5,7 @@ using GameEngine.Util.Nodes;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
+
 namespace GameEngine.Core;
 
 public class Engine
