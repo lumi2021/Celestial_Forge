@@ -1,11 +1,10 @@
-using System;
 using System.Text.RegularExpressions;
 using GameEngine.Core.Scripting;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources.Scripting;
 namespace GameEngine.Util.Resources;
 
-
+//TOFIX rework on all this
 public class DrasmCompiler : Resource, IScriptCompiler
 {
     public void Compile(string src)
@@ -15,7 +14,7 @@ public class DrasmCompiler : Resource, IScriptCompiler
             string[] lines = Preprocess(src);
             var tokens = Tokenize(lines);
             var data = ConvertToData(tokens);
-            ScriptService.Compile(data);
+            //ScriptService.Compile(data);
 
         }
         catch (Exception e)
