@@ -313,10 +313,8 @@ public class EditorMain
         var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
         var code = textField.Text;
 
-        Console.WriteLine("Compiling:\n");
-
-        var drasmc = new DrasmCompiler();
-        drasmc.Compile(code);
+        var csc = new CSharpCompiler();
+        csc.Compile(code);
     }
 
     private void LoadInspectorInformation(Node node)
