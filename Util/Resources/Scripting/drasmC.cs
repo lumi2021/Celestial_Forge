@@ -8,7 +8,7 @@ namespace GameEngine.Util.Resources;
 //TOFIX rework on all this
 public class DrasmCompiler : Resource, IScriptCompiler
 {
-    public void Compile(string src)
+    public void Compile(string src, string sourceFile="")
     {
         try {
 

@@ -326,7 +326,7 @@ public class EditorMain
         var code = textField.Text;
 
         var csc = new CSharpCompiler();
-        csc.Compile(code);
+        csc.Compile(code, fileBeingEdited!.Value.path);
     }
 
     private void LoadInspectorInformation(Node node)
@@ -587,21 +587,29 @@ public class EditorMain
         nLog.sizePercent = new(1, 0);
         nLog.sizePixels = new(0, 32);
 
-        var message = new TextField();
-        message.Color = new(255, 255, 255);
-        message.Font = new("./Assets/Fonts/calibri.ttf", 15);
-        message.Text = log.message;
+        var message = new TextField
+        {
+            Color = new(255, 255, 255),
+            Font = new("./Assets/Fonts/calibri.ttf", 15),
+            Text = log.message
+        };
 
-        var timestamp = new TextField();
-        timestamp.anchor = NodeUI.ANCHOR.BOTTOM_LEFT;
-        timestamp.Color = new(255, 255, 255, 0.5f);
-        timestamp.Font = new("./Assets/Fonts/consola.ttf", 10);
-        timestamp.Text =  log.timestamp.TimeOfDay.ToString(@"hh\:mm\:ss");
-        timestamp.ForceTextSize = true;
-        timestamp.positionPixels.Y = 5;
+        var details = new TextField
+        {
+            anchor = NodeUI.ANCHOR.BOTTOM_LEFT,
+            Color = new(255, 255, 255, 0.5f),
+            Font = new("./Assets/Fonts/consola.ttf", 10),
+            ForceTextSize = true
+        };
+        details.positionPixels.Y = 5;
+         
+        var sourceFile = log.sourceFile != "" ? log.sourceFile : "undefined";
+        var timestamp = log.timestamp.ToString(@"hh\:mm\:ss");
+
+        details.Text = $"{sourceFile}:{log.callerName} (l. {log.lineNumber}) at {timestamp}";
 
         nLog.AddAsChild(message);
-        nLog.AddAsChild(timestamp);
+        nLog.AddAsChild(details);
 
         return nLog;
 

@@ -1,3 +1,6 @@
+using System.Runtime.CompilerServices;
+using YamlDotNet.Core.Tokens;
+
 namespace GameEngine.Debug;
 
 public static class Console
@@ -10,14 +13,16 @@ public static class Console
     public static LogInfo[] LogInfos => [.. _logInfos];
 
 
-    public static LogInfo Log(string value) => Log(value, []);
-    public static LogInfo Log(object? value) => Log("{0}", [value]);
-
-    public static LogInfo Log(string format, params object?[]? arg)
+    public static LogInfo Log(object? value,
+        [CallerMemberName] string memberName = "",
+        [CallerFilePath] string sourceFilePath = "",
+        [CallerLineNumber] int sourceLineNumber = 0
+        )
     {
-        string value = string.Format(format, arg ?? []);
 
-        LogInfo nInfo = new(value, DateTime.Now);
+        string finalValue = value?.ToString() ?? "null";
+
+        LogInfo nInfo = new(finalValue, DateTime.Now.TimeOfDay, sourceFilePath, memberName, sourceLineNumber);
         _logInfos.Add(nInfo);
 
         System.Console.WriteLine(nInfo);
@@ -30,10 +35,13 @@ public static class Console
 
 }
 
-public readonly struct LogInfo (string message, DateTime timestamp)
+public readonly struct LogInfo (string message, TimeSpan timestamp, string sourceFile, string callerName, int lineNumber)
 {
     public readonly string message = message;
-    public readonly DateTime timestamp = timestamp;
+    public readonly TimeSpan timestamp = timestamp;
+    public readonly string sourceFile = sourceFile;
+    public readonly string callerName = callerName;
+    public readonly int lineNumber = lineNumber;
 
     public override string ToString() => message;
 }

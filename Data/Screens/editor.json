@@ -294,31 +294,72 @@
 
                                 "Children" :
                                 [
-                                    {
-                                        "NodeType" : "NodeUI",
-                                        "Name" : "BottomBarWindow",
-                                        "sizePixels" : [-16, -64],
-                                        "positionPixels" : [8, 8],
+                                  {
+                                    "NodeType": "NodeUI",
+                                    "Name": "BottomBarWindow",
+                                    "sizePixels": [ -16, -96 ],
+                                    "positionPixels": [ 8, 40 ],
 
-                                        "Children" :
-                                        [
-                                            {
-                                                "NodeType" : "Pannel",
-                                                "Name" : "Console",
+                                    "Children": [
+                                      {
+                                        "NodeType": "TextField",
+                                        "Name": "Title",
+                                        "positionPixels": [ 0, -32 ],
+                                        "Color": [ 255, 255, 255 ],
+                                        "Text":  "Output"
+                                      },
+                                      {
+                                        "NodeType": "Pannel",
+                                        "Name": "Console",
 
-                                                "BackgroundColor" : [80, 58, 101],
+                                        "BackgroundColor": [ 80, 58, 101 ],
 
-                                                "Children" :
-                                                [
-                                                    {
-                                                        "NodeType" : "NodeUI",
-                                                        "Name" : "ConsoleLog",
-                                                        "ClipChildren" : true
-                                                    }
-                                                ]
-                                            }
+                                        "Children": [
+                                          {
+                                            "NodeType": "NodeUI",
+                                            "Name": "ConsoleLog",
+                                            "ClipChildren": true
+                                          }
                                         ]
-                                    }
+                                      }
+                                    ]
+                                  },
+
+                                  {
+                                    "NodeType": "NodeUI",
+                                    "Name": "Tabs",
+
+                                    "sizePercent":  [0, 0],
+                                    "sizePixels": [ 224, 48 ],
+                                    "positionPixels": [ -8, 0],
+                                    "anchor":  8,
+
+                                    "Children": [
+                                      {
+                                        "NodeType": "Button",
+                                        "Name": "OutputBtn",
+                                        "sizePercent" :  [0, 0],
+                                        "sizePixels": [ 64,32 ],
+                                        "anchor" :  3
+                                      },
+                                      {
+                                        "NodeType": "Button",
+                                        "Name": "ErrorsButton",
+                                        "sizePercent": [ 0, 0 ],
+                                        "sizePixels": [ 64, 32 ],
+                                        "anchor": 4
+                                      },
+                                      {
+                                        "NodeType": "Button",
+                                        "Name": "MonitorsButton",
+                                        "sizePercent": [ 0, 0 ],
+                                        "sizePixels": [ 64, 32 ],
+                                        "anchor": 5
+                                      }
+                                    ]
+                                  }
+
+                                  
                                 ]
                             },
 

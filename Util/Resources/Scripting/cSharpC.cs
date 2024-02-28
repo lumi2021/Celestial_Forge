@@ -1,18 +1,20 @@
 using GameEngine.Util.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using System.Reflection;
+using System.Reflection.Metadata;
 
 namespace GameEngine.Util.Resources;
 
 public class CSharpCompiler : Resource, IScriptCompiler
 {
 
-    public void Compile(string src)
+    public void Compile(string src, string sourcePath="")
     {
 
-        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(src);
+        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(src, null, sourcePath);
 
         string assemblyName = "DynamicAss.dll";
         List<MetadataReference> assembliesRefs = [];
