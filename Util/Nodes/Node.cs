@@ -59,8 +59,8 @@ public class Node
 
         if (!_isReady)
         {
-            Ready();
             OnReady();
+            Ready();
             _isReady = true;
         }
         Process(deltaT);
@@ -96,9 +96,13 @@ public class Node
             {
                 if (!field.FieldType.IsAssignableTo(typeof(Node)))
                     field.SetValue(this, i.Value);
-                else {
+                else
+                {
                     var node = GetChild((string)i.Value!);
                     field.SetValue(this, node);
+
+                    if (node == null)
+                    Console.WriteLine("Node \"{0}\" can't find node in path \"{1}\"", this.name, i.Value);
                 }
                 continue;
             }
@@ -107,9 +111,13 @@ public class Node
             {
                 if (!prop.PropertyType.IsAssignableTo(typeof(Node)))
                     prop.SetValue(this, i.Value);
-                else {
+                else
+                {
                     var node = GetChild((string)i.Value!);
                     prop.SetValue(this, node);
+
+                    if (node == null)
+                    Console.WriteLine("Node \"{0}\" can't find node in path \"{1}\"", this.name, i.Value);
                 }
                 continue;
             }

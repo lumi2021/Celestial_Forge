@@ -5,6 +5,7 @@ using GameEngine.Util.Nodes;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
+
 namespace GameEngine.Core;
 
 public class Engine
@@ -47,7 +48,15 @@ public class Engine
         _ = new EditorMain(projectSettings, mainWin);
 
         /* START RUN */
-        Run();
+        try {
+            Run();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Something goes very wrong!");
+            Console.WriteLine("Exeption:\n{0}", ex);
+            Console.ReadKey();
+        }
 
         /* END PROGRAM */
         root.Free();

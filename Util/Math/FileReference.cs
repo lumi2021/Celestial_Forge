@@ -12,11 +12,21 @@ public struct FileReference
         this.path = path;
     }
 
+    /* READ */
     public readonly string ReadAllFile()
     {
         return FileService.GetFile(path);
     }
+    public readonly string[] ReadFileLines()
+    {
+        return FileService.GetFileLines(path);
+    }
 
+    /* WRITE */
+    public readonly void Write(string content)
+    {
+        FileService.WriteFile(path, content);
+    }
 
     public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
@@ -38,7 +48,7 @@ public struct FileReference
         return base.GetHashCode();
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return string.Format("path(\"{0}\")", path);
     }

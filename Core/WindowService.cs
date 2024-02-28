@@ -25,7 +25,7 @@ public static class WindowService
             Size = size.GetAsSilkInt(),
             WindowState = WindowState.Normal,
             ShouldSwapAutomatically = false,
-            Samples = 4,
+            Samples = 1,
             VSync = false
         };
 
@@ -76,9 +76,7 @@ public static class WindowService
     public static void CallProcess()
     {
         foreach (var win in _windowsToClose)
-        {
             win.Dispose();
-        }
     }
 
 }
