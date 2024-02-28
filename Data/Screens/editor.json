@@ -306,7 +306,16 @@
                                                 "NodeType" : "Pannel",
                                                 "Name" : "Console",
 
-                                                "BackgroundColor" : [80, 58, 101]
+                                                "BackgroundColor" : [80, 58, 101],
+
+                                                "Children" :
+                                                [
+                                                    {
+                                                        "NodeType" : "NodeUI",
+                                                        "Name" : "ConsoleLog",
+                                                        "ClipChildren" : true
+                                                    }
+                                                ]
                                             }
                                         ]
                                     }

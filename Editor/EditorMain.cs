@@ -7,7 +7,10 @@ using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.Windowing;
+using GameEngine.Debug;
 using Window = GameEngine.Util.Nodes.Window;
+using Console = System.Console;
+using InnerConsole = GameEngine.Debug.Console;
 
 namespace GameEngine.Editor;
 
@@ -23,6 +26,7 @@ public class EditorMain
     private TreeGraph? nodesList;
     private Pannel? sceneViewport;
     private Pannel? textEditor;
+    private NodeUI? console;
 
     /* ETC */
     private int maintab = 0;
@@ -149,6 +153,14 @@ public class EditorMain
         };
         nodesSection.AddAsChild(sb);
         sb!.target = nodesList;
+        #endregion
+
+        /* INSTANTIATE AND CONFIGURATE CONSOLE */
+        #region
+        
+        console = editorRoot!.GetChild("Main/Center/BottomBar/BottomBarWindow/Console/ConsoleLog") as NodeUI;
+        InnerConsole.OnLogEvent += OnLog;
+
         #endregion
 
         /* CONFIGURATE BUTTONS */
@@ -359,6 +371,18 @@ public class EditorMain
         }
     }
 
+    private void OnLog(LogInfo log)
+    {
+        console!.AddAsChild(CreateLogItem(log));
+        var p = 0;
+        foreach (var i in console.children)
+        if (i is NodeUI node)
+        {
+            node.positionPixels.Y = p;
+            p += node.sizePixels.Y;
+        }
+    }
+
     #region really random stuff
 
     private static Pannel CreateTitleItem(string title)
@@ -554,6 +578,33 @@ public class EditorMain
         }
 
         return container;
+    }
+
+    private static Pannel CreateLogItem(LogInfo log)
+    {
+
+        var nLog = new Pannel();
+        nLog.sizePercent = new(1, 0);
+        nLog.sizePixels = new(0, 32);
+
+        var message = new TextField();
+        message.Color = new(255, 255, 255);
+        message.Font = new("./Assets/Fonts/calibri.ttf", 15);
+        message.Text = log.message;
+
+        var timestamp = new TextField();
+        timestamp.anchor = NodeUI.ANCHOR.BOTTOM_LEFT;
+        timestamp.Color = new(255, 255, 255, 0.5f);
+        timestamp.Font = new("./Assets/Fonts/consola.ttf", 10);
+        timestamp.Text =  log.timestamp.TimeOfDay.ToString(@"hh\:mm\:ss");
+        timestamp.ForceTextSize = true;
+        timestamp.positionPixels.Y = 5;
+
+        nLog.AddAsChild(message);
+        nLog.AddAsChild(timestamp);
+
+        return nLog;
+
     }
 
     #endregion
