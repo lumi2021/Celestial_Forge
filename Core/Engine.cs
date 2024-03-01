@@ -11,10 +11,8 @@ namespace GameEngine.Core;
 public class Engine
 {
 
-    #pragma warning disable CS8618
-    public static IWindow window;
-    public static GL gl;
-    #pragma warning restore
+    public static IWindow window = null!;
+    public static GL gl = null!;
 
     public static ProjectSettings projectSettings = new();
 
@@ -38,8 +36,8 @@ public class Engine
 
         /* configurate project settings */
         projectSettings.projectLoaded = true;
-        projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
-        //projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
+        //projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
+        projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
         projectSettings.entryScene = @"res://testScene.sce";
 
         projectSettings.canvasDefaultSize = new(400, 300);

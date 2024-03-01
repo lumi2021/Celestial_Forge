@@ -1,5 +1,6 @@
 using GameEngine.Core;
 using GameEngine.Util.Interfaces;
+using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.GLFW;
 using Silk.NET.Maths;
@@ -9,18 +10,12 @@ using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
-public class Window : Node
+public class Window : Viewport
 {
 
-    #region system things
-    #pragma warning disable CS8618
-    public IWindow window;
-    public GL gl;
-    #pragma warning restore
+    public IWindow window = null!;
     public InputHandler input = new();
-    #endregion
 
-    #region window things
     private string _title = "";
     public string Title
     {
@@ -32,10 +27,15 @@ public class Window : Node
         }
     }
 
-    public Vector2<uint> Size
+    public override Vector2<uint> Size 
     {
-        get { return new((uint) window.Size.X, (uint) window.Size.Y); }
-        set { window.Size = new Vector2D<int> ((int) value.X, (int) value.Y); }
+        get {
+            return _size;
+        }
+        set {
+            _size = value;
+            window.Size = new((int)value.X, (int)value.Y);
+        }
     }
 
     private WindowState _state = WindowState.Normal;
@@ -48,27 +48,16 @@ public class Window : Node
             window.WindowState = value;
         }
     }
-    #endregion
-
-    #region behaviors things
-    private bool proceedInput = true;
-
-    private NodeUI? _focusedUiNode = null;
-    public NodeUI? FocusedUiNode
-    {
-        get { return _focusedUiNode; }
-        set
-        {
-            if (value ==  _focusedUiNode) return;
-
-            _focusedUiNode?.RunFocusChanged(value ==  _focusedUiNode);
-            value?.RunFocusChanged(true);
-            _focusedUiNode = value;
-        }
-    }
-    #endregion
 
     private ManualResetEvent renderWaitHandle = new ManualResetEvent(false);
+
+    #region rendering things
+    private uint _vao;
+    private uint _vbo;
+    private Material _mat = null!;
+    #endregion
+
+    private bool _firstFrame = true;
 
     protected override void Init_()
     {
@@ -83,13 +72,11 @@ public class Window : Node
         if(window == WindowService.mainWindow)
             input.Start(window, OnInput);
 
-        gl = Engine.gl;
-
         if (!window.IsInitialized)
             window.Initialize();
     }
 
-    private void OnLoad()
+    private unsafe void OnLoad()
     {
     }
 
@@ -121,49 +108,51 @@ public class Window : Node
 
     private void OnRender(double deltaTime)
     {
-        gl.Viewport(Size);
-        gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        gl.Scissor(0,0, Size.X, Size.Y);
-
-        List<Node> toDraw = new();
-        toDraw.AddRange(children);
-
-        while (toDraw.Count > 0)
+        if  (_firstFrame) unsafe {
         {
-            Node current = toDraw[0];
-            toDraw.RemoveAt(0);
+            _mat = new Material2D( Material2D.DrawTypes.Texture );
 
-            if (current is Window || current.Freeled) continue;
+            var gl = Engine.gl;
 
-            if (current is ICanvasItem)
-            {
-                // configurate scissor
-                if (current.parent is IClipChildren)
-                {
-                    var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
-                    clipRect = clipRect.InvertVerticallyIn( new(0, 0, Size.X, Size.Y) );
-                    gl.Scissor(clipRect);
-                }
+            _vao = gl.GenVertexArray();
+            _vbo = gl.GenBuffer();
 
-                // checks if it's visible and draw
-                if ((current as ICanvasItem)!.Visible)
-                    current.RunDraw(deltaTime);
-                
-                else continue; // Don't draw childrens
-            }
+            gl.BindVertexArray(_vao);
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
 
-            for (int i = current.children.Count - 1; i >= 0; i--)
-                toDraw.Insert(0,  current.children[i]);
-        }
-    
-        // After render get finished
-        renderWaitHandle.Set();
+            float[] v = [
+                0f, 0f, 0f, 0f,
+                1f, 0f, 1f, 0f,
+                1f, 1f, 1f, 1f,
+                0f, 1f, 0f, 1f
+            ];
+
+            fixed(float* buf = v)
+            gl.BufferData(BufferTargetARB.ArrayBuffer,(nuint)v.Length*sizeof(float),buf,BufferUsageARB.StaticDraw);
+
+            gl.VertexAttribPointer((uint)_mat.GetALocation("aPosition"), 2, GLEnum.Float, false, 2*sizeof(float), (void*) 0);
+            gl.VertexAttribPointer((uint)_mat.GetALocation("aTextureCoord"), 2, GLEnum.Float, false, 2*sizeof(float), (void*) 2);
+        }}
+
+        Render(_size, deltaTime);
+
+        /* DRAW BUFFER IN THE SCREEN */
+        Engine.gl.BindVertexArray(_vao);
+        Use();
+        _mat.Use();
+
+        Engine.gl.Viewport(0,0, Size.X, Size.Y);
+        Engine.gl.Scissor(0,0, Size.X, Size.Y);
+
+        Engine.gl.DrawArrays(PrimitiveType.TriangleFan, 0, 6);
+        
+        Engine.gl.BindVertexArray(0);
     }
 
     private void OnInput(InputEvent e)
     {
-        List<Node> toIterate = new();
-        toIterate.AddRange(children);
+
+        List<Node> toIterate = [.. children];
 
         List<Node> toEvent = new();
 
@@ -210,12 +199,7 @@ public class Window : Node
 
     private void OnResize(Vector2D<int> size)
     {
-        
-    }
-
-    public void SupressInputEvent()
-    {
-        proceedInput = false;
+        Size = new((uint)size.X, (uint)size.Y);
     }
 
     public override void Free()

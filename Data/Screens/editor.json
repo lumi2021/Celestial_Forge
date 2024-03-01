@@ -194,17 +194,7 @@
         
                                         "BackgroundColor" : [0, 0, 0],
                                         "anchor" : 1,
-                                        "ClipChildren" : true,
-        
-                                        "Children" : 
-                                        [
-                                            {
-                                                "NodeType" : "NodeUI",
-                                                "Name" : "ViewportContainer",
-        
-                                                "sizePercent" : [0, 0]
-                                            }
-                                        ]
+                                        "ClipChildren" : true
                                     },
         
                                     {

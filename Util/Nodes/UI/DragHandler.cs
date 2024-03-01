@@ -88,7 +88,7 @@ public class DragHandler : NodeUI, ICanvasItem
                 }
             }
 
-            ParentWindow?.SupressInputEvent();
+            Viewport?.SupressInputEvent();
         }
         else {
             Color = defaultColor;
@@ -203,8 +203,8 @@ public class DragHandler : NodeUI, ICanvasItem
         material.Use();
 
         var world = MathHelper.Matrix4x4CreateRect(Position, Size)
-        * Matrix4x4.CreateTranslation(new Vector3(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y/2, 0));
-        var proj = Matrix4x4.CreateOrthographic(ParentWindow.Size.X, ParentWindow.Size.Y,-.1f,.1f);
+        * Matrix4x4.CreateTranslation(new Vector3(-Viewport!.Size.X/2, -Viewport!.Size.Y/2, 0));
+        var proj = Matrix4x4.CreateOrthographic(Viewport.Size.X, Viewport.Size.Y,-.1f,.1f);
 
         material.SetTranslation(world);
         material.SetProjection(proj);

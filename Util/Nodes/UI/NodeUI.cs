@@ -33,14 +33,17 @@ public class NodeUI : Node, IClipChildren
     //Get parent size
     private Vector2<float> ParentSize {
         get {
-            Vector2<float> parentSize;
+            Vector2<float> pSize;
             
-            if (parent != null && parent is NodeUI)
-                parentSize = (parent as NodeUI)!.Size;
-            else
-                parentSize = new Vector2<float>(ParentWindow!.Size.X, ParentWindow!.Size.Y+1);
+            if (parent != null && parent is NodeUI @p)
+                pSize = @p.Size;
 
-            return parentSize;
+            else if (Viewport != null)
+                pSize = new Vector2<float>(Viewport!.Size.X, Viewport!.Size.Y+1);
+                
+            else pSize = new();
+
+            return pSize;
         }
     }
 
@@ -130,7 +133,7 @@ public class NodeUI : Node, IClipChildren
 
     public bool Focused
     {
-        get { return this == ParentWindow?.FocusedUiNode; }
+        get { return this == Viewport?.FocusedUiNode; }
         set
         {
             if (value) Focus();
@@ -163,14 +166,14 @@ public class NodeUI : Node, IClipChildren
 
     public void Focus()
     {
-        ParentWindow!.FocusedUiNode = this;
+        Viewport!.FocusedUiNode = this;
         onFocus.Emit();
     }
     public void Unfocus()
     {
-        if (ParentWindow != null && ParentWindow.FocusedUiNode == this)
+        if (Viewport != null && Viewport.FocusedUiNode == this)
         {
-            ParentWindow!.FocusedUiNode = null;
+            Viewport!.FocusedUiNode = null;
             onUnfocus.Emit();
         }
     }
@@ -207,7 +210,7 @@ public class NodeUI : Node, IClipChildren
                 onClick.Emit(this);
                 if (mouseFilter == MouseFilter.Block)
                 {
-                    ParentWindow?.SupressInputEvent();
+                    Viewport?.SupressInputEvent();
                     Focus();
                 }
             }

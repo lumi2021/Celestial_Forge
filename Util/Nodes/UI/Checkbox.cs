@@ -79,8 +79,8 @@ namespace GameEngine.Util.Nodes
             material.SetUniform("configDrawType", useTexture? 1 : 0);
 
             var world = MathHelper.Matrix4x4CreateRect(Position, Size)
-                * Matrix4x4.CreateTranslation(-ParentWindow!.Size.X / 2, -ParentWindow!.Size.Y / 2, 0);
-            var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X, ParentWindow!.Size.Y, -.1f, .1f);
+                * Matrix4x4.CreateTranslation(-Viewport!.Size.X / 2, -Viewport!.Size.Y / 2, 0);
+            var proj = Matrix4x4.CreateOrthographic(Viewport!.Size.X, Viewport!.Size.Y, -.1f, .1f);
 
             material.SetTranslation(world);
             material.SetProjection(proj);

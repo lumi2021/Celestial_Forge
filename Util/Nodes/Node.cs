@@ -23,23 +23,26 @@ public class Node
 
     public string name = "";
 
-    private Window? _parentWin;
-    protected Window? ParentWindow
+    private Viewport? _parentViewport;
+    protected Viewport? Viewport
     {
         get {
-            if (_parentWin == null)
-                if (this is Window)
-                    return (Window) this;
+            if (_parentViewport == null)
+                if (this is Viewport view)
+                    return view;
+
                 else if (parent != null)
-                    _parentWin = parent.ParentWindow;
+                    _parentViewport = parent.Viewport;
             
-            return _parentWin;
+            return _parentViewport;
         }
     }
     protected InputHandler Input
     {
         get {
-            return ParentWindow?.input ?? new();
+            if (Viewport is Window win)
+                return win.input;
+            else return new();
         }
     }
 

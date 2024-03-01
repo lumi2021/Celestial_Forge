@@ -93,7 +93,7 @@ public class WriteTextField : TextField
                 onClick.Emit(this);
                 if (mouseFilter == MouseFilter.Block)
                 {
-                    ParentWindow?.SupressInputEvent();
+                    Viewport?.SupressInputEvent();
                     Focus();
 
                     Vector2<int> relativeMousePos = @event.position - Position;

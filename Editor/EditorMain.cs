@@ -28,6 +28,8 @@ public class EditorMain
     private Pannel? textEditor;
     private NodeUI? console;
 
+    private Viewport sceneEnviropment = null!;
+
     /* ETC */
     private int maintab = 0;
 
@@ -70,6 +72,18 @@ public class EditorMain
 
         var textCompileBtn = (textEditor!.GetChild("Toolbar/CompileBtn") as Button)!;
         textCompileBtn.OnPressed.Connect( (object? from, dynamic[]? args) => CompileOpenTextFile() );
+
+        #endregion
+
+        /* CONFIGURATE VIEWPORT */
+        #region
+
+        sceneEnviropment = new();
+        mainWindow.children.Insert(0, sceneEnviropment);
+        sceneEnviropment.parent = mainWindow;
+
+        ViewportContainer viewportContainer = new() { linkedViewport = sceneEnviropment };
+        sceneViewport!.AddAsChild(viewportContainer);
 
         #endregion
 
@@ -239,22 +253,24 @@ public class EditorMain
 
     private void LoadSceneInEditor(string scenePath)
     {
-        var viewport = sceneViewport!.GetChild("ViewportContainer") as NodeUI;
+        //var viewport = sceneViewport!.GetChild("ViewportContainer") as NodeUI;
+        sceneEnviropment.children.Clear();
+        var viewport = new NodeUI();
+        sceneEnviropment.AddAsChild(viewport);
 
-        viewport!.sizePixels = projectSettings.canvasDefaultSize;
+        //viewport!.sizePixels = projectSettings.canvasDefaultSize;
 
         nodesList!.ClearGraph();
         viewport!.children.Clear();
         
         var scene = PackagedScene.Load(scenePath)!.Instantiate();
         viewport!.AddAsChild(scene);
-        
 
-        /* LOAD NODES LIST */
+        // LOAD NODES LIST //
         List<KeyValuePair<string, Node>> ToList = new();
         foreach (var i in scene.children) ToList.Add(new("", i));
 
-        Dictionary<string, Texture> IconsBuffer = new();
+        Dictionary<string, Texture> IconsBuffer = [];
 
         while ( ToList.Count > 0 )
         {
