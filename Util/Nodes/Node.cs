@@ -28,7 +28,7 @@ public class Node
     {
         get {
             if (_parentViewport == null)
-                if (this is Viewport view)
+                if (parent is Viewport view)
                     return view;
 
                 else if (parent != null)
@@ -42,7 +42,7 @@ public class Node
         get {
             if (Viewport is Window win)
                 return win.input;
-            else return new();
+            else return Viewport!.Input;
         }
     }
 

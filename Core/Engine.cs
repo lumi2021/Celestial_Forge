@@ -36,11 +36,11 @@ public class Engine
 
         /* configurate project settings */
         projectSettings.projectLoaded = true;
-        //projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
-        projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
+        projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
+        //projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
         projectSettings.entryScene = @"res://testScene.sce";
 
-        projectSettings.canvasDefaultSize = new(400, 300);
+        projectSettings.canvasDefaultSize = new(800, 600);
 
         /* START EDITOR */
         _ = new EditorMain(projectSettings, mainWin);

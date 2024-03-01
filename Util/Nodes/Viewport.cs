@@ -11,12 +11,19 @@ public class Viewport : Node
     private uint viewportFramebuffer;
     protected uint viewportTexture;
 
-    public bool FixedSize = false;
     protected Vector2<uint> _size;
     public virtual Vector2<uint> Size
     {
         get { return _size; }
         set { _size = value; }
+    }
+
+    public bool useContainerSize = false;
+    protected Vector2<uint> _containerSize;
+    public virtual Vector2<uint> ContainerSize
+    {
+        get { return useContainerSize ? _containerSize : _size; }
+        set { _containerSize = value; }
     }
 
     private Vector2<uint> _textureSize = new(10, 10);
@@ -52,12 +59,6 @@ public class Viewport : Node
                 return _defaultCamera2D;
             }
             else return _currentCamera2D;
-        }
-        set {
-            if (value != null)
-                _currentCamera2D = value;
-            else
-                _currentCamera2D = _defaultCamera2D;
         }
     }
 
@@ -145,7 +146,7 @@ public class Viewport : Node
 
     private unsafe void ResizeTexture(Vector2<uint> newSize)
     {
-        if (_textureSize.X != newSize.X || _textureSize.Y != newSize.Y)
+        if (_textureSize != newSize)
         {
             _textureSize = newSize;
             Size = newSize;
@@ -172,5 +173,7 @@ public class Viewport : Node
     {
         proceedInput = false;
     }
+
+    public void SetCurrentCamera(Camera2D? cam) => _currentCamera2D = cam;
 
 }

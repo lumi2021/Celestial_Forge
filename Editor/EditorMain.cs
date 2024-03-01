@@ -11,6 +11,7 @@ using GameEngine.Debug;
 using Window = GameEngine.Util.Nodes.Window;
 using Console = System.Console;
 using InnerConsole = GameEngine.Debug.Console;
+using GameEngineEditor.EditorNodes;
 
 namespace GameEngine.Editor;
 
@@ -78,7 +79,12 @@ public class EditorMain
         /* CONFIGURATE VIEWPORT */
         #region
 
-        sceneEnviropment = new();
+        sceneEnviropment = new()
+        {
+            useContainerSize = true,
+            ContainerSize = (Vector2<uint>)projectSettings.canvasDefaultSize
+        };
+
         mainWindow.children.Insert(0, sceneEnviropment);
         sceneEnviropment.parent = mainWindow;
 
@@ -253,18 +259,18 @@ public class EditorMain
 
     private void LoadSceneInEditor(string scenePath)
     {
-        //var viewport = sceneViewport!.GetChild("ViewportContainer") as NodeUI;
         sceneEnviropment.children.Clear();
-        var viewport = new NodeUI();
-        sceneEnviropment.AddAsChild(viewport);
 
-        //viewport!.sizePixels = projectSettings.canvasDefaultSize;
+        var cam = new SceneEditor2DCamera();
+        sceneEnviropment.AddAsChild(cam);
+        cam.Current = true;
+
+        Console.WriteLine(cam.Current);
 
         nodesList!.ClearGraph();
-        viewport!.children.Clear();
         
         var scene = PackagedScene.Load(scenePath)!.Instantiate();
-        viewport!.AddAsChild(scene);
+        sceneEnviropment!.AddAsChild(scene);
 
         // LOAD NODES LIST //
         List<KeyValuePair<string, Node>> ToList = new();

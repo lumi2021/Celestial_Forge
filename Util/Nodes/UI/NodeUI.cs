@@ -1,4 +1,3 @@
-using GameEngine.Core;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
@@ -39,7 +38,7 @@ public class NodeUI : Node, IClipChildren
                 pSize = @p.Size;
 
             else if (Viewport != null)
-                pSize = new Vector2<float>(Viewport!.Size.X, Viewport!.Size.Y+1);
+                pSize = new Vector2<float>(Viewport!.ContainerSize.X, Viewport!.ContainerSize.Y+1);
                 
             else pSize = new();
 
