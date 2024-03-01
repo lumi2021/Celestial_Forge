@@ -11,6 +11,7 @@ public class Viewport : Node
     private uint viewportFramebuffer;
     protected uint viewportTexture;
 
+    public bool FixedSize = false;
     protected Vector2<uint> _size;
     public virtual Vector2<uint> Size
     {
@@ -36,13 +37,33 @@ public class Viewport : Node
         }
     }
 
+    private Camera2D _defaultCamera2D = null!;
+    protected Camera2D? _currentCamera2D = null;
+    public Camera2D Camera2D 
+    {
+        get {
+            if (_currentCamera2D == null)
+            {
+                if (_defaultCamera2D == null)
+                {
+                    _defaultCamera2D = new();
+                    AddAsChild(_defaultCamera2D);
+                }
+                return _defaultCamera2D;
+            }
+            else return _currentCamera2D;
+        }
+        set {
+            if (value != null)
+                _currentCamera2D = value;
+            else
+                _currentCamera2D = _defaultCamera2D;
+        }
+    }
+
     protected unsafe override void Init_()
     {
         var gl = Engine.gl;
-
-        //gl.Enable(EnableCap.DebugOutput);
-        //gl.Enable(EnableCap.DebugOutputSynchronous);
-        //gl.DebugMessageCallback(OnDebugMessage, (void*) 0);
 
         viewportFramebuffer = gl.GenFramebuffer();
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, viewportFramebuffer);
@@ -101,7 +122,8 @@ public class Viewport : Node
                 if (current.parent is IClipChildren)
                 {
                     var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
-                    clipRect = clipRect.InvertVerticallyIn( new(0, 0, size.X, size.Y) );
+                    clipRect = clipRect.InvertVerticallyIn(
+                        new(Camera2D.position.X, Camera2D.position.Y, size.X, size.Y) );
                     gl.Scissor(clipRect);
                 }
 

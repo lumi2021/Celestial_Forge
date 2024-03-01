@@ -55,9 +55,8 @@ public class ViewportContainer : NodeUI, ICanvasItem
         linkedViewport.Use();
         material.Use();
 
-        var world = MathHelper.Matrix4x4CreateRect(Position, Size)
-        * Matrix4x4.CreateTranslation(new Vector3(-Viewport!.Size.X/2, -Viewport!.Size.Y/2, 0));
-        var proj = Matrix4x4.CreateOrthographic(Viewport!.Size.X,Viewport!.Size.Y,-.1f,.1f);
+        var world = MathHelper.Matrix4x4CreateRect(Position, Size) * Viewport!.Camera2D.GetViewOffset();
+        var proj = Viewport!.Camera2D.GetProjection();
 
         material.SetTranslation(world);
         material.SetProjection(proj);

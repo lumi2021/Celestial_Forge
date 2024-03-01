@@ -68,7 +68,7 @@ public class DragHandler : NodeUI, ICanvasItem
     protected override void OnUIInputEvent(Window.InputHandler.InputEvent e)
     {
 
-        var mousePos = Input.GetMousePosition();
+        var mousePos = Input.GetMousePosition() + Viewport!.Camera2D.position;
 
         if (mousePos.X > Position.X && mousePos.Y > Position.Y &&
         mousePos.X < Position.X+Size.X && mousePos.Y < Position.Y+Size.Y)
@@ -104,7 +104,7 @@ public class DragHandler : NodeUI, ICanvasItem
         {
             if (dragAxis != Axis.YAxis)
             {
-                var d = Input.GetMousePosition().X - Position.X - Size.X/2;
+                var d = mousePos.X - Position.X - Size.X/2;
 
                 if (d > 0)
                 {
@@ -149,7 +149,7 @@ public class DragHandler : NodeUI, ICanvasItem
             }
             if (dragAxis != Axis.XAxis)
             {
-                var d = Input.GetMousePosition().Y - Position.Y - Size.Y/2;
+                var d = mousePos.Y - Position.Y - Size.Y/2;
 
                 if (d > 0)
                 {
@@ -202,9 +202,8 @@ public class DragHandler : NodeUI, ICanvasItem
 
         material.Use();
 
-        var world = MathHelper.Matrix4x4CreateRect(Position, Size)
-        * Matrix4x4.CreateTranslation(new Vector3(-Viewport!.Size.X/2, -Viewport!.Size.Y/2, 0));
-        var proj = Matrix4x4.CreateOrthographic(Viewport.Size.X, Viewport.Size.Y,-.1f,.1f);
+        var world = MathHelper.Matrix4x4CreateRect(Position, Size) * Viewport!.Camera2D.GetViewOffset();
+        var proj = Viewport!.Camera2D.GetProjection();
 
         material.SetTranslation(world);
         material.SetProjection(proj);

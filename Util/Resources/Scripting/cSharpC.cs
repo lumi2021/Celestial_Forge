@@ -37,7 +37,7 @@ public class CSharpCompiler : Resource, IScriptCompiler
             Console.WriteLine("Compilation error:");
             foreach (var diagnostic in result.Diagnostics)
             {
-               Console.WriteLine($"{diagnostic.Id}: {diagnostic.GetMessage()} (l. {diagnostic.Location.GetLineSpan().StartLinePosition.Line})");
+                Console.WriteLine($"{diagnostic.Id}: {diagnostic.GetMessage()} (l. {diagnostic.Location.GetLineSpan().StartLinePosition.Line})");
             }
         }
         else

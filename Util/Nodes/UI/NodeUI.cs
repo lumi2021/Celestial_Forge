@@ -150,16 +150,21 @@ public class NodeUI : Node, IClipChildren
 
     public Rect GetClippingArea()
     {
-        var rect = new Rect( 0, 0, Engine.window.Size.X, Engine.window.Size.Y );
+        var rect = new Rect(
+            -Viewport!.Camera2D.position,
+            (Vector2<float>) Viewport!.Size
+        );
         
         if (ClipChildren)
         {
-            rect.Position = Position;
+            rect.Position = Position - Viewport.Camera2D.position;
             rect.Size = Size;
         }
         
         if (parent is IClipChildren)
+        {
             rect = rect.Intersection((parent as IClipChildren)!.GetClippingArea());
+        }
         
         return rect;
     }
@@ -205,7 +210,7 @@ public class NodeUI : Node, IClipChildren
             if (mouseFilter == MouseFilter.Ignore) return;
 
             if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
-            if (new Rect(Position, Size).Intersects(@event.position))
+            if (new Rect(Position, Size).Intersects(@event.position + Viewport!.Camera2D.position))
             {
                 onClick.Emit(this);
                 if (mouseFilter == MouseFilter.Block)
@@ -218,4 +223,5 @@ public class NodeUI : Node, IClipChildren
     }
 
     protected virtual void OnFocusChanged(bool focused) {}
+
 }

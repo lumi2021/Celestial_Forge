@@ -66,6 +66,14 @@ public struct Vector2<T> where T : struct
             );
     }
 
+    public static Vector2<T> operator - (Vector2<T> a)
+    {
+        return new (
+            (T)Convert.ChangeType(-Convert.ToDouble(a.X), typeof(T)),
+            (T)Convert.ChangeType(-Convert.ToDouble(a.Y), typeof(T))
+        );
+    }
+
     public static Vector2<T> operator + (Vector2<T> a, Vector2<int> b)
     {
         return DoAddition(
