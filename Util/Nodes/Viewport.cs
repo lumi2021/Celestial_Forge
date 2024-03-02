@@ -11,6 +11,8 @@ public class Viewport : Node
     private uint viewportFramebuffer;
     protected uint viewportTexture;
 
+    public Color backgroundColor = new();
+
     protected Vector2<uint> _size;
     public virtual Vector2<uint> Size
     {
@@ -106,6 +108,7 @@ public class Viewport : Node
 
         DrawService.SetViewport(size);
         gl.Scissor(0,0, size.X, size.Y);
+        gl.ClearColor(backgroundColor);
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         List<Node> toDraw = [.. children];

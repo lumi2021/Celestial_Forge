@@ -19,7 +19,7 @@ public class EditorMain
 {
 
     private ProjectSettings projectSettings;
-    private Window mainWindow;
+    private readonly Window mainWindow;
 
     /* IMPORTANT NODES */
     private Node? editorRoot;
@@ -82,7 +82,8 @@ public class EditorMain
         sceneEnviropment = new()
         {
             useContainerSize = true,
-            ContainerSize = (Vector2<uint>)projectSettings.canvasDefaultSize
+            ContainerSize = (Vector2<uint>)projectSettings.canvasDefaultSize,
+            backgroundColor = new(50, 50, 100)
         };
 
         mainWindow.children.Insert(0, sceneEnviropment);
@@ -264,8 +265,6 @@ public class EditorMain
         var cam = new SceneEditor2DCamera();
         sceneEnviropment.AddAsChild(cam);
         cam.Current = true;
-
-        Console.WriteLine(cam.Current);
 
         nodesList!.ClearGraph();
         
