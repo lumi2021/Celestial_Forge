@@ -217,24 +217,18 @@ public class Window : Viewport
         private Glfw GLFW = GlfwProvider.GLFW.Value;
 
         #region key lists
-        private readonly List<Keys> keysPressed = new();
-        private readonly List<Keys> keysDowned = new();
-        private readonly List<Keys> keysReleased = new();
+        private readonly List<Keys> keysPressed = [];
+        private readonly List<Keys> keysDowned = [];
+        private readonly List<Keys> keysReleased = [];
 
-        private readonly List<MouseButton> mousePressed = new();
-        private readonly List<MouseButton> mouseDowned = new();
-        private readonly List<MouseButton> mouseReleased = new();
+        private readonly List<MouseButton> mousePressed = [];
+        private readonly List<MouseButton> mouseDowned = [];
+        private readonly List<MouseButton> mouseReleased = [];
 
-        private readonly List<char> _inputedCharList = new();
+        private readonly List<char> _inputedCharList = [];
         #endregion
-        public string LastInputedChars
-        {
-            get
-            {
-                return new String(_inputedCharList.ToArray());
-            }
-        }
-        public List<InputEvent> LastInputs = new();
+        public string LastInputedChars => new(_inputedCharList.ToArray());
+        public List<InputEvent> LastInputs = [];
         
 
         private Vector2<int> lastMousePosition = new();
@@ -247,6 +241,7 @@ public class Window : Viewport
             GLFW.SetCharCallback((WindowHandle*) win.Handle, CharCallback);
             GLFW.SetCursorPosCallback((WindowHandle*) win.Handle, CursorPosCallback);
             GLFW.SetMouseButtonCallback((WindowHandle*) win.Handle, MouseButtonCallback);
+            GLFW.SetScrollCallback((WindowHandle*) win.Handle, MouseScrollCallback);
         
             InputEventSender += new InputEventHandler(OnEvent);
         }
@@ -380,16 +375,22 @@ public class Window : Viewport
 
             LastInputs.Add(e);
         }
-    
+        private void MouseScrollCallback(WindowHandle* window, double offsetX, double offsetY)
+        {
+            var e = new MouseScrollInputEvent(
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                new( offsetX, offsetY )
+            );
+
+            LastInputs.Add(e);
+        }
 
         #region INNER CLASSES
-        public class InputEvent
+        public class InputEvent(
+            long timestamp
+        )
         {
-            public readonly long timestamp = 0;
-            public InputEvent(long timestamp)
-            {
-                this.timestamp = timestamp;
-            }
+            public readonly long timestamp = timestamp;
 
             protected virtual string GetDataAsString()
             {
@@ -401,24 +402,16 @@ public class Window : Viewport
                 return string.Format("{0}(\n{1}\n)",GetType().Name , GetDataAsString());
             }
         }
-        public class KeyboardInputEvent : InputEvent
+        public class KeyboardInputEvent(
+            long timestamp,
+            bool repeating,
+            Keys key,
+            InputAction action
+        ) : InputEvent(timestamp)
         {
-            public readonly bool repeating = false;
-            public readonly Keys key;
-            public readonly InputAction action;
-
-            public KeyboardInputEvent(
-                long timestamp,
-                bool repeating,
-                Keys key,
-                InputAction action
-            )
-            : base(timestamp)
-            {
-                this.repeating = repeating;
-                this.key = key;
-                this.action = action;
-            }
+            public readonly bool repeating = repeating;
+            public readonly Keys key = key;
+            public readonly InputAction action = action;
 
             protected override string GetDataAsString()
             {
@@ -431,23 +424,21 @@ public class Window : Viewport
                     ) + bd;
             }
         }
-        public class MouseInputEvent : InputEvent
+        public class MouseInputEvent(
+            long timestamp
+        ) : InputEvent(timestamp)
         {
-            public MouseInputEvent(long timestamp): base(timestamp) {}
         }
-        public class MouseBtnInputEvent : MouseInputEvent
+        public class MouseBtnInputEvent(
+            long timestamp,
+            MouseButton button,
+            InputAction action,
+            Vector2<int> position
+        ) : MouseInputEvent(timestamp)
         {
-            public readonly MouseButton button;
-            public readonly InputAction action;
-            public readonly Vector2<int> position;
-
-            public MouseBtnInputEvent(long timestamp, MouseButton button, InputAction action, Vector2<int> position)
-            : base(timestamp)
-            {
-                this.button = button;
-                this.action = action;
-                this.position = position;
-            }
+            public readonly MouseButton button = button;
+            public readonly InputAction action = action;
+            public readonly Vector2<int> position = position;
 
             protected override string GetDataAsString()
             {
@@ -460,25 +451,17 @@ public class Window : Viewport
                     ) + bd;
             }
         }
-        public class MouseMoveInputEvent : MouseInputEvent
+        public class MouseMoveInputEvent(
+            long timestamp,
+            Vector2<int> position,
+            Vector2<int> lastPosition,
+            Vector2<int> positionDelta
+        ) : MouseInputEvent(timestamp)
         {
-            public readonly Vector2<int> position = new();
-            public readonly Vector2<int> lastPosition = new();
-            public readonly Vector2<int> positionDelta = new();
+            public readonly Vector2<int> position = position;
+            public readonly Vector2<int> lastPosition = lastPosition;
+            public readonly Vector2<int> positionDelta = positionDelta;
 
-            public MouseMoveInputEvent(
-                long timestamp,
-                Vector2<int> position,
-                Vector2<int> lastPosition,
-                Vector2<int> positionDelta
-            )
-            : base(timestamp)
-            {
-                this.position = position;
-                this.lastPosition = lastPosition;
-                this.positionDelta = positionDelta;
-            }
-        
             protected override string GetDataAsString()
             {
                 string bd = base.GetDataAsString();
@@ -487,6 +470,23 @@ public class Window : Viewport
                     "last position:\t{1};\n",
                     "delta:\t{2};\n",
                     position, lastPosition, positionDelta
+                    ) + bd;
+            }
+
+        }
+        public class MouseScrollInputEvent(
+            long timestamp,
+            Vector2<double> offset
+        ) : MouseInputEvent(timestamp)
+        {
+            public readonly Vector2<double> offset = offset;
+
+            protected override string GetDataAsString()
+            {
+                string bd = base.GetDataAsString();
+                return string.Format(
+                    "offset:\t{0};\n",
+                    offset
                     ) + bd;
             }
 
