@@ -1,10 +1,12 @@
 using GameEngine.Core;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using static GameEngine.Util.Nodes.Window;
 using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/Node.svg")]
 public class Node
 {
     /* System variables */
@@ -18,8 +20,8 @@ public class Node
 
     public Node? parent;
 
-    public List<Node> children = new();
-    protected List<Node> ghostChildren = new();
+    public List<Node> children = [];
+    protected List<Node> ghostChildren = [];
 
     public string name = "";
 

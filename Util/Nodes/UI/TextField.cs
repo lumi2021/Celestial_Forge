@@ -8,6 +8,7 @@ using GameEngine.Util.Values;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/TextField.svg")]
 public class TextField : NodeUI, ICanvasItem
 {
     [Inspect]

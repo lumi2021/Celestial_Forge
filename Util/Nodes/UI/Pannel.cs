@@ -7,6 +7,7 @@ using GameEngine.Util.Values;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/Panel.svg")]
 public class Pannel : NodeUI, ICanvasItem
 {
 

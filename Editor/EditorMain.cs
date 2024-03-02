@@ -289,7 +289,8 @@ public class EditorMain
             else
             {
                 var nTexture = new SvgTexture() { Filter = false };
-                nTexture.LoadFromFile("Assets/icons/Nodes/" + node.GetType().Name + ".svg", 20, 20);
+                IconAttribute nodeIconAtrib = (IconAttribute)node.GetType().GetCustomAttribute(typeof(IconAttribute))!;
+                nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
                 IconsBuffer.Add(node.GetType().Name, nTexture);
                 nodeIcon = nTexture;
             }
@@ -308,7 +309,8 @@ public class EditorMain
         else
         {
             var nTexture = new SvgTexture() { Filter = false };
-            nTexture.LoadFromFile("Assets/icons/Nodes/" + scene.GetType().Name + ".svg", 20, 20);
+            IconAttribute nodeIconAtrib = (IconAttribute)scene.GetType().GetCustomAttribute(typeof(IconAttribute))!;
+            nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
             IconsBuffer.Add(scene.GetType().Name, nTexture);
             rootIcon = nTexture;
         }
@@ -578,7 +580,6 @@ public class EditorMain
         else if (fieldType.IsEnum)
         {
             int value = (int) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
-            Console.WriteLine("Enum value as int is: " + value);
 
             var values = Enum.GetValues(fieldType);
 

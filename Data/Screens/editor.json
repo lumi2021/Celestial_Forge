@@ -212,7 +212,7 @@
         
                                             "sizePixels": [ 0, -80 ],
                                             "positionPixels": [ 0, 32 ],
-                                            "BackgroundColor" : [255, 255, 255],
+                                            "BackgroundColor" : [0, 0, 0],
         
                                             "ClipChildren" : true,
         
@@ -223,6 +223,7 @@
         
                                                     "Font" : 1,
                                                     "ForceTextSize" : true,
+                                                    "Color" : [255, 255, 255],
                 
                                                     "sizePixels" : [ -16, 0 ]
                                                 },
