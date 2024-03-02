@@ -8,7 +8,7 @@ public static class ResourceHeap
 {
 
     #region to delete
-    private static List<uint> texturesToDelete = new();
+    private static List<uint> _texturesToDelete = [];
 
     public enum DeleteTarget { Texture }
     public static void Delete(uint id, DeleteTarget target)
@@ -16,7 +16,7 @@ public static class ResourceHeap
         switch (target)
         {
             case DeleteTarget.Texture:
-                texturesToDelete.Add(id); break;
+                _texturesToDelete.Add(id); break;
 
             default: return;
         }
@@ -48,10 +48,10 @@ public static class ResourceHeap
     {
         var gl = Engine.gl;
 
-        if (texturesToDelete.Count > 0)
+        if (_texturesToDelete.Count > 0)
         {
-            gl.DeleteTextures((uint) texturesToDelete.Count, texturesToDelete.ToArray());
-            texturesToDelete.Clear();
+            gl.DeleteTextures((uint) _texturesToDelete.Count, _texturesToDelete.ToArray());
+            _texturesToDelete.Clear();
         }
     }
     public static void CallProcess()

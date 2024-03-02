@@ -1,16 +1,40 @@
-using System;
-
 namespace GameEngine.Core;
 
 public static class FileService
 {
-
+    /* READ */
     public static string GetFile(string path)
     {
         var gPath = GetGlobalPath(path);
         try
         {
             return File.ReadAllText(gPath);
+        }
+        catch(Exception e)
+        {
+            throw new ApplicationException("File can't be loaded!", e);
+        }
+    }
+    public static string[] GetFileLines(string path)
+    {
+        var gPath = GetGlobalPath(path);
+        try
+        {
+            return File.ReadLines(gPath).ToArray();
+        }
+        catch(Exception e)
+        {
+            throw new ApplicationException("File can't be loaded!", e);
+        }
+    }
+
+    /* WRITE */
+    public static void WriteFile(string path, string content)
+    {
+        var gPath = GetGlobalPath(path);
+        try
+        {
+            File.WriteAllText(gPath, content);
         }
         catch(Exception e)
         {
@@ -53,5 +77,4 @@ public static class FileService
 
         return p;
     }
-
 }

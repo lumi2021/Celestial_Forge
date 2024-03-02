@@ -78,9 +78,8 @@ namespace GameEngine.Util.Nodes
             material.SetUniform("color", _color);
             material.SetUniform("configDrawType", useTexture? 1 : 0);
 
-            var world = MathHelper.Matrix4x4CreateRect(Position, Size)
-                * Matrix4x4.CreateTranslation(-ParentWindow!.Size.X / 2, -ParentWindow!.Size.Y / 2, 0);
-            var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X, ParentWindow!.Size.Y, -.1f, .1f);
+            var world = MathHelper.Matrix4x4CreateRect(Position, Size) * Viewport!.Camera2D.GetViewOffset();
+            var proj = Viewport!.Camera2D.GetProjection();
 
             material.SetTranslation(world);
             material.SetProjection(proj);

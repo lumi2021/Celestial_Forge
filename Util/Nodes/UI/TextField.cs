@@ -139,10 +139,9 @@ public class TextField : NodeUI, ICanvasItem
         };
         #endregion
 
-        var world = Matrix4x4.CreateTranslation(new Vector3(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y/2, 0))
-        * Matrix4x4.CreateTranslation(new Vector3(textPosX + Position.X, textPosY + Position.Y, 0));
-
-        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X,ParentWindow!.Size.Y,-.1f,.1f);
+        var world = Matrix4x4.CreateTranslation(new Vector3(textPosX + Position.X, textPosY + Position.Y, 0))
+        * Viewport!.Camera2D.GetViewOffset();
+        var proj = Viewport!.Camera2D.GetProjection();
 
         material.SetTranslation(world);
         material.SetProjection(proj);

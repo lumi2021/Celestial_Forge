@@ -47,8 +47,8 @@ public class WriteTextField : TextField
 
         AddAsChild(caret);
         caret.sizePercent = new();
-        caret.sizePixels.X = 2;
-        caret.sizePixels.Y = Font.fontheight + 2;
+        caret.sizePixels.X = 1;
+        caret.sizePixels.Y = Font.fontheight;
         caret.BackgroundColor = new(255, 255, 255);
         caret.Visible = Focused;
     }
@@ -60,7 +60,8 @@ public class WriteTextField : TextField
             caretPosX += (int)charsList[caretLine][i].Advance;
         
         caret.positionPixels.X = caretPosX;
-        caret.positionPixels.Y = (int)caretLine * Font.lineheight;
+        caret.positionPixels.Y = (int)caretLine * Font.lineheight + 2;
+        caret.BackgroundColor = Color;
     }
 
     protected override void OnFontUpdate()
@@ -92,7 +93,7 @@ public class WriteTextField : TextField
                 onClick.Emit(this);
                 if (mouseFilter == MouseFilter.Block)
                 {
-                    ParentWindow?.SupressInputEvent();
+                    Viewport?.SupressInputEvent();
                     Focus();
 
                     Vector2<int> relativeMousePos = @event.position - Position;

@@ -6,14 +6,13 @@ using GameEngine.Util.Resources;
 
 namespace GameEngine.Util.Nodes;
 
-public class TextureRect : NodeUI, ICanvasItem
+public class ViewportContainer : NodeUI, ICanvasItem
 {
+    public bool Visible { get ; set; } = true;
 
     [Inspect]
-    public bool Visible { get; set; } = true;
+    public Viewport? linkedViewport = null;
 
-    [Inspect]
-    public Texture? texture = null;
     [Inspect]
     public Material material = new Material2D( Material2D.DrawTypes.Texture );
 
@@ -21,7 +20,7 @@ public class TextureRect : NodeUI, ICanvasItem
     {
 
         float[] v = [0.0f,0.0f, 1.0f,0.0f, 1.0f,1.0f, 0.0f,1.0f];
-        float[] uv = [0f,0f, 1f,0f, 1f,1f, 0f,1f];
+        float[] uv = [0f,1f, 1f,1f, 1f,0f, 0f,0f];
         uint[] i = [0,1,3, 1,2,3];
 
         DrawService.CreateBuffer(NID, "aPosition");
@@ -38,7 +37,22 @@ public class TextureRect : NodeUI, ICanvasItem
 
     protected override void Draw(double deltaT)
     {
-        texture?.Use();
+        
+        if (linkedViewport == null) return;
+
+        /* call the render process of the viewport */
+        linkedViewport.Render( new((uint)Size.X, (uint)Size.Y) , deltaT);
+        
+        /* reconfig draw */
+        if (parent is IClipChildren)
+        {
+            var clipRect = (parent as IClipChildren)!.GetClippingArea();
+            clipRect = clipRect.InvertVerticallyIn( new(0, 0, Viewport!.Size.X, Viewport!.Size.Y) );
+            Engine.gl.Scissor(clipRect);
+        }
+        else Engine.gl.Scissor(new(Position, Size));
+
+        linkedViewport.Use();
         material.Use();
 
         var world = MathHelper.Matrix4x4CreateRect(Position, Size) * Viewport!.Camera2D.GetViewOffset();
@@ -48,9 +62,10 @@ public class TextureRect : NodeUI, ICanvasItem
         material.SetProjection(proj);
 
         DrawService.Draw(NID);
+
     }
 
-    public void Show() { Visible = true; }
-    public void Hide() { Visible = false; }
+    public void Hide() => Visible = false;
+    public void Show() => Visible = true;
 
 }

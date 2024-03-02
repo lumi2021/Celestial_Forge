@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace GameEngine.Util.Values;
@@ -66,6 +67,14 @@ public struct Vector2<T> where T : struct
             );
     }
 
+    public static Vector2<T> operator - (Vector2<T> a)
+    {
+        return new (
+            (T)Convert.ChangeType(-Convert.ToDouble(a.X), typeof(T)),
+            (T)Convert.ChangeType(-Convert.ToDouble(a.Y), typeof(T))
+        );
+    }
+
     public static Vector2<T> operator + (Vector2<T> a, Vector2<int> b)
     {
         return DoAddition(
@@ -130,30 +139,37 @@ public struct Vector2<T> where T : struct
     public static Vector2<T> operator / (Vector2<T> a, Vector2<T> b)
     {return DoVectorDivision(a, b);}
 
+    public static bool operator ==(Vector2<T> a, Vector2<T> b)
+    {
+        return Convert.ToDouble(a.X) == Convert.ToDouble(b.X)
+            && Convert.ToDouble(a.Y) == Convert.ToDouble(b.Y);
+    }
+    public static bool operator !=(Vector2<T> a, Vector2<T> b)
+    {
+        return !(Convert.ToDouble(a.X) == Convert.ToDouble(b.X)
+            && Convert.ToDouble(a.Y) == Convert.ToDouble(b.Y));
+    }
+
+
     public static explicit operator Vector2<int>(Vector2<T> vec2)
     {
-        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
-        return new((int) x, (int) y);
+        return new(Convert.ToInt32(vec2.X), Convert.ToInt32(vec2.Y));
     }
     public static explicit operator Vector2<uint>(Vector2<T> vec2)
     {
-        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
-        return new((uint) x, (uint) y);
+        return new(Convert.ToUInt32(vec2.X), Convert.ToUInt32(vec2.Y));
     }
     public static explicit operator Vector2<float>(Vector2<T> vec2)
     {
-        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
-        return new((float) x, (float) y);
+        return new(Convert.ToSingle(vec2.X), Convert.ToSingle(vec2.Y));
     }
     public static explicit operator Vector2<double>(Vector2<T> vec2)
     {
-        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
-        return new(x, y);
+        return new(Convert.ToDouble(vec2.X), Convert.ToDouble(vec2.Y));
     }
     public static explicit operator Vector2<byte>(Vector2<T> vec2)
     {
-        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
-        return new((byte) x, (byte) y);
+        return new(Convert.ToByte(vec2.X), Convert.ToByte(vec2.Y));
     }
 
     private static Vector2<T> DoAddition(Vector2<double> a, Vector2<double> b)

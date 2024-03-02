@@ -1,4 +1,3 @@
-using GameEngine.Core;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
@@ -33,14 +32,17 @@ public class NodeUI : Node, IClipChildren
     //Get parent size
     private Vector2<float> ParentSize {
         get {
-            Vector2<float> parentSize;
+            Vector2<float> pSize;
             
-            if (parent != null && parent is NodeUI)
-                parentSize = (parent as NodeUI)!.Size;
-            else
-                parentSize = new Vector2<float>(ParentWindow!.Size.X, ParentWindow!.Size.Y+1);
+            if (parent != null && parent is NodeUI @p)
+                pSize = @p.Size;
 
-            return parentSize;
+            else if (Viewport != null)
+                pSize = new Vector2<float>(Viewport!.ContainerSize.X, Viewport!.ContainerSize.Y+1);
+                
+            else pSize = new();
+
+            return pSize;
         }
     }
 
@@ -130,7 +132,7 @@ public class NodeUI : Node, IClipChildren
 
     public bool Focused
     {
-        get { return this == ParentWindow?.FocusedUiNode; }
+        get { return this == Viewport?.FocusedUiNode; }
         set
         {
             if (value) Focus();
@@ -147,30 +149,35 @@ public class NodeUI : Node, IClipChildren
 
     public Rect GetClippingArea()
     {
-        var rect = new Rect( 0, 0, Engine.window.Size.X, Engine.window.Size.Y );
+        var rect = new Rect(
+            -Viewport!.Camera2D.position,
+            (Vector2<float>) Viewport!.Size
+        );
         
         if (ClipChildren)
         {
-            rect.Position = Position;
+            rect.Position = Position - Viewport.Camera2D.position;
             rect.Size = Size;
         }
         
         if (parent is IClipChildren)
+        {
             rect = rect.Intersection((parent as IClipChildren)!.GetClippingArea());
+        }
         
         return rect;
     }
 
     public void Focus()
     {
-        ParentWindow!.FocusedUiNode = this;
+        Viewport!.FocusedUiNode = this;
         onFocus.Emit();
     }
     public void Unfocus()
     {
-        if (ParentWindow != null && ParentWindow.FocusedUiNode == this)
+        if (Viewport != null && Viewport.FocusedUiNode == this)
         {
-            ParentWindow!.FocusedUiNode = null;
+            Viewport!.FocusedUiNode = null;
             onUnfocus.Emit();
         }
     }
@@ -202,12 +209,12 @@ public class NodeUI : Node, IClipChildren
             if (mouseFilter == MouseFilter.Ignore) return;
 
             if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
-            if (new Rect(Position, Size).Intersects(@event.position))
+            if (new Rect(Position, Size).Intersects(@event.position + Viewport!.Camera2D.position))
             {
                 onClick.Emit(this);
                 if (mouseFilter == MouseFilter.Block)
                 {
-                    ParentWindow?.SupressInputEvent();
+                    Viewport?.SupressInputEvent();
                     Focus();
                 }
             }
@@ -215,4 +222,5 @@ public class NodeUI : Node, IClipChildren
     }
 
     protected virtual void OnFocusChanged(bool focused) {}
+
 }

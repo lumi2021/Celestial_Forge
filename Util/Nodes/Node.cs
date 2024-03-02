@@ -23,23 +23,26 @@ public class Node
 
     public string name = "";
 
-    private Window? _parentWin;
-    protected Window? ParentWindow
+    private Viewport? _parentViewport;
+    protected Viewport? Viewport
     {
         get {
-            if (_parentWin == null)
-                if (this is Window)
-                    return (Window) this;
+            if (_parentViewport == null)
+                if (parent is Viewport view)
+                    return view;
+
                 else if (parent != null)
-                    _parentWin = parent.ParentWindow;
+                    _parentViewport = parent.Viewport;
             
-            return _parentWin;
+            return _parentViewport;
         }
     }
     protected InputHandler Input
     {
         get {
-            return ParentWindow?.input ?? new();
+            if (Viewport is Window win)
+                return win.input;
+            else return Viewport!.Input;
         }
     }
 
@@ -96,9 +99,13 @@ public class Node
             {
                 if (!field.FieldType.IsAssignableTo(typeof(Node)))
                     field.SetValue(this, i.Value);
-                else {
+                else
+                {
                     var node = GetChild((string)i.Value!);
                     field.SetValue(this, node);
+
+                    if (node == null)
+                    Console.WriteLine("Node \"{0}\" can't find node in path \"{1}\"", this.name, i.Value);
                 }
                 continue;
             }
@@ -107,9 +114,13 @@ public class Node
             {
                 if (!prop.PropertyType.IsAssignableTo(typeof(Node)))
                     prop.SetValue(this, i.Value);
-                else {
+                else
+                {
                     var node = GetChild((string)i.Value!);
                     prop.SetValue(this, node);
+
+                    if (node == null)
+                    Console.WriteLine("Node \"{0}\" can't find node in path \"{1}\"", this.name, i.Value);
                 }
                 continue;
             }

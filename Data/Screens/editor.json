@@ -1,4 +1,5 @@
 {
+
     "NodeTree" :
     {
         "NodeType" : "Pannel",
@@ -19,46 +20,46 @@
                 "anchor" : 1,
 
               "Children": [
-                {
-                  "NodeType": "NodeUI",
-                  "Name": "MainOptions",
-
-                  "sizePercent": [ 0, 0 ],
-                  "sizePixels": [ 200, 20 ],
-
-                  "anchor":  4,
-
-                  "Children": [
-
                     {
-                      "NodeType": "Button",
-                      "Name": "SceneEditor",
+                    "NodeType": "NodeUI",
+                    "Name": "MainOptions",
 
-                      "sizePercent": [ 0.5, 1 ],
-                      "sizePixels": [ -8, 0 ],
-                      "anchor": 3
+                    "sizePercent": [ 0, 0 ],
+                    "sizePixels": [ 200, 20 ],
+
+                    "anchor":  4,
+
+                    "Children": [
+
+                        {
+                        "NodeType": "Button",
+                        "Name": "SceneEditor",
+
+                        "sizePercent": [ 0.5, 1 ],
+                        "sizePixels": [ -8, 0 ],
+                        "anchor": 3
+                        },
+
+                        {
+                        "NodeType": "Button",
+                        "Name": "ScriptEditor",
+
+                        "sizePercent": [ 0.5, 1 ],
+                        "sizePixels": [ -8, 0 ],
+                        "anchor": 5
+                        }
+
+                    ]
                     },
-
                     {
-                      "NodeType": "Button",
-                      "Name": "ScriptEditor",
+                    "NodeType": "Button",
+                    "Name": "RunButton",
 
-                      "sizePercent": [ 0.5, 1 ],
-                      "sizePixels": [ -8, 0 ],
-                      "anchor": 5
+                    "anchor": 5,
+                    "sizePercent": [ 0, 0 ],
+                    "sizePixels": [ 30, 30 ],
+                    "positionPixels": [ -9, 0 ]
                     }
-
-                  ]
-                },
-                {
-                  "NodeType": "Button",
-                  "Name": "RunButton",
-
-                  "anchor": 5,
-                  "sizePercent": [ 0, 0 ],
-                  "sizePixels": [ 30, 30 ],
-                  "positionPixels": [ -9, 0 ]
-                }
               ]
             },
 
@@ -179,33 +180,97 @@
                         "Children" : 
                         [
                             {
-                                "NodeType" : "Pannel",
-                                "Name" : "Viewport",
+                                "NodeType" : "NodeUI",
+                                "Name" : "Main",
 
-                                "BackgroundColor" : [0, 0, 0],
                                 "sizePixels" : [0, -64],
                                 "anchor" : 1,
-                                "ClipChildren" : true,
-
-                                "Children" : 
+                                
+                                "Children" :
                                 [
                                     {
-                                        "NodeType" : "NodeUI",
-                                        "Name" : "ViewportContainer",
-
-                                        "sizePercent" : [0, 0]
+                                        "NodeType" : "Pannel",
+                                        "Name" : "Viewport",
+        
+                                        "BackgroundColor" : [0, 0, 0],
+                                        "anchor" : 1,
+                                        "ClipChildren" : true
+                                    },
+        
+                                    {
+                                        "NodeType": "Pannel",
+                                        "Name": "TextEditor",
+        
+                                        "Visible": false,
+                                        "BackgroundColor" : [0, 0, 255, 0],
+        
+                                        "Children" : [
+                                        
+                                        {
+                                            "NodeType" : "Pannel",
+                                            "Name" : "FileContentContainer",
+        
+                                            "sizePixels": [ 0, -80 ],
+                                            "positionPixels": [ 0, 32 ],
+                                            "BackgroundColor" : [255, 255, 255],
+        
+                                            "ClipChildren" : true,
+        
+                                            "Children" : [
+                                                {
+                                                    "NodeType" : "WriteTextField",
+                                                    "Name" : "FileContent",
+        
+                                                    "Font" : 1,
+                                                    "ForceTextSize" : true,
+                
+                                                    "sizePixels" : [ -16, 0 ]
+                                                },
+                                                {
+                                                    "NodeType" : "ScrollBar",
+                                                    "Name" : "Scrollbar",
+                                                    "target" : "../FileContent",
+        
+                                                    "sizePercent" : [0, 1],
+                                                    "sizePixels" : [16, 0],
+                                                    "anchor" : 2
+                                                }
+        
+                                            ]
+                                        },
+        
+                                        {
+                                            "NodeType" : "Pannel",
+                                            "Name" : "Toolbar",
+        
+                                            "sizePixels" : [0, 32],
+                                            "sizePercent" : [1, 0],
+                                            "BackgroundColor" : [60, 42, 77],
+                                            "anchor" : 6,
+        
+                                            "Children" : [
+                                                {
+                                                    "NodeType" : "Button",
+                                                    "Name" : "SaveBtn",
+                                                    "sizePercent" : [0,0],
+                                                    "sizePixels" : [25, 25],
+                                                    "positionPixels" : [3.5, 0],
+                                                    "anchor" : 3
+                                                },
+                                                {
+                                                    "NodeType" : "Button",
+                                                    "Name" : "CompileBtn",
+                                                    "sizePercent" : [0,0],
+                                                    "sizePixels" : [25, 25],
+                                                    "positionPixels" : [-3.5, 0],
+                                                    "anchor" : 5
+                                                }
+                                            ]
+                                        }
+        
+                                        ]
                                     }
                                 ]
-                            },
-
-                            {
-                              "NodeType": "Pannel",
-                              "Name": "TextEditor",
-                              "sizePixels": [ 0, -96 ],
-                              "anchor": 1,
-                              "ClipChildren": true,
-                              "positionPixels": [ 0, 32 ],
-                              "Visible": false
                             },
 
                             {
@@ -215,7 +280,97 @@
                                 "BackgroundColor" : [60, 42, 77],
                                 "sizePercent" : [1, 0],
                                 "sizePixels" : [0, 48],
-                                "anchor" : 7
+                                "anchor" : 7,
+
+                                "Children" :
+                                [
+                                  {
+                                    "NodeType": "NodeUI",
+                                    "Name": "BottomBarWindow",
+                                    "sizePixels": [ -16, -96 ],
+                                    "positionPixels": [ 8, 40 ],
+
+                                    "Children": [
+                                      {
+                                        "NodeType": "TextField",
+                                        "Name": "Title",
+                                        "positionPixels": [ 0, -32 ],
+                                        "Color": [ 255, 255, 255 ],
+                                        "Text":  "Output"
+                                      },
+                                      {
+                                        "NodeType": "Pannel",
+                                        "Name": "Console",
+
+                                        "BackgroundColor": [ 80, 58, 101 ],
+
+                                        "Children": [
+                                          {
+                                            "NodeType": "NodeUI",
+                                            "Name": "ConsoleLog",
+                                            "ClipChildren": true
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+
+                                  {
+                                    "NodeType": "NodeUI",
+                                    "Name": "Tabs",
+
+                                    "sizePercent":  [0, 0],
+                                    "sizePixels": [ 224, 48 ],
+                                    "positionPixels": [ -8, 0],
+                                    "anchor":  8,
+
+                                    "Children": [
+                                      {
+                                        "NodeType": "Button",
+                                        "Name": "OutputBtn",
+                                        "sizePercent" :  [0, 0],
+                                        "sizePixels": [ 64,32 ],
+                                        "anchor" :  3
+                                      },
+                                      {
+                                        "NodeType": "Button",
+                                        "Name": "ErrorsButton",
+                                        "sizePercent": [ 0, 0 ],
+                                        "sizePixels": [ 64, 32 ],
+                                        "anchor": 4
+                                      },
+                                      {
+                                        "NodeType": "Button",
+                                        "Name": "MonitorsButton",
+                                        "sizePercent": [ 0, 0 ],
+                                        "sizePixels": [ 64, 32 ],
+                                        "anchor": 5
+                                      }
+                                    ]
+                                  }
+
+                                  
+                                ]
+                            },
+
+                            {
+                                "NodeType" : "DragHandler",
+                                "Name" : "BottomDragHandler",
+        
+                                "nodeA" : "../Main",
+                                "nodeB" : "../BottomBar",
+        
+                                "dragAxis" : 2,
+        
+                                "sizePercent" : [1, 0],
+                                "sizePixels" : [0, 16],
+        
+                                "positionPercent" : [0, 1],
+                                "positionPixels" : [0, -64],
+                                "nodeBSizeMin" : 48,
+                                "defaultColor" : [255, 255, 255, 0],
+                                "holdingColor" : [255, 255, 255, 0.3]
+                                
                             }
                         ]
                     },
@@ -274,7 +429,8 @@
         {
             "ResourceType" : "Font",
             "Path" : "Assets/Fonts/consola.ttf",
-            "Size" : 18
+            "Size" : 12
         }
     ]
+
 }

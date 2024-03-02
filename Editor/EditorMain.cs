@@ -1,12 +1,17 @@
 ﻿using System.Reflection;
 using GameEngine.Core;
+using GameEngine.Util;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.Windowing;
+using GameEngine.Debug;
 using Window = GameEngine.Util.Nodes.Window;
+using Console = System.Console;
+using InnerConsole = GameEngine.Debug.Console;
+using GameEngineEditor.EditorNodes;
 
 namespace GameEngine.Editor;
 
@@ -22,9 +27,14 @@ public class EditorMain
     private TreeGraph? nodesList;
     private Pannel? sceneViewport;
     private Pannel? textEditor;
+    private NodeUI? console;
+
+    private Viewport sceneEnviropment = null!;
 
     /* ETC */
     private int maintab = 0;
+
+    private FileReference? fileBeingEdited = null;
 
     public EditorMain(ProjectSettings settings, Window mainWin)
     {
@@ -48,14 +58,38 @@ public class EditorMain
         /* CONFIGURATE MAIN SCREEN */
         #region
 
-        sceneViewport = editorRoot!.GetChild("Main/Center/Viewport") as Pannel;
-        textEditor = editorRoot!.GetChild("Main/Center/TextEditor") as Pannel;
+        sceneViewport = editorRoot!.GetChild("Main/Center/Main/Viewport") as Pannel;
+        textEditor = editorRoot!.GetChild("Main/Center/Main/TextEditor") as Pannel;
 
         Button sceneBtn = (editorRoot!.GetChild("TopBar/MainOptions/SceneEditor") as Button)!;
         Button scriptBtn = (editorRoot!.GetChild("TopBar/MainOptions/ScriptEditor") as Button)!;
 
         sceneBtn.OnPressed.Connect((object? from, dynamic[]? args) => ChangeMainView(0));
         scriptBtn.OnPressed.Connect((object? from, dynamic[]? args) => ChangeMainView(1));
+
+        //var textEditorField = textEditor!.GetChild("FileContent") as WriteTextField;
+        var textSaveBtn = (textEditor!.GetChild("Toolbar/SaveBtn") as Button)!;
+        textSaveBtn.OnPressed.Connect( (object? from, dynamic[]? args) => SaveOpenTextFile() );
+
+        var textCompileBtn = (textEditor!.GetChild("Toolbar/CompileBtn") as Button)!;
+        textCompileBtn.OnPressed.Connect( (object? from, dynamic[]? args) => CompileOpenTextFile() );
+
+        #endregion
+
+        /* CONFIGURATE VIEWPORT */
+        #region
+
+        sceneEnviropment = new()
+        {
+            useContainerSize = true,
+            ContainerSize = (Vector2<uint>)projectSettings.canvasDefaultSize
+        };
+
+        mainWindow.children.Insert(0, sceneEnviropment);
+        sceneEnviropment.parent = mainWindow;
+
+        ViewportContainer viewportContainer = new() { linkedViewport = sceneEnviropment };
+        sceneViewport!.AddAsChild(viewportContainer);
 
         #endregion
 
@@ -141,6 +175,14 @@ public class EditorMain
         sb!.target = nodesList;
         #endregion
 
+        /* INSTANTIATE AND CONFIGURATE CONSOLE */
+        #region
+        
+        console = editorRoot!.GetChild("Main/Center/BottomBar/BottomBarWindow/Console/ConsoleLog") as NodeUI;
+        InnerConsole.OnLogEvent += OnLog;
+
+        #endregion
+
         /* CONFIGURATE BUTTONS */
         var runButton = scene.GetChild("TopBar/RunButton") as Button;
         runButton?.OnPressed.Connect(RunButtonPressed);
@@ -149,6 +191,8 @@ public class EditorMain
 
     private void ChangeMainView(int to)
     {
+        if (maintab == to) return;
+
         switch (to)
         {
             case 0:
@@ -161,6 +205,8 @@ public class EditorMain
                 textEditor!.Show();
                 break;
         }
+    
+        maintab = to;
     }
 
     private void RunButtonPressed(object? from, dynamic[]? args)
@@ -195,6 +241,9 @@ public class EditorMain
             {
                 case ".sce":
                     LoadSceneInEditor(path); break;
+
+                default:
+                    OpenTextFile(path); break;
             }
         }
     }
@@ -210,22 +259,24 @@ public class EditorMain
 
     private void LoadSceneInEditor(string scenePath)
     {
-        var viewport = editorRoot!.GetChild("Main/Center/Viewport/ViewportContainer") as NodeUI;
+        sceneEnviropment.children.Clear();
 
-        viewport!.sizePixels = projectSettings.canvasDefaultSize;
+        var cam = new SceneEditor2DCamera();
+        sceneEnviropment.AddAsChild(cam);
+        cam.Current = true;
+
+        Console.WriteLine(cam.Current);
 
         nodesList!.ClearGraph();
-        viewport!.children.Clear();
         
         var scene = PackagedScene.Load(scenePath)!.Instantiate();
-        viewport!.AddAsChild(scene);
-        
+        sceneEnviropment!.AddAsChild(scene);
 
-        /* LOAD NODES LIST */
+        // LOAD NODES LIST //
         List<KeyValuePair<string, Node>> ToList = new();
         foreach (var i in scene.children) ToList.Add(new("", i));
 
-        Dictionary<string, Texture> IconsBuffer = new();
+        Dictionary<string, Texture> IconsBuffer = [];
 
         while ( ToList.Count > 0 )
         {
@@ -268,6 +319,36 @@ public class EditorMain
 
         nodesList!.Root.data.Add("NodeRef", scene);
         nodesList!.Root.OnClick.Connect(OnNodeClicked);
+    
+        ChangeMainView(0);
+    }
+
+    private void OpenTextFile(string filePath)
+    {
+        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
+
+        var file = new FileReference(filePath);
+
+        var content = file.ReadAllFile();
+
+        textField.Text = content;
+
+        fileBeingEdited = file;
+
+        ChangeMainView(1);
+    }
+    private void SaveOpenTextFile()
+    {
+        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
+        fileBeingEdited?.Write(textField.Text);
+    }
+    private void CompileOpenTextFile()
+    {
+        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
+        var code = textField.Text;
+
+        var csc = new CSharpCompiler();
+        csc.Compile(code, fileBeingEdited!.Value.path);
     }
 
     private void LoadInspectorInformation(Node node)
@@ -309,6 +390,18 @@ public class EditorMain
 
             currentType = currentType.BaseType!;
             itemPos += 5;
+        }
+    }
+
+    private void OnLog(LogInfo log)
+    {
+        console!.AddAsChild(CreateLogItem(log));
+        var p = 0;
+        foreach (var i in console.children)
+        if (i is NodeUI node)
+        {
+            node.positionPixels.Y = p;
+            p += node.sizePixels.Y;
         }
     }
 
@@ -511,6 +604,41 @@ public class EditorMain
         }
 
         return container;
+    }
+
+    private static Pannel CreateLogItem(LogInfo log)
+    {
+
+        var nLog = new Pannel();
+        nLog.sizePercent = new(1, 0);
+        nLog.sizePixels = new(0, 32);
+
+        var message = new TextField
+        {
+            Color = new(255, 255, 255),
+            Font = new("./Assets/Fonts/calibri.ttf", 15),
+            Text = log.message
+        };
+
+        var details = new TextField
+        {
+            anchor = NodeUI.ANCHOR.BOTTOM_LEFT,
+            Color = new(255, 255, 255, 0.5f),
+            Font = new("./Assets/Fonts/consola.ttf", 10),
+            ForceTextSize = true
+        };
+        details.positionPixels.Y = 5;
+         
+        var sourceFile = log.sourceFile != "" ? log.sourceFile : "undefined";
+        var timestamp = log.timestamp.ToString(@"hh\:mm\:ss");
+
+        details.Text = $"{sourceFile}:{log.callerName} (l. {log.lineNumber}) at {timestamp}";
+
+        nLog.AddAsChild(message);
+        nLog.AddAsChild(details);
+
+        return nLog;
+
     }
 
     #endregion
