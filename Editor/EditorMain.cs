@@ -7,10 +7,9 @@ using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.Windowing;
-using GameEngine.Debug;
+using GameEngine.Debugging;
 using Window = GameEngine.Util.Nodes.Window;
 using Console = System.Console;
-using InnerConsole = GameEngine.Debug.Console;
 using GameEngineEditor.EditorNodes;
 
 namespace GameEngine.Editor;
@@ -180,7 +179,7 @@ public class EditorMain
         #region
         
         console = editorRoot!.GetChild("Main/Center/BottomBar/BottomBarWindow/Console/ConsoleLog") as NodeUI;
-        InnerConsole.OnLogEvent += OnLog;
+        Debug.OnLogEvent += OnLog;
 
         #endregion
 

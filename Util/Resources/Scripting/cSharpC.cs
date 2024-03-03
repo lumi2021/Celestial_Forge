@@ -1,6 +1,7 @@
 using GameEngine.Util.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using System.Reflection;
 
@@ -13,6 +14,7 @@ public class CSharpCompiler : Resource, IScriptCompiler
     {
 
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(src, null, sourcePath);
+        syntaxTree = PreprocessSyntaxTree(syntaxTree);
 
         string assemblyName = "DynamicAss.dll";
         List<MetadataReference> assembliesRefs = [];
@@ -48,6 +50,64 @@ public class CSharpCompiler : Resource, IScriptCompiler
         }
 
         return null;
+
+    }
+
+    private SyntaxTree PreprocessSyntaxTree(SyntaxTree syntaxTree)
+    {
+
+        SyntaxTree tree = syntaxTree;
+        var root = (CompilationUnitSyntax) tree.GetRoot();
+
+        #region add omitable using namespaces
+
+        var usingDirectives = root.DescendantNodes().OfType<UsingDirectiveSyntax>();
+
+        var autoUsing = new KeyValuePair<string, string>[] {
+            new("", "System"),
+            new("", "GameEngine.Core"),
+            new("", "GameEngine.Util.Nodes"),
+            new("", "GameEngine.Util.Values"),
+            new("Console", "GameEngine.Debugging.Debug")
+        };
+
+        autoUsing = autoUsing.Where(e =>
+            !usingDirectives.Select(e => e.Name!.ToString()).Contains(e.Value)
+        ).ToArray();
+
+
+        List<UsingDirectiveSyntax> usingTokens = [];
+        for (int i = 0; i < autoUsing.Length; i++)
+        {
+            var nSpace = autoUsing[i];
+
+            UsingDirectiveSyntax usingDir;
+
+            if (nSpace.Key == string.Empty)
+                usingDir = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(nSpace.Value)
+                .WithLeadingTrivia(SyntaxFactory.Space))
+                .WithTrailingTrivia(SyntaxFactory.Space);
+            else
+                usingDir = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(nSpace.Value)
+                .WithLeadingTrivia(SyntaxFactory.Space))
+                .WithAlias(SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(nSpace.Key)
+                .WithTrailingTrivia(SyntaxFactory.Space)));
+
+            if (i == autoUsing.Length -1)
+                usingDir = usingDir.WithTrailingTrivia(SyntaxFactory.LineFeed);
+
+            usingTokens.Add(usingDir.WithLeadingTrivia(SyntaxFactory.LineFeed));
+        }
+
+        root = root.AddUsings([.. usingTokens]);
+        
+        Console.WriteLine(root);
+
+        #endregion
+
+        tree = tree.WithRootAndOptions(root, tree.Options);
+
+        return tree;
 
     }
 
