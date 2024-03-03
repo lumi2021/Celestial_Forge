@@ -349,7 +349,14 @@ public class EditorMain
         var code = textField.Text;
 
         var csc = new CSharpCompiler();
-        csc.Compile(code, fileBeingEdited!.Value.path);
+        Type? scriptType = csc.Compile(code, fileBeingEdited!.Value.path);
+
+        if (scriptType != null)
+        {
+            object scriptInstance = Activator.CreateInstance(scriptType)!;
+            MethodInfo executeMethod = scriptType.GetMethod("Execute")!;
+            executeMethod.Invoke(scriptInstance, null);
+        }
     }
 
     private void LoadInspectorInformation(Node node)

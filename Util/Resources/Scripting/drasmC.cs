@@ -8,7 +8,7 @@ namespace GameEngine.Util.Resources;
 //TOFIX rework on all this
 public class DrasmCompiler : Resource, IScriptCompiler
 {
-    public void Compile(string src, string sourceFile="")
+    public Type? Compile(string src, string sourceFile="")
     {
         try {
 
@@ -23,6 +23,8 @@ public class DrasmCompiler : Resource, IScriptCompiler
             Console.WriteLine("Error while compiling! (step 1/2)");
             Console.WriteLine(e);
         }
+
+        return null;
     }
 
     private string[] Preprocess(string src)

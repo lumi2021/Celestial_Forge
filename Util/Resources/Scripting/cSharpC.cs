@@ -1,17 +1,15 @@
 using GameEngine.Util.Interfaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using System.Reflection;
-using System.Reflection.Metadata;
 
 namespace GameEngine.Util.Resources;
 
 public class CSharpCompiler : Resource, IScriptCompiler
 {
 
-    public void Compile(string src, string sourcePath="")
+    public Type? Compile(string src, string sourcePath="")
     {
 
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(src, null, sourcePath);
@@ -46,11 +44,10 @@ public class CSharpCompiler : Resource, IScriptCompiler
             Assembly assembly = Assembly.Load(ms.ToArray());
 
             Type scriptType = assembly.GetType("Script")!;
-            object scriptInstance = Activator.CreateInstance(scriptType)!;
-
-            MethodInfo executeMethod = scriptType.GetMethod("Execute")!;
-            executeMethod.Invoke(scriptInstance, null);
+            return scriptType;
         }
+
+        return null;
 
     }
 
