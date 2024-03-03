@@ -100,12 +100,12 @@ public class CSharpCompiler : Resource, IScriptCompiler
         }
 
         root = root.AddUsings([.. usingTokens]);
-        
-        Console.WriteLine(root);
 
         #endregion
 
         tree = tree.WithRootAndOptions(root, tree.Options);
+
+        Console.WriteLine(root);
 
         return tree;
 

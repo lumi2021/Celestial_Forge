@@ -60,7 +60,7 @@ public class WriteTextField : TextField
             caretPosX += (int)charsList[caretLine][i].Advance;
         
         caret.positionPixels.X = caretPosX;
-        caret.positionPixels.Y = (int)caretLine * Font.lineheight + 2;
+        caret.positionPixels.Y = (int)caretLine * Font.lineheight;
         caret.BackgroundColor = Color;
     }
 

@@ -190,8 +190,8 @@ public class TextField : NodeUI, ICanvasItem
         // Load characters matrices
         uint charCount = 0;
 
-        List<float> world = new();
-        List<float> uv = new();
+        List<float> world = [];
+        List<float> uv = [];
         int charPosX = 0;
 
         float textureSize = Font.AtlasSize.X;
@@ -212,7 +212,7 @@ public class TextField : NodeUI, ICanvasItem
             foreach (var j in charsList[i])
             {
                 var m = Matrix4x4.CreateScale(j.SizeX, j.SizeY, 1)
-                * Matrix4x4.CreateTranslation(lineOffset + charPosX + j.OffsetX, carPosY + j.OffsetY, 0);
+                * Matrix4x4.CreateTranslation(lineOffset + charPosX, carPosY, 0);
                 world.AddRange(Matrix4x4.Transpose(m).ToArray());
 
                 var u = MathHelper.Matrix4x4CreateRect(j.TexPosition, j.TexSize)
@@ -234,6 +234,7 @@ public class TextField : NodeUI, ICanvasItem
         // Update texture
         var size = Font.AtlasSize;
         tex.Load(Font.AtlasData, (uint) size.X, (uint) size.Y);
+        tex.Filter = false;
     }
 
 }

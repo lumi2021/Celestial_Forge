@@ -154,15 +154,15 @@ public class TreeGraph : NodeUI
         private readonly Pannel container = new()
         {
             sizePercent = new(1, 0),
-            sizePixels = new(0, 40),
+            sizePixels = new(0, 32),
             BackgroundColor = new(0,0,0,0f),
             mouseFilter = MouseFilter.Block
         };
         private readonly TextureRect icon = new()
         {
             sizePercent = new(0,0),
-            sizePixels = new(20, 20),
-            positionPixels = new(10, 10),
+            sizePixels = new(16, 16),
+            positionPixels = new(8, 8),
             Visible = false,
             mouseFilter = MouseFilter.Ignore
         };
@@ -176,7 +176,7 @@ public class TreeGraph : NodeUI
 
         #endregion
 
-        public readonly Dictionary<string, dynamic> data = new();
+        public readonly Dictionary<string, dynamic> data = [];
 
         public readonly Signal OnClick = new();
 
@@ -213,13 +213,14 @@ public class TreeGraph : NodeUI
             container.positionPixels.Y = (int) (container.Size.Y * positionIndex);
 
             int level = ArrayPath.Length - 1;
-            container.positionPixels.X = 40 * level;
+            container.positionPixels.X = 32 * level;
 
             if (_icon != null)
             {
-                title.positionPixels.X = 40;
+                title.positionPixels.X = 32;
                 icon.Show();
-            } else
+            }
+            else
             {
                 title.positionPixels.X = 0;
                 icon.Hide();
