@@ -126,8 +126,9 @@ public class Viewport : Node
                 if (current.parent is IClipChildren)
                 {
                     var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
-                    clipRect = clipRect.InvertVerticallyIn(
-                        new(Camera2D.position.X, Camera2D.position.Y, size.X, size.Y) );
+                    var viewRect = new Rect(Camera2D.position.X, Camera2D.position.Y, size.X, size.Y);
+
+                    clipRect = clipRect.InvertVerticallyIn(viewRect);
                     gl.Scissor(clipRect);
                 }
 

@@ -438,7 +438,12 @@ public class EditorMain
         var properInfo = memberInfo as PropertyInfo;
 
         Type fieldType = fieldInfo?.FieldType ?? properInfo!.PropertyType;
-        if (fieldType.IsGenericType) fieldType = fieldType.GetGenericTypeDefinition();
+        Type[] fieldGenericArgs = [];
+        if (fieldType.IsGenericType)
+        {
+            fieldGenericArgs = fieldType.GetGenericArguments();
+            fieldType = fieldType.GetGenericTypeDefinition();
+        }
 
         InspectAttribute inspectAtt = memberInfo.GetCustomAttribute<InspectAttribute>()!;
 
@@ -577,6 +582,23 @@ public class EditorMain
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
                 Color = new(0, 0, 0)
             };
+
+            field1.OnTextEdited.Connect((object? from, dynamic[]? args) => {
+                if (!double.TryParse(args![0], out double _)) args![0] = "0";
+
+                dynamic value = fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj)!;
+                value.X = Convert.ChangeType(double.Parse(args![0]), fieldGenericArgs[0]);
+                fieldInfo?.SetValue(obj, value);
+                properInfo?.SetValue(obj, value);
+            });
+            field2.OnTextEdited.Connect((object? from, dynamic[]? args) => {
+                if (!double.TryParse(args![0], out double _)) args![0] = "0";
+
+                dynamic value = fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj)!;
+                value.Y = Convert.ChangeType(double.Parse(args![0]), fieldGenericArgs[0]);
+                fieldInfo?.SetValue(obj, value);
+                properInfo?.SetValue(obj, value);
+            });
 
             fieldContainer1.AddAsChild(field1);
             fieldContainer2.AddAsChild(field2);

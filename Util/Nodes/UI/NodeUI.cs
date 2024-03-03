@@ -158,6 +158,7 @@ public class NodeUI : Node, IClipChildren
         {
             rect.Position = Position - Viewport.Camera2D.position;
             rect.Size = Size;
+            rect /= Viewport.Camera2D.zoom;
         }
         
         if (parent is IClipChildren)
