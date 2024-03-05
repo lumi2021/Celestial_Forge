@@ -7,8 +7,9 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using StbRectPackSharp;
 using Color = SixLabors.ImageSharp.Color;
+using SlFont = SixLabors.Fonts.Font;
 
-namespace GameEngine.Text;
+namespace GameEngine.Util.Resources;
 
 public struct Character
 {
@@ -25,11 +26,11 @@ public struct Character
     public char Char { get; set; }
 }
 
-public class FreeType_TtfGlyphLoader
+public class CharacterSet : Resource
 {
 
     private FontCollection collection = new();
-    private Font font = null!;
+    private SlFont font = null!;
     private TextOptions options = null!;
 
     private Character baseCharacter;
@@ -53,7 +54,7 @@ public class FreeType_TtfGlyphLoader
     }
     public Vector2<int> AtlasSize { get { return new(_texture.Width, _texture.Height); } }
 
-    public FreeType_TtfGlyphLoader(string path, uint size)
+    public CharacterSet(string path, uint size)
     {
 
         if (!File.Exists(path)) throw new FileNotFoundException("Failed to load font file:" + font);
@@ -85,7 +86,7 @@ public class FreeType_TtfGlyphLoader
         {
             if (iteration > 0 ) ResizeTexture();
 
-            var res = _packer.PackRect((int)charSize.X, (int)charSize.Y+1, null);
+            var res = _packer.PackRect((int)charSize.X, (int)charSize.Y+2, null);
             
             if (res != null)
             {
@@ -183,6 +184,14 @@ public class FreeType_TtfGlyphLoader
 
         _texture.Dispose();
         _texture = newTex;
+    }
+
+    public override void Dispose()
+    {
+        _texture.Dispose();
+        _packer.Dispose();
+
+        base.Dispose();
     }
 
 }

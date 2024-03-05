@@ -21,8 +21,10 @@ public class TextField : NodeUI, ICanvasItem
     };
 
     private string _text = "";
-    protected string[] _textLines = new string[] {""};
-    protected Character[][] charsList = Array.Empty<Character[]>();
+    protected string[] _textLines = [""];
+    protected Character[][] charsList = [];
+    public ColorSpan[] colorsList = [];
+
     protected Vector2<int> TextSize = new(); 
 
     [Inspect(InspectAttribute.Usage.multiline_text)]
@@ -46,11 +48,14 @@ public class TextField : NodeUI, ICanvasItem
             if (!ForceTextSize)
                 return base.Size;
             else
-                return new(TextSize.X, TextSize.Y);
+            {
+                var bs = base.Size;
+                return new(MathF.Max(bs.X, TextSize.X), MathF.Max(bs.Y, TextSize.Y));
+            }
         }
     }
 
-    private Color _color =  new(0f, 0f, 0, 1f);
+    private Color _color =  new(1f, 1f, 1f, 1f);
     [Inspect] public Color Color
     {
         get { return _color; }
@@ -78,9 +83,6 @@ public class TextField : NodeUI, ICanvasItem
         }
     }
     
-    private readonly Dictionary<char, BitmapTexture> textures = new();
-
-    
     protected override void Init_()
     {
 
@@ -91,6 +93,7 @@ public class TextField : NodeUI, ICanvasItem
 
         DrawService.CreateBuffer(NID, "aInstanceWorldMatrix");
         DrawService.CreateBuffer(NID, "aInstanceTexCoordMatrix");
+        DrawService.CreateBuffer(NID, "aInstanceColor");
             
         float[] v = new float[] {0f,0f, 1f,0f, 1f,1f, 0f,1f};
 
@@ -99,8 +102,11 @@ public class TextField : NodeUI, ICanvasItem
 
         DrawService.SetBufferData(NID, "aInstanceWorldMatrix", Matrix4x4.Identity.ToArray(), 16);
         DrawService.SetBufferData(NID, "aInstanceTexCoordMatrix", Matrix4x4.Identity.ToArray(), 16);
+        DrawService.SetBufferData(NID, "aInstanceColor", Array.Empty<float>(), 4);
+
         DrawService.SetBufferAtribDivisor(NID, "aInstanceWorldMatrix", 1);
         DrawService.SetBufferAtribDivisor(NID, "aInstanceTexCoordMatrix", 1);
+        DrawService.SetBufferAtribDivisor(NID, "aInstanceColor", 1);
 
         DrawService.SetElementBufferData(NID, new uint[] {0,1,3, 1,2,3});
 
@@ -165,7 +171,7 @@ public class TextField : NodeUI, ICanvasItem
 
     private void ReconfigurateDraw()
     {
-        charsList = Array.Empty<Character[]>();
+        charsList = [];
 
         // Load character information
         for (int i = 0; i < _textLines.Length; i++)
@@ -192,9 +198,12 @@ public class TextField : NodeUI, ICanvasItem
 
         List<float> world = [];
         List<float> uv = [];
+        List<float> color = [];
         int charPosX = 0;
 
         float textureSize = Font.AtlasSize.X;
+        int charGlobalIndex = 0;
+
         for (int i = 0; i < charsList.Length; i++)
         {
             int carPosY = _font.lineheight * i;
@@ -219,15 +228,26 @@ public class TextField : NodeUI, ICanvasItem
                 * Matrix4x4.CreateOrthographic(textureSize*2,textureSize*2, -1f, 1f);
                 uv.AddRange(Matrix4x4.Transpose(u).ToArray());
 
+                ColorSpan col = colorsList.FirstOrDefault(e =>
+                charGlobalIndex >= e.start && charGlobalIndex < e.end,
+                new (0, 0, _color));
+
+                color.Add(col.color);
+
                 charPosX += (int) j.Advance;
                 charCount++;
+
+                charGlobalIndex++;
             }
         
+            charGlobalIndex++;
+
             charPosX = 0;
         }
 
         DrawService.SetBufferData(NID, "aInstanceWorldMatrix", world.ToArray(), 16);
         DrawService.SetBufferData(NID, "aInstanceTexCoordMatrix", uv.ToArray(), 16);
+        DrawService.SetBufferData(NID, "aInstanceColor", color.ToArray(), 4);
 
         DrawService.EnableInstancing(NID, charCount);
     
@@ -236,5 +256,22 @@ public class TextField : NodeUI, ICanvasItem
         tex.Load(Font.AtlasData, (uint) size.X, (uint) size.Y);
         tex.Filter = false;
     }
+
+
+    #region inner types
+
+    public readonly struct ColorSpan (int start, int end, Color color)
+    {
+        public readonly int start = start;
+        public readonly int end = end;
+        public readonly Color color = color;
+
+        public override string ToString()
+        {
+            return $"ColorSpan({start} - {end})";
+        }
+    }
+
+    #endregion
 
 }

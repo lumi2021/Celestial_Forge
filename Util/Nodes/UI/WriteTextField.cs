@@ -29,7 +29,7 @@ public class WriteTextField : TextField
         set
         {
             base.Text = value;
-            OnTextEdited.Emit(this, value);
+            TextEdited();
         }
     }
 
@@ -79,6 +79,8 @@ public class WriteTextField : TextField
         }
         else if (_textLines[caretLine].Length < caretRow)
             caretRow = (uint) _textLines[caretLine].Length;
+
+        OnTextEdited.Emit(this, Text);
     }
 
     protected override void OnUIInputEvent(InputEvent e)
@@ -149,6 +151,11 @@ public class WriteTextField : TextField
             else if (@event.key == Keys.Backspace)
             {
                 RemoveBeforeCursor(1);
+            }
+
+            else if (@event.key == Keys.Delete)
+            {
+                RemoveAfterCursor(1);
             }
         
             else if (@event.key == Keys.Left)
@@ -256,6 +263,54 @@ public class WriteTextField : TextField
 
                     charsToRemove -= (uint) toRemove;
                     caretRow -= (uint) toRemove;
+                }
+
+            }
+        }
+
+        Text = string.Join('\n', _textLines);
+    }
+    protected void RemoveAfterCursor(uint length)
+    {
+        uint charsToRemove = length;
+
+        while(charsToRemove > 0)
+        {
+            var line = _textLines[caretLine];
+            // Do it if charsToRemove is lower than the caret position
+            if (line[(int)caretRow..].Length > 0)
+            {
+                _textLines[caretLine] =
+                line[..(int)caretRow] + line[(int)(caretRow + charsToRemove)..];
+                charsToRemove = 0;
+            }
+            // Do it if charsToRemove is higher than the caret position and there's no lines before
+            else if (caretLine >= _textLines.Length)
+            {
+                int toRemove = line[(int)caretRow..].Length;
+                _textLines[caretLine] = line[toRemove..];
+
+                charsToRemove = 0;
+            }
+            // Do it if charsToRemove is higher than the caret position and there's a line before
+            else {
+                if (caretRow >= _textLines[caretLine].Length) // remove this line and continue in the next
+                {
+                    
+                    _textLines[caretLine] += _textLines[caretLine+1];
+                    var linesList = _textLines.ToList();
+                    linesList.RemoveAt((int) caretLine+1);
+                    _textLines = [.. linesList];
+
+                    charsToRemove--;
+                }
+                else
+                {
+                    int toRemove = line[(int)caretRow..].Length;
+
+                    _textLines[caretLine] = line[..toRemove];
+
+                    charsToRemove -= (uint) toRemove;
                 }
 
             }

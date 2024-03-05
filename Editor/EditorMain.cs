@@ -73,6 +73,11 @@ public class EditorMain
         var textCompileBtn = (textEditor!.GetChild("Toolbar/CompileBtn") as Button)!;
         textCompileBtn.OnPressed.Connect( (object? from, dynamic[]? args) => CompileOpenTextFile() );
 
+        var textEditorField = textEditor.GetChild("FileContentContainer/FileContent") as WriteTextField;
+        textEditorField!.OnTextEdited.Connect((object? node, dynamic[]? args) => {
+            textEditorField.colorsList = CSharpCompiler.Highlight(args![0]);
+        });
+
         #endregion
 
         /* CONFIGURATE VIEWPORT */
@@ -412,6 +417,7 @@ public class EditorMain
         }
     }
 
+
     #region really random stuff
 
     private static Pannel CreateTitleItem(string title)
@@ -637,17 +643,17 @@ public class EditorMain
     private static Pannel CreateLogItem(LogInfo log)
     {
 
-        var nLog = new Pannel();
-        nLog.sizePercent = new(1, 0);
-        nLog.sizePixels = new(0, 32);
-
+        var nLog = new Pannel
+        {
+            sizePercent = new(1, 0),
+            sizePixels = new(0, 32)
+        };
         var message = new TextField
         {
             Color = new(255, 255, 255),
             Font = new("./Assets/Fonts/calibri.ttf", 15),
             Text = log.message
         };
-
         var details = new TextField
         {
             anchor = NodeUI.ANCHOR.BOTTOM_LEFT,
@@ -655,7 +661,6 @@ public class EditorMain
             Font = new("./Assets/Fonts/consola.ttf", 10),
             ForceTextSize = true
         };
-        details.positionPixels.Y = 5;
          
         var sourceFile = log.sourceFile != "" ? log.sourceFile : "undefined";
         var timestamp = log.timestamp.ToString(@"hh\:mm\:ss");
