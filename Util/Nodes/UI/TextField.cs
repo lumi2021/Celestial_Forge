@@ -1,6 +1,5 @@
 using System.Numerics;
 using GameEngine.Core;
-using GameEngine.Text;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;

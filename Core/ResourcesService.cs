@@ -6,19 +6,19 @@ namespace GameEngine.Core;
 public static class ResourcesService
 {
 
-    private static Dictionary<uint, Node> NidTable = new();
-    private static Dictionary<uint, Resource> RidTable = new();
+    private static readonly Dictionary<uint, WeakReference<Node>> NidTable = [];
+    private static readonly Dictionary<uint, WeakReference<Resource>> RidTable = [];
 
     public static uint CreateNewNode(Node nodeRef)
     {
         var id = FindFirstNullNidKey();
-        NidTable.Add(id, nodeRef);
+        NidTable.Add(id, new(nodeRef) );
         return id;
     }
     public static uint CreateNewResouce(Resource resRef)
     {
         var id = FindFirstNullRidKey();
-        RidTable.Add(id, resRef);
+        RidTable.Add(id, new(resRef) );
         return id;
     }
 

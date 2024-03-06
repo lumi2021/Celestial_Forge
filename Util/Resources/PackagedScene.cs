@@ -188,7 +188,7 @@ public class PackagedScene : Resource
             {
                 var csc = new CSharpCompiler();
                 FileReference script = new(tkn2.Value<string>()!);
-                t = csc.Compile(script.ReadAllFile(), script.path);
+                t = csc.Compile(script.ReadAllFile(), script.GlobalPath);
             }
 
             if (t != null)

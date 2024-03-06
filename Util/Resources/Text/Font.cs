@@ -7,7 +7,7 @@ public class Font : Resource
     public delegate void FontUpdatedEventHandler();
     public event FontUpdatedEventHandler? FontUpdated;
 
-    private CharacterSet glyphLoader = new("../../../Assets/Fonts/calibri.ttf", 24);
+    private CharacterSet glyphLoader = CharacterSet.CreateOrGet("Assets/Fonts/calibri.ttf", 24);
     private uint _size = 24;
     private string _path = "Assets/Fonts/calibri.ttf";
 
@@ -43,8 +43,8 @@ public class Font : Resource
     {
         _path = path;
         _size = size;
-        glyphLoader.Dispose();
-        glyphLoader = new("../../../" + path, size);
+
+        glyphLoader = CharacterSet.CreateOrGet(path, size);
         fontheight = glyphLoader.fontheight;
         lineheight = glyphLoader.lineheight;
 
@@ -62,7 +62,6 @@ public class Font : Resource
 
     public override void Dispose()
     {
-        glyphLoader.Dispose();
         base.Dispose();
     }
 

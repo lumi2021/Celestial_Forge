@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using StbRectPackSharp;
 using Color = SixLabors.ImageSharp.Color;
 using SlFont = SixLabors.Fonts.Font;
+using GameEngine.Core;
 
 namespace GameEngine.Util.Resources;
 
@@ -26,7 +27,7 @@ public struct Character
     public char Char { get; set; }
 }
 
-public class CharacterSet : Resource
+public class CharacterSet : SharedResource
 {
 
     private FontCollection collection = new();
@@ -38,6 +39,7 @@ public class CharacterSet : Resource
     public int fontheight;
     public int lineheight;
     
+    public FileReference Path {get; private set;}
     public uint Size {get; private set;}
 
     private Dictionary <char, Character> buffer = [];
@@ -54,13 +56,14 @@ public class CharacterSet : Resource
     }
     public Vector2<int> AtlasSize { get { return new(_texture.Width, _texture.Height); } }
 
-    public CharacterSet(string path, uint size)
+    private CharacterSet(FileReference path, uint size)
     {
 
-        if (!File.Exists(path)) throw new FileNotFoundException("Failed to load font file:" + font);
+        if (!path.Exists) throw new FileNotFoundException("Failed to load font file: " + path);
+        Path = path;
         Size = size;
 
-        FontFamily family = collection.Add(path);
+        FontFamily family = collection.Add(path.GlobalPath);
         font = family.CreateFont(size, FontStyle.Regular);
         options = new(font);
 
@@ -126,7 +129,7 @@ public class CharacterSet : Resource
                 buffer.Add(c, ch);
             }
 
-            if (c != ' ' && c != '\t')
+            if (c != '\t')
             {
                 var charPos = AddCharToAtlas(c, out Vector2<uint> charSize);
                 var rect = TextMeasurer.MeasureAdvance(c.ToString(), options);
@@ -194,4 +197,20 @@ public class CharacterSet : Resource
         base.Dispose();
     }
 
+    public static CharacterSet CreateOrGet(string font, uint size = 12)
+    {
+        return CreateOrGet(new FileReference(font), size);
+    }
+    public static CharacterSet CreateOrGet(FileReference font, uint size = 12)
+    {
+        var res = ResourceHeap.TryGetReference<CharacterSet>(font, size);
+
+        if (res != null) return res;
+        else return new CharacterSet(font, size);
+    }
+
+    public override bool AreEqualsTo(params object?[] args)
+    {
+        throw new NotImplementedException();
+    }
 }

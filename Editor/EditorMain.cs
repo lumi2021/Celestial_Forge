@@ -9,7 +9,6 @@ using GameEngine.Util.Values;
 using Silk.NET.Windowing;
 using GameEngine.Debugging;
 using Window = GameEngine.Util.Nodes.Window;
-using Console = System.Console;
 using GameEngineEditor.EditorNodes;
 
 namespace GameEngine.Editor;
@@ -353,7 +352,7 @@ public class EditorMain
         var code = textField.Text;
 
         var csc = new CSharpCompiler();
-        Type? scriptType = csc.Compile(code, fileBeingEdited!.Value.path);
+        Type? scriptType = csc.Compile(code, fileBeingEdited!.Value.GlobalPath);
 
         if (scriptType != null)
         {
