@@ -5,33 +5,40 @@ namespace GameEngine.Util;
 
 public struct FileReference
 {
-    public string path;
+    private string _globalPath;
+
+    public readonly string GlobalPath => _globalPath;
+    public readonly string RelativePath => FileService.GetProjRelativePath(_globalPath);
 
     public FileReference(string path)
     {
-        this.path = path;
+        _globalPath = FileService.GetGlobalPath(path);
     }
+
+    /* CHECK */
+    public readonly bool Exists => File.Exists(_globalPath);
 
     /* READ */
     public readonly string ReadAllFile()
     {
-        return FileService.GetFile(path);
+        return FileService.GetFile(_globalPath);
     }
     public readonly string[] ReadFileLines()
     {
-        return FileService.GetFileLines(path);
+        return FileService.GetFileLines(_globalPath);
     }
 
     /* WRITE */
     public readonly void Write(string content)
     {
-        FileService.WriteFile(path, content);
+        FileService.WriteFile(_globalPath, content);
     }
 
     public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
-        if (obj is not FileReference)
-            return ((FileReference)obj!).path == path;
+        if (obj is FileReference fileRef)
+            return fileRef.GlobalPath == GlobalPath;
+
         return base.Equals(obj);
     }
 
@@ -50,7 +57,7 @@ public struct FileReference
 
     public override readonly string ToString()
     {
-        return string.Format("path(\"{0}\")", path);
+        return string.Format("path(\"{0}\")", _globalPath);
     }
 
 }

@@ -9,7 +9,6 @@ using GameEngine.Util.Values;
 using Silk.NET.Windowing;
 using GameEngine.Debugging;
 using Window = GameEngine.Util.Nodes.Window;
-using Console = System.Console;
 using GameEngineEditor.EditorNodes;
 
 namespace GameEngine.Editor;
@@ -72,6 +71,11 @@ public class EditorMain
 
         var textCompileBtn = (textEditor!.GetChild("Toolbar/CompileBtn") as Button)!;
         textCompileBtn.OnPressed.Connect( (object? from, dynamic[]? args) => CompileOpenTextFile() );
+
+        var textEditorField = textEditor.GetChild("FileContentContainer/FileContent") as WriteTextField;
+        textEditorField!.OnTextEdited.Connect((object? node, dynamic[]? args) => {
+            textEditorField.colorsList = CSharpCompiler.Highlight(args![0]);
+        });
 
         #endregion
 
@@ -348,13 +352,17 @@ public class EditorMain
         var code = textField.Text;
 
         var csc = new CSharpCompiler();
-        Type? scriptType = csc.Compile(code, fileBeingEdited!.Value.path);
+        Type? scriptType = csc.Compile(code, fileBeingEdited!.Value.GlobalPath);
 
         if (scriptType != null)
         {
             object scriptInstance = Activator.CreateInstance(scriptType)!;
+            
             MethodInfo executeMethod = scriptType.GetMethod("Execute")!;
+            MethodInfo freeMethod = scriptType.GetMethod("Free")!;
+
             executeMethod.Invoke(scriptInstance, null);
+            freeMethod.Invoke(scriptInstance, null);
         }
     }
 
@@ -411,6 +419,7 @@ public class EditorMain
             p += node.sizePixels.Y;
         }
     }
+
 
     #region really random stuff
 
@@ -637,17 +646,17 @@ public class EditorMain
     private static Pannel CreateLogItem(LogInfo log)
     {
 
-        var nLog = new Pannel();
-        nLog.sizePercent = new(1, 0);
-        nLog.sizePixels = new(0, 32);
-
+        var nLog = new Pannel
+        {
+            sizePercent = new(1, 0),
+            sizePixels = new(0, 32)
+        };
         var message = new TextField
         {
             Color = new(255, 255, 255),
             Font = new("./Assets/Fonts/calibri.ttf", 15),
             Text = log.message
         };
-
         var details = new TextField
         {
             anchor = NodeUI.ANCHOR.BOTTOM_LEFT,
@@ -655,7 +664,6 @@ public class EditorMain
             Font = new("./Assets/Fonts/consola.ttf", 10),
             ForceTextSize = true
         };
-        details.positionPixels.Y = 5;
          
         var sourceFile = log.sourceFile != "" ? log.sourceFile : "undefined";
         var timestamp = log.timestamp.ToString(@"hh\:mm\:ss");

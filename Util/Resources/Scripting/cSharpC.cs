@@ -1,4 +1,5 @@
 using GameEngine.Util.Interfaces;
+using GameEngine.Util.Nodes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -53,7 +54,38 @@ public class CSharpCompiler : Resource, IScriptCompiler
 
     }
 
-    private SyntaxTree PreprocessSyntaxTree(SyntaxTree syntaxTree)
+    public static TextField.ColorSpan[] Highlight(string src)
+    {
+        
+        List<TextField.ColorSpan> spans = [];
+
+        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(src);
+        var root = (CompilationUnitSyntax) syntaxTree.GetRoot();
+
+        // generic tokens //
+        var tokens = root.DescendantTokens();
+        foreach (var token in tokens)
+        {
+            //Console.WriteLine($"{token.Value} ({token.Kind()})");
+            if (token.Kind().ToString().EndsWith("Keyword"))
+                spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(255, 0, 0)));
+
+            else if (token.IsKind(SyntaxKind.IdentifierToken))
+            {
+                if(token.GetNextToken().IsKind(SyntaxKind.OpenParenToken))
+                    spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(0, 255, 0)));
+            }
+
+            else if (token.IsKind(SyntaxKind.StringLiteralToken))
+                spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(255, 255, 0)));
+            
+        }
+
+        return [.. spans];
+
+    }
+
+    private static SyntaxTree PreprocessSyntaxTree(SyntaxTree syntaxTree)
     {
 
         SyntaxTree tree = syntaxTree;
@@ -100,12 +132,12 @@ public class CSharpCompiler : Resource, IScriptCompiler
         }
 
         root = root.AddUsings([.. usingTokens]);
-        
-        Console.WriteLine(root);
 
         #endregion
 
         tree = tree.WithRootAndOptions(root, tree.Options);
+
+        //Console.WriteLine(root);
 
         return tree;
 

@@ -3,7 +3,7 @@ using Silk.NET.OpenGL;
 
 namespace GameEngine.Util.Resources;
 
-public sealed class GlShaderProgram : Resource
+public sealed class GlShaderProgram : SharedResource
 {
 
     private uint _program;
@@ -13,21 +13,6 @@ public sealed class GlShaderProgram : Resource
     public FileReference fragmentShader;
     public FileReference? geometryShader;
 
-    private GlShaderProgram(string vertexFilePath, string fragmentFilePath, string? geometryFilePath=null)
-    {
-        vertexShader = new(vertexFilePath);
-        fragmentShader = new(fragmentFilePath);
-        if (geometryFilePath != null)
-        geometryShader = new(geometryFilePath);
-
-        string vertexCode = vertexShader.ReadAllFile();
-        string fragmentCode = fragmentShader.ReadAllFile();
-        string? geometryCode = geometryFilePath != null ? geometryShader?.ReadAllFile() : null;
-
-        Compile(vertexCode, fragmentCode, geometryCode);
-
-        ResourceHeap.AddShaderProgramReference(this);
-    }
     private GlShaderProgram(FileReference vertexFile, FileReference fragmentFile, FileReference? geometryFile=null)
     {
         vertexShader = vertexFile;
@@ -39,8 +24,6 @@ public sealed class GlShaderProgram : Resource
         string? geometryCode = geometryShader != null ? geometryShader?.ReadAllFile() : null;
 
         Compile(vertexCode, fragmentCode, geometryCode);
-
-        ResourceHeap.AddShaderProgramReference(this);
     }
 
     private void Compile(string vertexCode, string fragmentCode, string? geometryCode=null)
@@ -116,8 +99,7 @@ public sealed class GlShaderProgram : Resource
 
     public override void Dispose()
     {
-        Engine.gl.DeleteProgram(_program);
-        //ResourceHeap.RemoveShaderProgramReference(this);
+        ResourceHeap.Delete(_program, ResourceHeap.DeleteTarget.ShaderProgram);
         base.Dispose();
     }
 
@@ -127,17 +109,24 @@ public sealed class GlShaderProgram : Resource
         FileReference fragment = new(fragmentFilePath);
         FileReference? geometry = geometryFilePath != null ? new(geometryFilePath) : null;
 
-        var res = ResourceHeap.GetShaderProgramReference(vertex, fragment, geometry);
-
-        if (res != null) return res;
-        else return new GlShaderProgram(vertexFilePath, fragmentFilePath, geometryFilePath);
+        return CreateOrGet(vertex, fragment, geometry);
     }
-    public static GlShaderProgram CreateOrGet(FileReference vertexFile, FileReference fragmentFile, FileReference geometryFile)
+    public static GlShaderProgram CreateOrGet(FileReference vertexFile, FileReference fragmentFile, FileReference? geometryFile)
     {
-        var res = ResourceHeap.GetShaderProgramReference(vertexFile, fragmentFile, geometryFile);
+        var res = ResourceHeap.TryGetReference<GlShaderProgram>(vertexFile, fragmentFile, geometryFile);
 
         if (res != null) return res;
         else return new GlShaderProgram(vertexFile, fragmentFile, geometryFile);
     }
 
+    public override bool AreEqualsTo(params object?[] args)
+    {
+        if (!(args.Length == 2 || args.Length == 3)) return false;
+        
+        FileReference? vs = args[0] as FileReference?;
+        FileReference? fs = args[1] as FileReference?;
+        FileReference? gs = args.Length == 3 ? args[2] as FileReference? : null;
+
+        return vertexShader == vs && fragmentShader == fs && geometryShader == gs;
+    }
 }
