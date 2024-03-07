@@ -1,19 +1,13 @@
 using System.Runtime.InteropServices;
 using GameEngine.Util;
 using GameEngine.Util.Resources;
+using GameEngine.Util.Values;
 using Silk.NET.OpenGL;
 
 namespace GameEngine.Core;
 
 public static class DrawService
 {
-    /* see about performace
-    
-    ** as niki said, the use of a dictionaty to get the buffers using IDs
-    ** can be really bad when the dictionary have to be consulted a lot
-    ** of times :(
-    */
-
     public enum BufferUsage { Static, Dynamic, Stream };
 
     private static Dictionary<uint, ResourceDrawData> ResourceData = new();
@@ -21,6 +15,8 @@ public static class DrawService
     #region Gl Binded data
     public static int GlBinded_ShaderProgram = -1;
     #endregion
+
+    private static List<Vector2<uint>> _viewportsStack = [];
 
     public static void CreateCanvasItem(uint NID)
     {
@@ -305,14 +301,24 @@ public static class DrawService
     public static unsafe void Draw(uint NID)
     {
         var res = ResourceData[NID];
+
+        Engine.gl.Viewport(0, 0, _viewportsStack[^1].X, _viewportsStack[^1].Y);
+
         Engine.gl.BindVertexArray(res.VertexArray);
 
         if (!res.useInstancing)
-            Engine.gl.DrawElements(PrimitiveType.Triangles, res.elementsLength,
-            DrawElementsType.UnsignedInt, (void*) 0);
+            Engine.gl.DrawElements(PrimitiveType.Triangles, res.elementsLength, DrawElementsType.UnsignedInt, (void*) 0);
         else
-            Engine.gl.DrawElementsInstanced(PrimitiveType.Triangles, res.elementsLength,
-            DrawElementsType.UnsignedInt, (void*) 0, res.instanceCount);
+            Engine.gl.DrawElementsInstanced(PrimitiveType.Triangles, res.elementsLength, DrawElementsType.UnsignedInt, (void*) 0, res.instanceCount);
+    }
+
+    public static void SetViewport(Vector2<uint> size)
+    {
+        _viewportsStack.Add(size);
+    }
+    public static void PopViewport()
+    {
+        _viewportsStack.Pop();
     }
 
 }

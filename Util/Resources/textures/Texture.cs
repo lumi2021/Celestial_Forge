@@ -59,15 +59,14 @@ public abstract class Texture : Resource
 
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, _filter ? (int)TextureMinFilter.Nearest : (int)TextureMinFilter.Linear);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, _filter ? (int)TextureMagFilter.Nearest : (int)TextureMagFilter.Linear);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, _filter ? (int)TextureMinFilter.Linear : (int)TextureMinFilter.Nearest);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, _filter ? (int)TextureMagFilter.Linear : (int)TextureMagFilter.Nearest);
     }
 
     public void Use() { Engine.gl.BindTexture(GLEnum.Texture2D, _textureId); }
 
     public uint GetId() { return _textureId; }
 
-    #pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
     public override void Dispose()
     {
         ResourceHeap.Delete(_textureId, ResourceHeap.DeleteTarget.Texture);

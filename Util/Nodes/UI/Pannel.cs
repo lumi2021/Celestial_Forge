@@ -1,17 +1,21 @@
 using System.Numerics;
 using GameEngine.Core;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/Panel.svg")]
 public class Pannel : NodeUI, ICanvasItem
 {
 
+    [Inspect]
     public bool Visible { get; set; } = true;
 
     private Color _bgColor = new(100, 100, 100, 0.9f);
+    [Inspect]
     public Color BackgroundColor
     {
         get { return _bgColor; }
@@ -21,6 +25,7 @@ public class Pannel : NodeUI, ICanvasItem
         }
     }
 
+    [Inspect]
     public Material material = new Material2D( Material2D.DrawTypes.SolidColor );
 
     protected override void Init_()
@@ -48,10 +53,8 @@ public class Pannel : NodeUI, ICanvasItem
 
         material.Use();
 
-        var world = MathHelper.Matrix4x4CreateRect(Position, Size)
-            *Matrix4x4.CreateTranslation(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y / 2, 0);
-
-        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X,ParentWindow!.Size.Y,-.1f,.1f);
+        var world = MathHelper.Matrix4x4CreateRect(Position, Size) * Viewport!.Camera2D.GetViewOffset();
+        var proj = Viewport!.Camera2D.GetProjection();
 
         material.SetTranslation(world);
         material.SetProjection(proj);

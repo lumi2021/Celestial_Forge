@@ -5,17 +5,17 @@ namespace GameEngine;
 
 public static class OpenglCustomExtensionMethods
 {
-    public static void Viewport(this GL gL, Vector2<int> size)
+    public static void Viewport(this GL gl, Vector2<int> size)
     {
-        gL.Viewport(0, 0, (uint) size.X, (uint) size.Y);
+        gl.Viewport(0, 0, (uint) size.X, (uint) size.Y);
     }
-    public static void Viewport(this GL gL, Vector2<uint> size)
+    public static void Viewport(this GL gl, Vector2<uint> size)
     {
-        gL.Viewport(0, 0, size.X, size.Y);
+        gl.Viewport(0, 0, size.X, size.Y);
     }
-    public static void Viewport(this GL gL, Rect rectangle)
+    public static void Viewport(this GL gl, Rect rectangle)
     {
-        gL.Viewport((int)rectangle.X, (int)rectangle.Y, (uint)rectangle.Width, (uint)rectangle.Height);
+        gl.Viewport((int)rectangle.X, (int)rectangle.Y, (uint)rectangle.Width, (uint)rectangle.Height);
     }
 
     public static void Scissor(this GL gl, Rect rect)
@@ -26,6 +26,11 @@ public static class OpenglCustomExtensionMethods
     public static void UniformColor(this GL gl, int location, Color color)
     {
         gl.Uniform4(location, color.GetAsNumerics());
+    }
+
+    public static void ClearColor(this GL gl, Color color)
+    {
+        gl.ClearColor(color.NormalR, color.NormalG, color.NormalB, color.A);
     }
 
 }
