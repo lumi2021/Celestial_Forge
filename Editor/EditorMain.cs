@@ -357,8 +357,12 @@ public class EditorMain
         if (scriptType != null)
         {
             object scriptInstance = Activator.CreateInstance(scriptType)!;
+            
             MethodInfo executeMethod = scriptType.GetMethod("Execute")!;
+            MethodInfo freeMethod = scriptType.GetMethod("Free")!;
+
             executeMethod.Invoke(scriptInstance, null);
+            freeMethod.Invoke(scriptInstance, null);
         }
     }
 
