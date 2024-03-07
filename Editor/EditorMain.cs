@@ -649,20 +649,23 @@ public class EditorMain
         var nLog = new Pannel
         {
             sizePercent = new(1, 0),
-            sizePixels = new(0, 32)
+            sizePixels = new(0, 40)
         };
         var message = new TextField
         {
             Color = new(255, 255, 255),
             Font = new("./Assets/Fonts/calibri.ttf", 15),
-            Text = log.message
+            Text = log.message,
+            sizePixels = new(-10, -22),
+            positionPixels = new(5, 5)
         };
         var details = new TextField
         {
             anchor = NodeUI.ANCHOR.BOTTOM_LEFT,
             Color = new(255, 255, 255, 0.5f),
             Font = new("./Assets/Fonts/consola.ttf", 10),
-            ForceTextSize = true
+            sizePercent = new(1, 0),
+            sizePixels = new(0, 12)
         };
          
         var sourceFile = log.sourceFile != "" ? log.sourceFile : "undefined";
