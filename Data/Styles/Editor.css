@@ -1,0 +1,12 @@
+﻿
+Pannel {
+
+    background: rgb(0, 255, 33), rgba(255, 216, 0, 0.5);
+    border: 1px solid black;
+}
+
+Pannel #Screen {
+
+    background: rgb(255, 0, 0);
+    
+}

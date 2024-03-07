@@ -147,6 +147,9 @@ public class NodeUI : Node, IClipChildren
     public enum MouseFilter {Block, Pass, Ignore}
     public MouseFilter mouseFilter = MouseFilter.Block;
 
+    // CSS and styles
+    public List<string> classes = new();
+
     public Rect GetClippingArea()
     {
         var rect = new Rect(
@@ -223,5 +226,12 @@ public class NodeUI : Node, IClipChildren
     }
 
     protected virtual void OnFocusChanged(bool focused) {}
+
+    public void AddClass(string className)
+    { classes.Add(className); }
+    public void RemoveClass(string className)
+    {  classes.Remove(className); }
+    public bool HasClass(string className)
+    { return classes.Contains(className); }
 
 }
