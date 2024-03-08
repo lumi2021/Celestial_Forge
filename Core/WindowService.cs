@@ -24,11 +24,15 @@ public static class WindowService
             Title = title,
             Size = size.GetAsSilkInt(),
             WindowState = WindowState.Normal,
-            Samples = 4
+            ShouldSwapAutomatically = false,
+            Samples = 1,
+            VSync = false
         };
 
         if (mainWindow != null)
             options.SharedContext = mainWindow.GLContext;
+        else
+            options.VSync = true;
 
         var nWin = Window.Create(options);
 
@@ -72,9 +76,7 @@ public static class WindowService
     public static void CallProcess()
     {
         foreach (var win in _windowsToClose)
-        {
             win.Dispose();
-        }
     }
 
 }

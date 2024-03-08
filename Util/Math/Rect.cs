@@ -27,7 +27,7 @@ public struct Rect
         set {Size.Y = value;}
     }
 
-    public Rect() {}
+    public Rect(Vector2<int> positionPixels) {}
     public Rect(Vector2<float> position, Vector2<float> size)
     {
         Position = position;
@@ -85,9 +85,37 @@ public struct Rect
         return new(invertedX, invertedY, Width, Height);
     }
 
-    public static Rect operator + (Rect a, Vector2<int> b) { return AddRectVector2(a, b); }
-    public static Rect operator + (Rect a, Vector2<float> b) { return AddRectVector2(a, b); }
-    public static Rect operator + (Rect a, Vector2<double> b) { return AddRectVector2(a, b); }
+    public readonly Rect FitInside(Rect rect)
+    {
+        return FitInside(this, rect);
+    }
+
+    public static Rect operator + (Rect a, Vector2<int> b) =>       AddRectVector2(a, b);
+    public static Rect operator + (Rect a, Vector2<float> b) =>     AddRectVector2(a, b);
+    public static Rect operator + (Rect a, Vector2<double> b) =>    AddRectVector2(a, b);
+    public static Rect operator - (Rect a, Vector2<int> b) =>       SubRectVector2(a, b);
+    public static Rect operator - (Rect a, Vector2<float> b) =>     SubRectVector2(a, b);
+    public static Rect operator - (Rect a, Vector2<double> b) =>    SubRectVector2(a, b);
+    public static Rect operator * (Rect a, Vector2<int> b) =>       MulRectVector2(a, b);
+    public static Rect operator * (Rect a, Vector2<float> b) =>     MulRectVector2(a, b);
+    public static Rect operator * (Rect a, Vector2<double> b) =>    MulRectVector2(a, b);
+    public static Rect operator / (Rect a, Vector2<int> b) =>       DivRectVector2(a, b);
+    public static Rect operator / (Rect a, Vector2<float> b) =>     DivRectVector2(a, b);
+    public static Rect operator / (Rect a, Vector2<double> b) =>    DivRectVector2(a, b);
+
+    public static Rect FitInside(Rect rectA, Rect rectB)
+    {
+        var posDif = rectB.Position - rectA.Position;
+
+        Rect baseRect = new(
+            MathF.Min(rectA.X, rectB.X),
+            MathF.Min(rectA.Y, rectB.Y),
+            MathF.Max(rectA.Width, posDif.X + rectB.Width),
+            MathF.Max(rectA.Height, posDif.Y + rectB.Height)
+        );
+
+        return baseRect;
+    }
 
     private static Rect AddRectVector2<T>(Rect a, Vector2<T> b) where T : struct
     {
@@ -95,6 +123,35 @@ public struct Rect
 
         Vector2<double> v2 = new(Convert.ToDouble(b.X), Convert.ToDouble(b.Y));
         nRect.Position += v2;
+
+        return nRect;
+    }
+    private static Rect SubRectVector2<T>(Rect a, Vector2<T> b) where T : struct
+    {
+        var nRect = a;
+
+        Vector2<double> v2 = new(Convert.ToDouble(b.X), Convert.ToDouble(b.Y));
+        nRect.Position -= v2;
+
+        return nRect;
+    }
+    private static Rect MulRectVector2<T>(Rect a, Vector2<T> b) where T : struct
+    {
+        var nRect = a;
+
+        Vector2<float> v2 = new(Convert.ToSingle(b.X), Convert.ToSingle(b.Y));
+        nRect.Position *= v2;
+        nRect.Size *= v2;
+
+        return nRect;
+    }
+    private static Rect DivRectVector2<T>(Rect a, Vector2<T> b) where T : struct
+    {
+        var nRect = a;
+
+        Vector2<float> v2 = new(Convert.ToSingle(b.X), Convert.ToSingle(b.Y));
+        nRect.Position /= v2;
+        nRect.Size /= v2;
 
         return nRect;
     }

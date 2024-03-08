@@ -117,4 +117,5 @@ public struct Color
     {
         return new float[] {NormalR, NormalG, NormalB, A};
     }
+
 }

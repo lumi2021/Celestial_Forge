@@ -2,19 +2,17 @@ using System.Diagnostics;
 using GameEngine.Editor;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
-using GameEngine.Util.Resources;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+
 
 namespace GameEngine.Core;
 
 public class Engine
 {
 
-    #pragma warning disable CS8618
-    public static IWindow window;
-    public static GL gl;
-    #pragma warning restore
+    public static IWindow window = null!;
+    public static GL gl = null!;
 
     public static ProjectSettings projectSettings = new();
 
@@ -38,17 +36,27 @@ public class Engine
 
         /* configurate project settings */
         projectSettings.projectLoaded = true;
-        projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
-        //projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
+        //projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
+        projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
         projectSettings.entryScene = @"res://testScene.sce";
 
-        projectSettings.canvasDefaultSize = new(400, 300);
+        projectSettings.canvasDefaultSize = new(800, 600);
+
+        //CascadingStyleSheet.Load("Data/Styles/Editor.css");
 
         /* START EDITOR */
         _ = new EditorMain(projectSettings, mainWin);
 
         /* START RUN */
-        Run();
+        try {
+            Run();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Something goes very wrong!");
+            Console.WriteLine("Exeption:\n{0}", ex);
+            Console.ReadKey();
+        }
 
         /* END PROGRAM */
         root.Free();
@@ -74,7 +82,13 @@ public class Engine
                 win.DoEvents();
                 win.DoUpdate();
                 win.DoRender();
+
+                if (win != WindowService.mainWindow)
+                win.SwapBuffers();
             }
+
+            if (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
+            WindowService.mainWindow.SwapBuffers();
 
             WindowService.CallProcess();
             ResourceHeap.CallProcess();

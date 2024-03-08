@@ -1,4 +1,3 @@
-using GameEngine.Text;
 using GameEngine.Util.Values;
 
 namespace GameEngine.Util.Resources;
@@ -8,7 +7,7 @@ public class Font : Resource
     public delegate void FontUpdatedEventHandler();
     public event FontUpdatedEventHandler? FontUpdated;
 
-    private FreeType_TtfGlyphLoader glyphLoader = new("../../../Assets/Fonts/calibri.ttf", 24);
+    private CharacterSet glyphLoader = CharacterSet.CreateOrGet("Assets/Fonts/calibri.ttf", 24);
     private uint _size = 24;
     private string _path = "Assets/Fonts/calibri.ttf";
 
@@ -24,11 +23,8 @@ public class Font : Resource
         set { LoadFont(value, _size); }
     }
 
-    // font metrics data
-    public int descender;
     public int fontheight;
     public int lineheight;
-    public int ascender;
 
     public byte[] AtlasData { get { return glyphLoader.AtlasData; } }
     public Vector2<int> AtlasSize { get { return glyphLoader.AtlasSize; } }
@@ -47,11 +43,10 @@ public class Font : Resource
     {
         _path = path;
         _size = size;
-        glyphLoader = new("../../../" + path, size);
-        descender = glyphLoader.descender;
+
+        glyphLoader = CharacterSet.CreateOrGet(path, size);
         fontheight = glyphLoader.fontheight;
         lineheight = glyphLoader.lineheight;
-        ascender = glyphLoader.ascender;
 
         FontUpdated?.Invoke();
     }
@@ -63,6 +58,11 @@ public class Font : Resource
     public Character CreateChar(char c)
     {
         return glyphLoader.CreateChar(c);
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
     }
 
 }

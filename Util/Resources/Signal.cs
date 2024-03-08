@@ -4,11 +4,11 @@ public class Signal : Resource
 {
     private event SignalHandler? SignalEvent;
 
-    public void Emit(object from, dynamic[]? args = null)
+    public void Emit(object from, params dynamic[]? args)
     {
         SignalEvent?.Invoke(from, args);
     }
-    public void Emit(dynamic[]? args = null)
+    public void Emit(params dynamic[]? args)
     {
         SignalEvent?.Invoke(null, args);
     }

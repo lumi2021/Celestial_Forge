@@ -1,5 +1,6 @@
 using System.Numerics;
 using GameEngine.Core;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 
@@ -8,17 +9,20 @@ namespace GameEngine.Util.Nodes;
 public class TextureRect : NodeUI, ICanvasItem
 {
 
+    [Inspect]
     public bool Visible { get; set; } = true;
 
+    [Inspect]
     public Texture? texture = null;
+    [Inspect]
     public Material material = new Material2D( Material2D.DrawTypes.Texture );
 
     protected override void Init_()
     {
 
-        float[] v = new float[] { 0.0f,0.0f, 1.0f,0.0f, 1.0f,1.0f, 0.0f,1.0f };
-        float[] uv = new float[] { 0f,0f, 1f,0f, 1f,1f, 0f,1f };
-        uint[] i = new uint[] {0,1,3, 1,2,3};
+        float[] v = [0.0f,0.0f, 1.0f,0.0f, 1.0f,1.0f, 0.0f,1.0f];
+        float[] uv = [0f,0f, 1f,0f, 1f,1f, 0f,1f];
+        uint[] i = [0,1,3, 1,2,3];
 
         DrawService.CreateBuffer(NID, "aPosition");
         DrawService.SetBufferData(NID, "aPosition", v, 2);
@@ -37,9 +41,8 @@ public class TextureRect : NodeUI, ICanvasItem
         texture?.Use();
         material.Use();
 
-        var world = MathHelper.Matrix4x4CreateRect(Position, Size)
-        * Matrix4x4.CreateTranslation(new Vector3(-ParentWindow!.Size.X/2, -ParentWindow!.Size.Y/2, 0));
-        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X,ParentWindow!.Size.Y,-.1f,.1f);
+        var world = MathHelper.Matrix4x4CreateRect(Position, Size) * Viewport!.Camera2D.GetViewOffset();
+        var proj = Viewport!.Camera2D.GetProjection();
 
         material.SetTranslation(world);
         material.SetProjection(proj);

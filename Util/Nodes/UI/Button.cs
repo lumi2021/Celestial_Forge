@@ -1,7 +1,9 @@
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Resources;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/Button.svg")]
 public class Button : NodeUI
 {
     
