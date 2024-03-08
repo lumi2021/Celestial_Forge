@@ -54,8 +54,10 @@ public abstract class Material : Resource
                 UniformType.FloatVec2       =>  typeof(Vector2<float>),
                 UniformType.DoubleVec2      =>  typeof(Vector2<double>),
 
+                UniformType.IntVec4         =>  typeof(Vector4<int>),
                 UniformType.UnsignedIntVec4 =>  typeof(Vector4<uint>),
                 UniformType.FloatVec4       =>  typeof(Vector4<float>),
+                UniformType.DoubleVec4      =>  typeof(Vector4<double>),
 
                 UniformType.Bool            =>  typeof(bool),
                 UniformType.FloatMat4       =>  typeof(Matrix4x4),
@@ -148,7 +150,7 @@ public abstract class Material : Resource
                     Engine.gl.Uniform4(i.Value.location, val.X, val.Y, val.Z, val.W);
                 }
                 else                
-                    Engine.gl.Uniform4(i.Value.location, 0, 0, 0, 0);
+                    Engine.gl.Uniform4(i.Value.location, (uint)0, (uint)0, (uint)0, (uint)0);
             }
             
             else if (i.Value.type == typeof(Matrix4x4))
@@ -264,7 +266,29 @@ public abstract class Material : Resource
             }
             else throw new ApplicationException(
                 string.Format("Uniform {0} is of type {1} and can't use type {2}!",
-                name, uInfo.type.Name, typeof(Vector2<float>).Name)
+                name, GetName(uInfo.type), GetName(typeof(Vector2<float>)))
+                );
+        }
+        else Console.WriteLine("Uniform \"{0}\" don't exist!", name);
+    }
+    public unsafe void SetUniform(string name, Vector2<uint> value)
+    {
+        var uInfoRes = GetUInformation(name);
+       
+        if (uInfoRes.HasValue)
+        {
+            var uInfo = uInfoRes.Value;
+            
+            if (uInfo.type == typeof(Vector2<uint>))
+            {
+                uInfo.value = value;
+                Engine.gl.Uniform2(uInfo.location, value.X, value.Y);
+
+                _shaderUniforms[name] = uInfo;
+            }
+            else throw new ApplicationException(
+                string.Format("Uniform {0} is of type {1} and can't use type {2}!",
+                name, GetName(uInfo.type), GetName(typeof(Vector2<uint>)))
                 );
         }
         else Console.WriteLine("Uniform \"{0}\" don't exist!", name);
@@ -287,7 +311,7 @@ public abstract class Material : Resource
             }
             else throw new ApplicationException(
                 string.Format("Uniform {0} is of type {1} and can't use type {2}!",
-                name, uInfo.type.Name, typeof(Vector4<float>).Name)
+                name, GetName(uInfo.type), GetName(typeof(Vector4<float>)))
                 );
         }
         else Console.WriteLine("Uniform \"{0}\" don't exist!", name);
@@ -309,7 +333,7 @@ public abstract class Material : Resource
             }
             else throw new ApplicationException(
                 string.Format("Uniform {0} is of type {1} and can't use type {2}!",
-                name, uInfo.type.Name, typeof(Vector4<uint>).Name)
+                name, GetName(uInfo.type), GetName(typeof(Vector4<uint>)))
                 );
         }
         else Console.WriteLine("Uniform \"{0}\" don't exist!", name);
@@ -348,6 +372,14 @@ public abstract class Material : Resource
         Engine.gl.UniformMatrix4(projMatrixLocation, 1, true, (float*) &m);
     }
     #endregion
+
+    private string GetName(Type t)
+    {
+        if (t.IsGenericType)
+            return t.GetGenericTypeDefinition().Name + "<" + string.Join(", ", t.GetGenericArguments().Select(t => t.Name)) + ">";
+
+        else return t.Name;
+    }
 
     public struct Uniform
     {

@@ -53,10 +53,7 @@ public class Pannel : NodeUI, ICanvasItem
         get { return _cornerRadius; }
         set {
             _cornerRadius = value;
-            material.SetUniform("cornerRadius", new Vector4<float>(
-                _cornerRadius.X, _cornerRadius.Y,
-                _cornerRadius.Z, _cornerRadius.W
-            ));
+            material.SetUniform("cornerRadius", _cornerRadius);
         }
     }
 
@@ -82,10 +79,7 @@ public class Pannel : NodeUI, ICanvasItem
         material.SetUniform("color", _bgColor);
         material.SetUniform("strokeColor", _strokeColor);
         material.SetUniform("strokeSize", _strokeSize);
-        material.SetUniform("cornerRadius", new Vector4<float>(
-                _cornerRadius.X, _cornerRadius.Y,
-                _cornerRadius.Z, _cornerRadius.W
-            ));
+        material.SetUniform("cornerRadius", _cornerRadius);
     }
 
     protected override unsafe void Draw(double deltaT)
@@ -104,7 +98,7 @@ public class Pannel : NodeUI, ICanvasItem
         material.SetProjection(proj);
 
         material.SetUniform("pixel_size", new Vector2<float>(1,1) / fSize);
-        material.SetUniform("size_in_pixels", fSize);
+        material.SetUniform("size_in_pixels", (Vector2<uint>)fSize);
 
         DrawService.Draw(NID);
     }

@@ -13,7 +13,7 @@ uniform uvec4 cornerRadius;
 
 uniform sampler2D color_tex0;
 
-uniform uvec2 pixel_size;
+uniform vec2 pixel_size;
 uniform uvec2 size_in_pixels;
 
 out vec4 out_color;
@@ -46,8 +46,7 @@ void main()
     if (cornerRadius.x > 0 &&
     pixelCoord.x < cornerRadius.x && pixelCoord.y < cornerRadius.x)
     {
-        vec2 a = vec2(cornerRadius.x, cornerRadius.x) - pixelCoord;
-        float d = sqrt(a.x*a.x + a.y*a.y);
+        float d = distance(vec2(cornerRadius.x, cornerRadius.x), pixelCoord);
 
         if (d > cornerRadius.x + strokeSize) discard;
         else if (d > cornerRadius.x) out_color = strokeColor;
@@ -55,8 +54,7 @@ void main()
     }else if (cornerRadius.y > 0 &&
     size_in_pixels.x - pixelCoord.x < cornerRadius.y && pixelCoord.y < cornerRadius.y)
     {
-        vec2 a = vec2(size_in_pixels.x - cornerRadius.y, cornerRadius.y) - pixelCoord;
-        float d = sqrt(a.x*a.x + a.y*a.y);
+        float d = distance(vec2(size_in_pixels.x - cornerRadius.y, cornerRadius.y), pixelCoord);
 
         if (d > cornerRadius.y + strokeSize) discard;
         else if (d > cornerRadius.y) out_color = strokeColor;
@@ -64,8 +62,7 @@ void main()
     }else if (cornerRadius.z > 0 &&
     size_in_pixels.x - pixelCoord.x < cornerRadius.z && size_in_pixels.y - pixelCoord.y < cornerRadius.z)
     {
-        vec2 a = vec2(size_in_pixels.x - cornerRadius.z, size_in_pixels.y - cornerRadius.z) - pixelCoord;
-        float d = sqrt(a.x*a.x + a.y*a.y);
+        float d = distance(vec2(size_in_pixels.x - cornerRadius.z, size_in_pixels.y - cornerRadius.z), pixelCoord);
 
         if (d > cornerRadius.z + strokeSize) discard;
         else if (d > cornerRadius.z) out_color = strokeColor;
@@ -73,8 +70,7 @@ void main()
     }else if (cornerRadius.w > 0 &&
     pixelCoord.x < cornerRadius.w && size_in_pixels.y - pixelCoord.y < cornerRadius.w)
     {
-        vec2 a = vec2(cornerRadius.w, size_in_pixels.y - cornerRadius.w) - pixelCoord;
-        float d = sqrt(a.x*a.x + a.y*a.y);
+        float d = distance(vec2(cornerRadius.w, size_in_pixels.y - cornerRadius.w), pixelCoord);
 
         if (d > cornerRadius.w + strokeSize) discard;
         else if (d > cornerRadius.w) out_color = strokeColor;
