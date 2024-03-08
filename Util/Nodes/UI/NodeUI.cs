@@ -28,6 +28,8 @@ public class NodeUI : Node, IClipChildren
     }
     [Inspect]
     public ANCHOR anchor = ANCHOR.TOP_LEFT;
+    [Inspect]
+    public uint padding = 0;
 
     //Get parent size
     private Vector2<float> ParentSize {
@@ -35,7 +37,7 @@ public class NodeUI : Node, IClipChildren
             Vector2<float> pSize;
             
             if (parent != null && parent is NodeUI @p)
-                pSize = @p.Size;
+                pSize = @p.Size - new Vector2<float>(@p.padding*2, @p.padding*2);
 
             else if (Viewport != null)
                 pSize = new Vector2<float>(Viewport!.ContainerSize.X, Viewport!.ContainerSize.Y+1);
@@ -53,8 +55,8 @@ public class NodeUI : Node, IClipChildren
         get {
             Vector2<float> parentPos = new(0, -1);
 
-            if (parent != null && parent is NodeUI)
-                parentPos = (parent as NodeUI)!.Position;
+            if (parent != null && parent is NodeUI p)
+                parentPos = p.Position + new Vector2<int>((int)p.padding, (int)p.padding);
 
             Vector2<float> finalPosition = new();
 
@@ -148,7 +150,7 @@ public class NodeUI : Node, IClipChildren
     public MouseFilter mouseFilter = MouseFilter.Block;
 
     // CSS and styles
-    public List<string> classes = new();
+    public List<string> classes = [];
 
     public Rect GetClippingArea()
     {
@@ -164,9 +166,9 @@ public class NodeUI : Node, IClipChildren
             rect /= Viewport.Camera2D.zoom;
         }
         
-        if (parent is IClipChildren)
+        if (parent is IClipChildren p)
         {
-            rect = rect.Intersection((parent as IClipChildren)!.GetClippingArea());
+            rect = rect.Intersection(p.GetClippingArea());
         }
         
         return rect;
@@ -186,12 +188,9 @@ public class NodeUI : Node, IClipChildren
         }
     }
 
-    public void RunUIInputEvent(InputEvent e)
-    { OnUIInputEvent(e); }
-    public void RunFocusedUIInputEvent(InputEvent e)
-    { OnFocusedUIInputEvent(e); }
-    public void RunFocusChanged(bool focused)
-    { OnFocusChanged(focused); }
+    public void RunUIInputEvent(InputEvent e) => OnUIInputEvent(e);
+    public void RunFocusedUIInputEvent(InputEvent e) => OnFocusedUIInputEvent(e);
+    public void RunFocusChanged(bool focused) => OnFocusChanged(focused);
 
     protected virtual void OnFocusedUIInputEvent(InputEvent e)
     {
@@ -227,11 +226,8 @@ public class NodeUI : Node, IClipChildren
 
     protected virtual void OnFocusChanged(bool focused) {}
 
-    public void AddClass(string className)
-    { classes.Add(className); }
-    public void RemoveClass(string className)
-    {  classes.Remove(className); }
-    public bool HasClass(string className)
-    { return classes.Contains(className); }
+    public void AddClass(string className) => classes.Add(className);
+    public void RemoveClass(string className) => classes.Remove(className);
+    public bool HasClass(string className) => classes.Contains(className);
 
 }

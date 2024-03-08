@@ -49,7 +49,7 @@ public class EditorMain
         mainWindow.Title = "Celestial Forge";
 
         /* INSTANTIATE EDITOR */
-        var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
+        var scene = PackagedScene.Load("Data/Screens/mainEditor/editor.json")!.Instantiate();
         mainWindow.AddAsChild(scene);
         editorRoot = scene;
 

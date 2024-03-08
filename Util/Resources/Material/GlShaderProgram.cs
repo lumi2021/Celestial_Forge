@@ -13,7 +13,7 @@ public sealed class GlShaderProgram : SharedResource
     public FileReference fragmentShader;
     public FileReference? geometryShader;
 
-    private GlShaderProgram(FileReference vertexFile, FileReference fragmentFile, FileReference? geometryFile=null)
+    private GlShaderProgram(FileReference vertexFile, FileReference fragmentFile, FileReference? geometryFile=null) : base()
     {
         vertexShader = vertexFile;
         fragmentShader = fragmentFile;

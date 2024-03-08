@@ -2,7 +2,6 @@ using System.Diagnostics;
 using GameEngine.Editor;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
-using GameEngine.Util.Resources;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
@@ -37,13 +36,13 @@ public class Engine
 
         /* configurate project settings */
         projectSettings.projectLoaded = true;
-        projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
-        //projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
+        //projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
+        projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
         projectSettings.entryScene = @"res://testScene.sce";
 
         projectSettings.canvasDefaultSize = new(800, 600);
 
-        CascadingStyleSheet.Load("Data/Styles/Editor.css");
+        //CascadingStyleSheet.Load("Data/Styles/Editor.css");
 
         /* START EDITOR */
         _ = new EditorMain(projectSettings, mainWin);

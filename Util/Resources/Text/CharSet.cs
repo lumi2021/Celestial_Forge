@@ -56,7 +56,7 @@ public class CharacterSet : SharedResource
     }
     public Vector2<int> AtlasSize { get { return new(_texture.Width, _texture.Height); } }
 
-    private CharacterSet(FileReference path, uint size)
+    private CharacterSet(FileReference path, uint size) : base()
     {
 
         if (!path.Exists) throw new FileNotFoundException("Failed to load font file: " + path);
@@ -211,6 +211,9 @@ public class CharacterSet : SharedResource
 
     public override bool AreEqualsTo(params object?[] args)
     {
-        throw new NotImplementedException();
+        if (args.Length == 2)
+            return Path == (FileReference)args[0]! && Size == (uint)args[1]!;
+        
+        else return false;
     }
 }
