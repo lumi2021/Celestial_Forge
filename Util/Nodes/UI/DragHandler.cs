@@ -8,11 +8,8 @@ using Silk.NET.GLFW;
 
 namespace GameEngine.Util.Nodes;
 
-public class DragHandler : NodeUI, ICanvasItem
+public class DragHandler : NodeUI
 {
-
-    [Inspect]
-    public bool Visible { get; set; } = true;
 
     public enum Axis {any, XAxis, YAxis}
     [Inspect]
@@ -210,8 +207,5 @@ public class DragHandler : NodeUI, ICanvasItem
 
         DrawService.Draw(NID);
     }
-
-    public void Show() { Visible = true; }
-    public void Hide() { Visible = false; }
 
 }

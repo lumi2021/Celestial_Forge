@@ -10,8 +10,6 @@ namespace GameEngine.Util.Nodes;
 [Icon("./Assets/icons/Nodes/Panel.svg")]
 public class Pannel : NodeUI, ICanvasItem
 {
-    [Inspect]
-    public bool Visible { get; set; } = true;
 
     private Color _bgColor = new(100, 100, 100, 0.9f);
     private Color _strokeColor = new(0, 0, 0, 0.9f);
@@ -102,8 +100,5 @@ public class Pannel : NodeUI, ICanvasItem
 
         DrawService.Draw(NID);
     }
-
-    public void Show() { Visible = true; }
-    public void Hide() { Visible = false; }
 
 }

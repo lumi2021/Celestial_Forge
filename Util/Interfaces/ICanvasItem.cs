@@ -7,4 +7,7 @@ public interface ICanvasItem
     public void Show();
     public void Hide();
 
+    public int ZIndex { get; set; }
+    public int GlobalZIndex { get; }
+
 }

@@ -26,6 +26,7 @@ public static class WindowService
             WindowState = WindowState.Normal,
             ShouldSwapAutomatically = false,
             Samples = 1,
+            PreferredDepthBufferBits = 8,
             VSync = false
         };
 
@@ -67,10 +68,11 @@ public static class WindowService
 
         // GL configurations //
         gl.ClearColor(1f, 1f, 1f, 1f);
-        gl.Enable(EnableCap.Multisample);
         gl.Enable(EnableCap.ScissorTest);
         gl.Enable(EnableCap.Blend);
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        gl.Enable(EnableCap.DepthTest);
+        gl.DepthFunc(DepthFunction.Lequal);
     }
 
     public static void CallProcess()
