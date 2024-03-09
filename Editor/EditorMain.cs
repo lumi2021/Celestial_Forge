@@ -31,6 +31,7 @@ public class EditorMain
 
     /* ETC */
     private int maintab = 0;
+    private int bottomtab = 0;
 
     private FileReference? fileBeingEdited = null;
 
@@ -179,10 +180,45 @@ public class EditorMain
         sb!.target = nodesList;
         #endregion
 
-        /* INSTANTIATE AND CONFIGURATE CONSOLE */
+        /* INSTANTIATE AND CONFIGURATE BOTTOM BAR */
         #region
         
-        console = editorRoot!.GetChild("Main/Center/BottomBar/BottomBarWindow/Console/ConsoleLog") as NodeUI;
+        // tab buttons
+        var bottomBar = editorRoot!.GetChild("Main/Center/BottomBar") as Pannel;
+
+        var outputBtn = bottomBar!.GetChild("Tabs/OutputBtn") as Button;
+        var errorsBtn = bottomBar!.GetChild("Tabs/ErrorsBtn") as Button;
+        var monitorsBtn = bottomBar!.GetChild("Tabs/MonitorsButton") as Button;
+
+        var consoleTab = bottomBar!.GetChild("BottomBarWindow/ConsoleTab") as NodeUI;
+        var errorsTab = bottomBar!.GetChild("BottomBarWindow/ErrorsTab") as NodeUI;
+        var monitorsTab = bottomBar!.GetChild("BottomBarWindow/MonitorsTab") as NodeUI;
+
+        /*
+        outputBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
+            bottomtab = 0;
+            consoleTab!.Visible = true;
+            errorsTab!.Visible = false;
+            monitorsTab!.Visible = false;
+        });
+
+        errorsBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
+            bottomtab = 1;
+            consoleTab!.Visible = false;
+            errorsTab!.Visible = true;
+            monitorsTab!.Visible = false;
+        });
+
+        monitorsBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
+            bottomtab = 1;
+            consoleTab!.Visible = false;
+            errorsTab!.Visible = false;
+            monitorsTab!.Visible = true;
+        });
+        */
+
+        // console
+        console = bottomBar!.GetChild("BottomBarWindow/ConsoleTab/Console/ConsoleLog") as NodeUI;
         Debug.OnLogEvent += OnLog;
 
         #endregion

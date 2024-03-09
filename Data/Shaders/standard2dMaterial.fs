@@ -43,7 +43,7 @@ void main()
 
     // calclulate corner roundness
 
-    if (cornerRadius.x > 0 &&
+    if (int(cornerRadius.x) > 0 &&
     pixelCoord.x < cornerRadius.x && pixelCoord.y < cornerRadius.x)
     {
         float d = distance(vec2(cornerRadius.x, cornerRadius.x), pixelCoord);
@@ -51,7 +51,7 @@ void main()
         if (d > cornerRadius.x + strokeSize) discard;
         else if (d > cornerRadius.x) out_color = strokeColor;
 
-    }else if (cornerRadius.y > 0 &&
+    }else if (int(cornerRadius.y) > 0 &&
     size_in_pixels.x - pixelCoord.x < cornerRadius.y && pixelCoord.y < cornerRadius.y)
     {
         float d = distance(vec2(size_in_pixels.x - cornerRadius.y, cornerRadius.y), pixelCoord);
@@ -59,7 +59,7 @@ void main()
         if (d > cornerRadius.y + strokeSize) discard;
         else if (d > cornerRadius.y) out_color = strokeColor;
 
-    }else if (cornerRadius.z > 0 &&
+    }else if (int(cornerRadius.z) > 0 &&
     size_in_pixels.x - pixelCoord.x < cornerRadius.z && size_in_pixels.y - pixelCoord.y < cornerRadius.z)
     {
         float d = distance(vec2(size_in_pixels.x - cornerRadius.z, size_in_pixels.y - cornerRadius.z), pixelCoord);
@@ -67,7 +67,7 @@ void main()
         if (d > cornerRadius.z + strokeSize) discard;
         else if (d > cornerRadius.z) out_color = strokeColor;
 
-    }else if (cornerRadius.w > 0 &&
+    }else if (int(cornerRadius.w) > 0 &&
     pixelCoord.x < cornerRadius.w && size_in_pixels.y - pixelCoord.y < cornerRadius.w)
     {
         float d = distance(vec2(cornerRadius.w, size_in_pixels.y - cornerRadius.w), pixelCoord);

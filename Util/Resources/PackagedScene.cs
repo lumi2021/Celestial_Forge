@@ -191,6 +191,19 @@ public class PackagedScene : Resource
                 t = csc.Compile(script.ReadAllFile(), script.GlobalPath);
             }
 
+            else if (data.TryGetValue("SceneRef", out var tkn3))
+            {
+                PackagedScene? scene = Load(tkn3.Value<string>()!);
+                if (scene != null)
+                {
+                    
+                    scene.root.Name = data.Value<string>("Name")!;
+                    return scene.root;
+                
+                }
+                else return null;
+            }
+
             if (t != null)
             {
 
