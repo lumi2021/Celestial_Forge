@@ -178,7 +178,31 @@ public class PackagedScene : Resource
 
         private PackagedNode? LoadPackagedNodeFromJson(JObject data)
         {
-            Type? t = Type.GetType("GameEngine.Util.Nodes." + data.GetValue("NodeType")!.Value<string>());
+            Type? t = null;
+            
+            if (data.TryGetValue("NodeType", out var tkn1))
+                t = Type.GetType("GameEngine.Util.Nodes." + tkn1.Value<string>());
+
+            // compile the script and get the class back
+            else if (data.TryGetValue("NodeScript", out var tkn2))
+            {
+                var csc = new CSharpCompiler();
+                FileReference script = new(tkn2.Value<string>()!);
+                t = csc.Compile(script.ReadAllFile(), script.GlobalPath);
+            }
+
+            else if (data.TryGetValue("SceneRef", out var tkn3))
+            {
+                PackagedScene? scene = Load(tkn3.Value<string>()!);
+                if (scene != null)
+                {
+                    
+                    scene.root.Name = data.Value<string>("Name")!;
+                    return scene.root;
+                
+                }
+                else return null;
+            }
 
             if (t != null)
             {
@@ -190,7 +214,7 @@ public class PackagedScene : Resource
                 };
 
                 // LOAD DATA
-                string[] ignore = new string[] {"NodeType", "Name", "Children"};
+                string[] ignore = ["NodeType", "NodeScript", "Name", "Children"];
                 foreach (var i in data)
                 {
                     if (ignore.Contains(i.Key)) continue;

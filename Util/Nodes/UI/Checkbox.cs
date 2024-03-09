@@ -75,9 +75,8 @@ internal class Checkbox : NodeUI
         material.SetUniform("color", _color);
         material.SetUniform("configDrawType", useTexture? 1 : 0);
 
-        var world = MathHelper.Matrix4x4CreateRect(Position, Size)
-            * Matrix4x4.CreateTranslation(-ParentWindow!.Size.X / 2, -ParentWindow!.Size.Y / 2, GlobalZIndex);
-        var proj = Matrix4x4.CreateOrthographic(ParentWindow!.Size.X, ParentWindow!.Size.Y,-1000f,1000f);
+        var world = MathHelper.Matrix4x4CreateRect(Position, Size) * Viewport!.Camera2D.GetViewOffset();
+        var proj = Viewport!.Camera2D.GetProjection();
 
         material.SetTranslation(world);
         material.SetProjection(proj);

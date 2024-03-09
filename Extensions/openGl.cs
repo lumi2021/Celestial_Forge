@@ -28,4 +28,9 @@ public static class OpenglCustomExtensionMethods
         gl.Uniform4(location, color.GetAsNumerics());
     }
 
+    public static void ClearColor(this GL gl, Color color)
+    {
+        gl.ClearColor(color.NormalR, color.NormalG, color.NormalB, color.A);
+    }
+
 }

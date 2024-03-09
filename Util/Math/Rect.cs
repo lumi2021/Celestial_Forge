@@ -90,9 +90,18 @@ public struct Rect
         return FitInside(this, rect);
     }
 
-    public static Rect operator + (Rect a, Vector2<int> b) { return AddRectVector2(a, b); }
-    public static Rect operator + (Rect a, Vector2<float> b) { return AddRectVector2(a, b); }
-    public static Rect operator + (Rect a, Vector2<double> b) { return AddRectVector2(a, b); }
+    public static Rect operator + (Rect a, Vector2<int> b) =>       AddRectVector2(a, b);
+    public static Rect operator + (Rect a, Vector2<float> b) =>     AddRectVector2(a, b);
+    public static Rect operator + (Rect a, Vector2<double> b) =>    AddRectVector2(a, b);
+    public static Rect operator - (Rect a, Vector2<int> b) =>       SubRectVector2(a, b);
+    public static Rect operator - (Rect a, Vector2<float> b) =>     SubRectVector2(a, b);
+    public static Rect operator - (Rect a, Vector2<double> b) =>    SubRectVector2(a, b);
+    public static Rect operator * (Rect a, Vector2<int> b) =>       MulRectVector2(a, b);
+    public static Rect operator * (Rect a, Vector2<float> b) =>     MulRectVector2(a, b);
+    public static Rect operator * (Rect a, Vector2<double> b) =>    MulRectVector2(a, b);
+    public static Rect operator / (Rect a, Vector2<int> b) =>       DivRectVector2(a, b);
+    public static Rect operator / (Rect a, Vector2<float> b) =>     DivRectVector2(a, b);
+    public static Rect operator / (Rect a, Vector2<double> b) =>    DivRectVector2(a, b);
 
     public static Rect FitInside(Rect rectA, Rect rectB)
     {
@@ -114,6 +123,35 @@ public struct Rect
 
         Vector2<double> v2 = new(Convert.ToDouble(b.X), Convert.ToDouble(b.Y));
         nRect.Position += v2;
+
+        return nRect;
+    }
+    private static Rect SubRectVector2<T>(Rect a, Vector2<T> b) where T : struct
+    {
+        var nRect = a;
+
+        Vector2<double> v2 = new(Convert.ToDouble(b.X), Convert.ToDouble(b.Y));
+        nRect.Position -= v2;
+
+        return nRect;
+    }
+    private static Rect MulRectVector2<T>(Rect a, Vector2<T> b) where T : struct
+    {
+        var nRect = a;
+
+        Vector2<float> v2 = new(Convert.ToSingle(b.X), Convert.ToSingle(b.Y));
+        nRect.Position *= v2;
+        nRect.Size *= v2;
+
+        return nRect;
+    }
+    private static Rect DivRectVector2<T>(Rect a, Vector2<T> b) where T : struct
+    {
+        var nRect = a;
+
+        Vector2<float> v2 = new(Convert.ToSingle(b.X), Convert.ToSingle(b.Y));
+        nRect.Position /= v2;
+        nRect.Size /= v2;
 
         return nRect;
     }

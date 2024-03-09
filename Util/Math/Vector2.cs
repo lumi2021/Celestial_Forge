@@ -1,8 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace GameEngine.Util.Values;
 
-public struct Vector2<T> where T : struct
+public partial struct Vector2<T> where T : struct
 {
     public T X { get; set; }
     public T Y { get; set; }
@@ -35,35 +36,52 @@ public struct Vector2<T> where T : struct
         Y = (T)Convert.ChangeType(numericsVector2.Y, typeof(T));
     }
 
-    public Vector2<T> Normalized()
+    public readonly Vector2<T> Normalized()
     {
         return new Vector2<T>(X, Y) / Magnitude;
     }
 
-    public Vector2 GetAsNumerics()
+    public readonly Vector2 GetAsNumerics()
     {
         return new Vector2((float)Convert.ToDouble(X), (float)Convert.ToDouble(Y));
     }
-    public Silk.NET.Maths.Vector2D<float> GetAsSilkFloat()
+    public readonly Silk.NET.Maths.Vector2D<float> GetAsSilkFloat()
     {
         return new Silk.NET.Maths.Vector2D<float>(
             (float)Convert.ToDouble(X),
             (float)Convert.ToDouble(Y)
             );
     }
-    public Silk.NET.Maths.Vector2D<double> GetAsSilkDouble()
+    public readonly Silk.NET.Maths.Vector2D<double> GetAsSilkDouble()
     {
         return new Silk.NET.Maths.Vector2D<double>(
             Convert.ToDouble(X),
             Convert.ToDouble(Y)
             );
     }
-    public Silk.NET.Maths.Vector2D<int> GetAsSilkInt()
+    public readonly Silk.NET.Maths.Vector2D<int> GetAsSilkInt()
     {
         return new Silk.NET.Maths.Vector2D<int>(
             (int)Convert.ToDouble(X),
             (int)Convert.ToDouble(Y)
             );
+    }
+
+    public override readonly string ToString()
+    {
+        return string.Format("v2({0}, {1})", X, Y);
+    }
+}
+
+#region operators
+public partial struct Vector2<T> where T : struct
+{
+    public static Vector2<T> operator - (Vector2<T> a)
+    {
+        return new (
+            (T)Convert.ChangeType(-Convert.ToDouble(a.X), typeof(T)),
+            (T)Convert.ChangeType(-Convert.ToDouble(a.Y), typeof(T))
+        );
     }
 
     public static Vector2<T> operator + (Vector2<T> a, Vector2<int> b)
@@ -111,49 +129,63 @@ public struct Vector2<T> where T : struct
     }
     
     public static Vector2<T> operator * (Vector2<T> a, int b)
-    {return DoMultiplication(a, b);}
+        => DoMultiplication(a, b);
     public static Vector2<T> operator * (Vector2<T> a, float b)
-    {return DoMultiplication(a, b);}
+        => DoMultiplication(a, b);
     public static Vector2<T> operator * (Vector2<T> a, double b)
-    {return DoMultiplication(a, b);}
+        => DoMultiplication(a, b);
     public static Vector2<T> operator * (Vector2<T> a, Vector2<T> b)
-    {return DoVectorMultiplication(a, b);}
+        => DoVectorMultiplication(a, b);
     public static Vector2<T> operator * (Vector2<T> a, Matrix4x4 b)
-    {return DoMatrixMultiplication(a, b);}
+        => DoMatrixMultiplication(a, b);
     
     public static Vector2<T> operator / (Vector2<T> a, int b)
-    {return DoDivision(a, b);}
+        => DoDivision(a, b);
     public static Vector2<T> operator / (Vector2<T> a, float b)
-    {return DoDivision(a, b);}
+        => DoDivision(a, b);
     public static Vector2<T> operator / (Vector2<T> a, double b)
-    {return DoDivision(a, b);}
+        => DoDivision(a, b);
     public static Vector2<T> operator / (Vector2<T> a, Vector2<T> b)
-    {return DoVectorDivision(a, b);}
+        => DoVectorDivision(a, b);
+
+    public static bool operator ==(Vector2<T> a, Vector2<T> b)
+    {
+        return Convert.ToDouble(a.X) == Convert.ToDouble(b.X)
+            && Convert.ToDouble(a.Y) == Convert.ToDouble(b.Y);
+    }
+    public static bool operator !=(Vector2<T> a, Vector2<T> b)
+    {
+        return !(Convert.ToDouble(a.X) == Convert.ToDouble(b.X)
+            && Convert.ToDouble(a.Y) == Convert.ToDouble(b.Y));
+    }
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
+    {
+        return base.Equals(obj);
+    }
+    public override readonly int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 
     public static explicit operator Vector2<int>(Vector2<T> vec2)
     {
-        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
-        return new((int) x, (int) y);
+        return new(Convert.ToInt32(vec2.X), Convert.ToInt32(vec2.Y));
     }
     public static explicit operator Vector2<uint>(Vector2<T> vec2)
     {
-        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
-        return new((uint) x, (uint) y);
+        return new(Convert.ToUInt32(vec2.X), Convert.ToUInt32(vec2.Y));
     }
     public static explicit operator Vector2<float>(Vector2<T> vec2)
     {
-        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
-        return new((float) x, (float) y);
+        return new(Convert.ToSingle(vec2.X), Convert.ToSingle(vec2.Y));
     }
     public static explicit operator Vector2<double>(Vector2<T> vec2)
     {
-        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
-        return new(x, y);
+        return new(Convert.ToDouble(vec2.X), Convert.ToDouble(vec2.Y));
     }
     public static explicit operator Vector2<byte>(Vector2<T> vec2)
     {
-        double x = Convert.ToDouble(vec2.X); double y = Convert.ToDouble(vec2.Y);
-        return new((byte) x, (byte) y);
+        return new(Convert.ToByte(vec2.X), Convert.ToByte(vec2.Y));
     }
 
     private static Vector2<T> DoAddition(Vector2<double> a, Vector2<double> b)
@@ -229,9 +261,5 @@ public struct Vector2<T> where T : struct
         );
     }
 
-    public override readonly string ToString()
-    {
-        return string.Format("v2({0}, {1})", X, Y);
-    }
-
 }
+#endregion

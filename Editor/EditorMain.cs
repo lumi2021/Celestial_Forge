@@ -1,12 +1,15 @@
 ﻿using System.Reflection;
 using GameEngine.Core;
+using GameEngine.Util;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.Windowing;
+using GameEngine.Debugging;
 using Window = GameEngine.Util.Nodes.Window;
+using GameEngineEditor.EditorNodes;
 
 namespace GameEngine.Editor;
 
@@ -14,7 +17,7 @@ public class EditorMain
 {
 
     private ProjectSettings projectSettings;
-    private Window mainWindow;
+    private readonly Window mainWindow;
 
     /* IMPORTANT NODES */
     private Node? editorRoot;
@@ -22,9 +25,15 @@ public class EditorMain
     private TreeGraph? nodesList;
     private Pannel? sceneViewport;
     private Pannel? textEditor;
+    private NodeUI? console;
+
+    private Viewport sceneEnviropment = null!;
 
     /* ETC */
-    //private int maintab = 0;
+    private int maintab = 0;
+    private int bottomtab = 0;
+
+    private FileReference? fileBeingEdited = null;
 
     public EditorMain(ProjectSettings settings, Window mainWin)
     {
@@ -41,21 +50,51 @@ public class EditorMain
         mainWindow.Title = "Celestial Forge";
 
         /* INSTANTIATE EDITOR */
-        var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
+        var scene = PackagedScene.Load("Data/Screens/mainEditor/editor.json")!.Instantiate();
         mainWindow.AddAsChild(scene);
         editorRoot = scene;
 
         /* CONFIGURATE MAIN SCREEN */
         #region
 
-        sceneViewport = editorRoot!.GetChild("Main/Center/Viewport") as Pannel;
-        textEditor = editorRoot!.GetChild("Main/Center/TextEditor") as Pannel;
+        sceneViewport = editorRoot!.GetChild("Main/Center/Main/Viewport") as Pannel;
+        textEditor = editorRoot!.GetChild("Main/Center/Main/TextEditor") as Pannel;
 
         Button sceneBtn = (editorRoot!.GetChild("TopBar/MainOptions/SceneEditor") as Button)!;
         Button scriptBtn = (editorRoot!.GetChild("TopBar/MainOptions/ScriptEditor") as Button)!;
 
         sceneBtn.OnPressed.Connect((object? from, dynamic[]? args) => ChangeMainView(0));
         scriptBtn.OnPressed.Connect((object? from, dynamic[]? args) => ChangeMainView(1));
+
+        //var textEditorField = textEditor!.GetChild("FileContent") as WriteTextField;
+        var textSaveBtn = (textEditor!.GetChild("Toolbar/SaveBtn") as Button)!;
+        textSaveBtn.OnPressed.Connect( (object? from, dynamic[]? args) => SaveOpenTextFile() );
+
+        var textCompileBtn = (textEditor!.GetChild("Toolbar/CompileBtn") as Button)!;
+        textCompileBtn.OnPressed.Connect( (object? from, dynamic[]? args) => CompileOpenTextFile() );
+
+        var textEditorField = textEditor.GetChild("FileContentContainer/FileContent") as WriteTextField;
+        textEditorField!.OnTextEdited.Connect((object? node, dynamic[]? args) => {
+            textEditorField.colorsList = CSharpCompiler.Highlight(args![0]);
+        });
+
+        #endregion
+
+        /* CONFIGURATE VIEWPORT */
+        #region
+
+        sceneEnviropment = new()
+        {
+            useContainerSize = true,
+            ContainerSize = (Vector2<uint>)projectSettings.canvasDefaultSize,
+            backgroundColor = new(50, 50, 100)
+        };
+
+        mainWindow.children.Insert(0, sceneEnviropment);
+        sceneEnviropment.parent = mainWindow;
+
+        ViewportContainer viewportContainer = new() { linkedViewport = sceneEnviropment };
+        sceneViewport!.AddAsChild(viewportContainer);
 
         #endregion
 
@@ -141,6 +180,49 @@ public class EditorMain
         sb!.target = nodesList;
         #endregion
 
+        /* INSTANTIATE AND CONFIGURATE BOTTOM BAR */
+        #region
+        
+        // tab buttons
+        var bottomBar = editorRoot!.GetChild("Main/Center/BottomBar") as Pannel;
+
+        var outputBtn = bottomBar!.GetChild("Tabs/OutputBtn") as Button;
+        var errorsBtn = bottomBar!.GetChild("Tabs/ErrorsBtn") as Button;
+        var monitorsBtn = bottomBar!.GetChild("Tabs/MonitorsButton") as Button;
+
+        var consoleTab = bottomBar!.GetChild("BottomBarWindow/ConsoleTab") as NodeUI;
+        var errorsTab = bottomBar!.GetChild("BottomBarWindow/ErrorsTab") as NodeUI;
+        var monitorsTab = bottomBar!.GetChild("BottomBarWindow/MonitorsTab") as NodeUI;
+
+        /*
+        outputBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
+            bottomtab = 0;
+            consoleTab!.Visible = true;
+            errorsTab!.Visible = false;
+            monitorsTab!.Visible = false;
+        });
+
+        errorsBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
+            bottomtab = 1;
+            consoleTab!.Visible = false;
+            errorsTab!.Visible = true;
+            monitorsTab!.Visible = false;
+        });
+
+        monitorsBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
+            bottomtab = 1;
+            consoleTab!.Visible = false;
+            errorsTab!.Visible = false;
+            monitorsTab!.Visible = true;
+        });
+        */
+
+        // console
+        console = bottomBar!.GetChild("BottomBarWindow/ConsoleTab/Console/ConsoleLog") as NodeUI;
+        Debug.OnLogEvent += OnLog;
+
+        #endregion
+
         /* CONFIGURATE BUTTONS */
         var runButton = scene.GetChild("TopBar/RunButton") as Button;
         runButton?.OnPressed.Connect(RunButtonPressed);
@@ -149,6 +231,8 @@ public class EditorMain
 
     private void ChangeMainView(int to)
     {
+        if (maintab == to) return;
+
         switch (to)
         {
             case 0:
@@ -161,6 +245,8 @@ public class EditorMain
                 textEditor!.Show();
                 break;
         }
+    
+        maintab = to;
     }
 
     private void RunButtonPressed(object? from, dynamic[]? args)
@@ -195,6 +281,9 @@ public class EditorMain
             {
                 case ".sce":
                     LoadSceneInEditor(path); break;
+
+                default:
+                    OpenTextFile(path); break;
             }
         }
     }
@@ -210,22 +299,22 @@ public class EditorMain
 
     private void LoadSceneInEditor(string scenePath)
     {
-        var viewport = editorRoot!.GetChild("Main/Center/Viewport/ViewportContainer") as NodeUI;
+        sceneEnviropment.children.Clear();
 
-        viewport!.sizePixels = projectSettings.canvasDefaultSize;
+        var cam = new SceneEditor2DCamera();
+        sceneEnviropment.AddAsChild(cam);
+        cam.Current = true;
 
         nodesList!.ClearGraph();
-        viewport!.children.Clear();
         
         var scene = PackagedScene.Load(scenePath)!.Instantiate();
-        viewport!.AddAsChild(scene);
-        
+        sceneEnviropment!.AddAsChild(scene);
 
-        /* LOAD NODES LIST */
+        // LOAD NODES LIST //
         List<KeyValuePair<string, Node>> ToList = new();
         foreach (var i in scene.children) ToList.Add(new("", i));
 
-        Dictionary<string, Texture> IconsBuffer = new();
+        Dictionary<string, Texture> IconsBuffer = [];
 
         while ( ToList.Count > 0 )
         {
@@ -239,7 +328,8 @@ public class EditorMain
             else
             {
                 var nTexture = new SvgTexture() { Filter = false };
-                nTexture.LoadFromFile("Assets/icons/Nodes/" + node.GetType().Name + ".svg", 20, 20);
+                IconAttribute nodeIconAtrib = (IconAttribute)node.GetType().GetCustomAttribute(typeof(IconAttribute))!;
+                nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
                 IconsBuffer.Add(node.GetType().Name, nTexture);
                 nodeIcon = nTexture;
             }
@@ -258,7 +348,8 @@ public class EditorMain
         else
         {
             var nTexture = new SvgTexture() { Filter = false };
-            nTexture.LoadFromFile("Assets/icons/Nodes/" + scene.GetType().Name + ".svg", 20, 20);
+            IconAttribute nodeIconAtrib = (IconAttribute)scene.GetType().GetCustomAttribute(typeof(IconAttribute))!;
+            nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
             IconsBuffer.Add(scene.GetType().Name, nTexture);
             rootIcon = nTexture;
         }
@@ -268,6 +359,47 @@ public class EditorMain
 
         nodesList!.Root.data.Add("NodeRef", scene);
         nodesList!.Root.OnClick.Connect(OnNodeClicked);
+    
+        ChangeMainView(0);
+    }
+
+    private void OpenTextFile(string filePath)
+    {
+        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
+
+        var file = new FileReference(filePath);
+
+        var content = file.ReadAllFile();
+
+        textField.Text = content;
+
+        fileBeingEdited = file;
+
+        ChangeMainView(1);
+    }
+    private void SaveOpenTextFile()
+    {
+        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
+        fileBeingEdited?.Write(textField.Text);
+    }
+    private void CompileOpenTextFile()
+    {
+        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
+        var code = textField.Text;
+
+        var csc = new CSharpCompiler();
+        Type? scriptType = csc.Compile(code, fileBeingEdited!.Value.GlobalPath);
+
+        if (scriptType != null)
+        {
+            object scriptInstance = Activator.CreateInstance(scriptType)!;
+            
+            MethodInfo executeMethod = scriptType.GetMethod("Execute")!;
+            MethodInfo freeMethod = scriptType.GetMethod("Free")!;
+
+            executeMethod.Invoke(scriptInstance, null);
+            freeMethod.Invoke(scriptInstance, null);
+        }
     }
 
     private void LoadInspectorInformation(Node node)
@@ -312,6 +444,19 @@ public class EditorMain
         }
     }
 
+    private void OnLog(LogInfo log)
+    {
+        console!.AddAsChild(CreateLogItem(log));
+        var p = 0;
+        foreach (var i in console.children)
+        if (i is NodeUI node)
+        {
+            node.positionPixels.Y = p;
+            p += node.sizePixels.Y;
+        }
+    }
+
+
     #region really random stuff
 
     private static Pannel CreateTitleItem(string title)
@@ -337,7 +482,12 @@ public class EditorMain
         var properInfo = memberInfo as PropertyInfo;
 
         Type fieldType = fieldInfo?.FieldType ?? properInfo!.PropertyType;
-        if (fieldType.IsGenericType) fieldType = fieldType.GetGenericTypeDefinition();
+        Type[] fieldGenericArgs = [];
+        if (fieldType.IsGenericType)
+        {
+            fieldGenericArgs = fieldType.GetGenericArguments();
+            fieldType = fieldType.GetGenericTypeDefinition();
+        }
 
         InspectAttribute inspectAtt = memberInfo.GetCustomAttribute<InspectAttribute>()!;
 
@@ -477,6 +627,23 @@ public class EditorMain
                 Color = new(0, 0, 0)
             };
 
+            field1.OnTextEdited.Connect((object? from, dynamic[]? args) => {
+                if (!double.TryParse(args![0], out double _)) args![0] = "0";
+
+                dynamic value = fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj)!;
+                value.X = Convert.ChangeType(double.Parse(args![0]), fieldGenericArgs[0]);
+                fieldInfo?.SetValue(obj, value);
+                properInfo?.SetValue(obj, value);
+            });
+            field2.OnTextEdited.Connect((object? from, dynamic[]? args) => {
+                if (!double.TryParse(args![0], out double _)) args![0] = "0";
+
+                dynamic value = fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj)!;
+                value.Y = Convert.ChangeType(double.Parse(args![0]), fieldGenericArgs[0]);
+                fieldInfo?.SetValue(obj, value);
+                properInfo?.SetValue(obj, value);
+            });
+
             fieldContainer1.AddAsChild(field1);
             fieldContainer2.AddAsChild(field2);
             container.AddAsChild(fieldContainer1);
@@ -503,6 +670,43 @@ public class EditorMain
         }
 
         return container;
+    }
+
+    private static Pannel CreateLogItem(LogInfo log)
+    {
+
+        var nLog = new Pannel
+        {
+            sizePercent = new(1, 0),
+            sizePixels = new(0, 40)
+        };
+        var message = new TextField
+        {
+            Color = new(255, 255, 255),
+            Font = new("./Assets/Fonts/calibri.ttf", 15),
+            Text = log.message,
+            sizePixels = new(-10, -22),
+            positionPixels = new(5, 5)
+        };
+        var details = new TextField
+        {
+            anchor = NodeUI.ANCHOR.BOTTOM_LEFT,
+            Color = new(255, 255, 255, 0.5f),
+            Font = new("./Assets/Fonts/consola.ttf", 10),
+            sizePercent = new(1, 0),
+            sizePixels = new(0, 12)
+        };
+         
+        var sourceFile = log.sourceFile != "" ? log.sourceFile : "undefined";
+        var timestamp = log.timestamp.ToString(@"hh\:mm\:ss");
+
+        details.Text = $"{sourceFile}:{log.callerName} (l. {log.lineNumber}) at {timestamp}";
+
+        nLog.AddAsChild(message);
+        nLog.AddAsChild(details);
+
+        return nLog;
+
     }
 
     #endregion

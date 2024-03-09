@@ -25,6 +25,7 @@ public static class WindowService
             Size = size.GetAsSilkInt(),
             WindowState = WindowState.Normal,
             ShouldSwapAutomatically = false,
+            Samples = 1,
             PreferredDepthBufferBits = 8,
             VSync = false
         };
