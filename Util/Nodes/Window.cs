@@ -154,7 +154,7 @@ public class Window : Viewport
 
         List<Node> toIterate = [.. children];
 
-        List<Node> toEvent = new();
+        Dictionary<int, List<Node>> toEventIndexes = [];
 
         // Get ordered nodes list
         while (toIterate.Count > 0)
@@ -164,29 +164,40 @@ public class Window : Viewport
 
             if (current is Window) continue;
 
-            toEvent.Add(current);
+            var zindex = (current as ICanvasItem)?.GlobalZIndex ?? 0;
+
+            if (!toEventIndexes.ContainsKey(zindex)) toEventIndexes.Add(zindex, []);
+            toEventIndexes[zindex].Add(current);
 
             for (int i = current.children.Count - 1; i >= 0; i--)
                 toIterate.Insert(0,  current.children[i]);
         }
-    
+
+        var toEventIndexSorted = toEventIndexes.ToList();
+        toEventIndexSorted.Sort((a,b) => a.Key - b.Key);
+
+        List<Node> toEvent = [];
+
+        foreach (var i in toEventIndexSorted)
+            toEvent.AddRange(i.Value);
+
         // invert and iterate from top to bottom
         toEvent.Reverse();
-
-        // Focused UI event
-        _focusedUiNode?.RunFocusedUIInputEvent(e);
 
         // UI event
         proceedInput = true;
         foreach(var i in toEvent.Where(e => e is NodeUI))
         {
             var a = i as NodeUI;
-            if (a is not ICanvasItem || (a as ICanvasItem)!.Visible && !a.Freeled)
+            if (a!.GlobalVisible && !i.Freeled)
                 a!.RunUIInputEvent(e);
             
             if (!proceedInput) break;
         }
         
+        // Focused UI event
+        _focusedUiNode?.RunFocusedUIInputEvent(e);
+
         // default unhandled event
         proceedInput = true;
         foreach(var i in toEvent)

@@ -111,8 +111,54 @@ public class Viewport : Node
         gl.ClearColor(backgroundColor);
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        List<Node> toDraw = [.. children];
+        List<Node> toIterate = [.. children];
+        Dictionary<int, List<Node>> toDraw = [];
 
+        while (toIterate.Count > 0)
+        {
+            Node current = toIterate[0];
+            toIterate.RemoveAt(0);
+
+            if (
+                current is Viewport || current.Freeled ||
+                current is not ICanvasItem || !(current as ICanvasItem)!.Visible
+            ) continue;
+
+            int zindex = (current as ICanvasItem)!.GlobalZIndex;
+
+            if (!toDraw.ContainsKey(zindex))
+                toDraw.Add(zindex, []);
+
+            toDraw[zindex].Add(current);
+
+            for (int i = current.children.Count - 1; i >= 0; i--)
+                toIterate.Insert(0,  current.children[i]);
+        }
+
+        var toDrawSorted = toDraw.ToList();
+        toDrawSorted.Sort((a, b) => a.Key - b.Key);
+
+        foreach (var i in toDrawSorted)
+        foreach (var current in i.Value)
+        {
+
+            var ci = (current as ICanvasItem)!;
+
+            // configurate scissor
+            if (current.parent is IClipChildren)
+            {
+                var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
+                var viewRect = new Rect(Camera2D.position.X, Camera2D.position.Y, size.X, size.Y);
+
+                clipRect = clipRect.InvertVerticallyIn(viewRect);
+                gl.Scissor(clipRect);
+            }
+
+            current.RunDraw(deltaTime);
+
+        }
+
+        /*
         while (toDraw.Count > 0)
         {
             Node current = toDraw[0];
@@ -142,6 +188,7 @@ public class Viewport : Node
             for (int i = current.children.Count - 1; i >= 0; i--)
                 toDraw.Insert(0,  current.children[i]);
         }
+        */
 
         DrawService.PopViewport();
 
@@ -173,10 +220,7 @@ public class Viewport : Node
         Engine.gl.BindTexture(TextureTarget.Texture2D, viewportTexture);
     }
 
-    public void SupressInputEvent()
-    {
-        proceedInput = false;
-    }
+    public void SupressInputEvent() => proceedInput = false;
 
     public void SetCurrentCamera(Camera2D? cam) => _currentCamera2D = cam;
 

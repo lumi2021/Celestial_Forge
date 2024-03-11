@@ -18,7 +18,7 @@ public class Select : NodeUI
     }
 
     [Inspect]
-    public Dictionary<int, string> values = new();
+    public Dictionary<int, string> values = [];
 
     private readonly Pannel Container = new();
     private readonly TextField Label = new() { mouseFilter = MouseFilter.Ignore };
@@ -29,7 +29,7 @@ public class Select : NodeUI
         Visible = false,
         ZIndex = 999
     };
-    private readonly Dictionary<int, Button> options = new();
+    private readonly Dictionary<int, Button> options = [];
 
     public readonly Signal OnValueChange = new();
 
@@ -59,20 +59,29 @@ public class Select : NodeUI
 
     public void AddValue(int number, string label)
     {
-        if (!values.ContainsKey(number))
+        if (values.TryAdd(number, label))
         {
-            values.Add(number, label);
 
             var nOp = new Button()
             {
                 sizePercent = new(1, 0),
-                sizePixels = new(0, 25)
+                sizePixels = new(0, 25),
+                name = $"select_option_{number}_{label}"
             };
             var nLb = new TextField()
             {
-                Text = label
+                Text = label,
+                verticalAligin = TextField.Aligin.Center,
+                mouseFilter = MouseFilter.Pass
             };
             nOp.AddAsChild(nLb);
+
+            nOp.OnPressed.Connect((object? from, dynamic[]? args) => {
+                Console.WriteLine(number);
+                CloseOptionsList();
+                Value = number;
+
+            });
 
             OptionsContainer.AddAsChild(nOp);
             options.Add(number, nOp);

@@ -62,7 +62,7 @@ public class Button : NodeUI
         AddAsChild(Container);
     }
 
-    protected override void OnUIInputEvent(Window.InputHandler.InputEvent e)
+    protected override void OnUIInputEvent(InputEvent e)
     {
         if (e is MouseInputEvent)
         {
@@ -104,6 +104,7 @@ public class Button : NodeUI
                         actionTrigger == ActionTrigger.release &&
                         @bEvent.action == Silk.NET.GLFW.InputAction.Release
                     ) {
+                        Viewport?.SupressInputEvent();
                         OnPressed.Emit(this);
                     }
 
