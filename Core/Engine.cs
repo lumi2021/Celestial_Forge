@@ -36,8 +36,8 @@ public class Engine
 
         /* configurate project settings */
         projectSettings.projectLoaded = true;
-        //projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
-        projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
+        projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
+        //projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
         projectSettings.entryScene = @"res://testScene.sce";
 
         projectSettings.canvasDefaultSize = new(800, 600);
@@ -48,15 +48,8 @@ public class Engine
         _ = new EditorMain(projectSettings, mainWin);
 
         /* START RUN */
-        try {
-            Run();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Something goes very wrong!");
-            Console.WriteLine("Exeption:\n{0}", ex);
-            Console.ReadKey();
-        }
+        
+        Run();
 
         /* END PROGRAM */
         root.Free();
@@ -76,16 +69,30 @@ public class Engine
         while (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
         {
             foreach (var win in WindowService.windows.ToArray())
-            if (win.IsInitialized)
-            {
-                DrawService.GlBinded_ShaderProgram = -1;
-                win.DoEvents();
-                win.DoUpdate();
-                win.DoRender();
+                if (win.IsInitialized)
+                {
+                    try
+                    {
+                        DrawService.GlBinded_ShaderProgram = -1;
+                        win.DoEvents();
+                        win.DoUpdate();
+                        win.DoRender();
 
-                if (win != WindowService.mainWindow)
-                win.SwapBuffers();
-            }
+                        if (win != WindowService.mainWindow)
+                            win.SwapBuffers();
+                    }
+                    catch (Exception ex)
+                    {
+                        var a = Console.BackgroundColor;
+                        Console.BackgroundColor = ConsoleColor.DarkRed;
+
+                        Console.WriteLine("Something goes very wrong!");
+                        Console.WriteLine("Exeption:\n{0}", ex);
+
+                        Console.BackgroundColor = a;
+                        Console.Beep();
+                    }
+                }
 
             if (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
             WindowService.mainWindow.SwapBuffers();

@@ -89,7 +89,7 @@ public class Window : Viewport
     {
         input.CallQueuedInputs();
 
-        List<Node> toUpdate = new();
+        List<Node> toUpdate = [];
         toUpdate.AddRange(children);
 
         while (toUpdate.Count > 0)
@@ -173,12 +173,9 @@ public class Window : Viewport
                 toIterate.Insert(0,  current.children[i]);
         }
 
-        var toEventIndexSorted = toEventIndexes.ToList();
-        toEventIndexSorted.Sort((a,b) => a.Key - b.Key);
-
         List<Node> toEvent = [];
 
-        foreach (var i in toEventIndexSorted)
+        foreach (var i in toEventIndexes)
             toEvent.AddRange(i.Value);
 
         // invert and iterate from top to bottom

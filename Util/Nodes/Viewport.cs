@@ -135,19 +135,14 @@ public class Viewport : Node
                 toIterate.Insert(0,  current.children[i]);
         }
 
-        var toDrawSorted = toDraw.ToList();
-        toDrawSorted.Sort((a, b) => a.Key - b.Key);
-
-        foreach (var i in toDrawSorted)
+        foreach (var i in toDraw)
         foreach (var current in i.Value)
         {
 
-            var ci = (current as ICanvasItem)!;
-
             // configurate scissor
-            if (current.parent is IClipChildren)
+            if (current.parent is IClipChildren pt)
             {
-                var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
+                var clipRect = pt.GetClippingArea();
                 var viewRect = new Rect(Camera2D.position.X, Camera2D.position.Y, size.X, size.Y);
 
                 clipRect = clipRect.InvertVerticallyIn(viewRect);
@@ -157,38 +152,6 @@ public class Viewport : Node
             current.RunDraw(deltaTime);
 
         }
-
-        /*
-        while (toDraw.Count > 0)
-        {
-            Node current = toDraw[0];
-            toDraw.RemoveAt(0);
-
-            if (current is Viewport || current.Freeled) continue;
-
-            if (current is ICanvasItem)
-            {
-                // configurate scissor
-                if (current.parent is IClipChildren)
-                {
-                    var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
-                    var viewRect = new Rect(Camera2D.position.X, Camera2D.position.Y, size.X, size.Y);
-
-                    clipRect = clipRect.InvertVerticallyIn(viewRect);
-                    gl.Scissor(clipRect);
-                }
-
-                // checks if it's visible and draw
-                if ((current as ICanvasItem)!.Visible)
-                    current.RunDraw(deltaTime);
-                
-                else continue; // Don't draw childrens
-            }
-
-            for (int i = current.children.Count - 1; i >= 0; i--)
-                toDraw.Insert(0,  current.children[i]);
-        }
-        */
 
         DrawService.PopViewport();
 
