@@ -1,6 +1,6 @@
 using GameEngine.Util.Attributes;
+using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
-using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
@@ -53,13 +53,14 @@ public class ScrollBar : NodeUI
 
         if (!_scrollButton.Visible) return;
         
-        if (e is MouseBtnInputEvent @btnEvent)
+        if (e.Is<MouseBtnInputEvent>(out var @btnEvent))
         {
             if (new Rect(_scrollButton.Position, _scrollButton.Size).Intersects(@btnEvent.position))
             if (@btnEvent.action == Silk.NET.GLFW.InputAction.Press)
                 _holding = true;
         }
-        if (e is MouseMoveInputEvent @moveEvent)
+
+        if (e.Is<MouseMoveInputEvent>(out var @moveEvent))
         {
             if (_holding)
             {
@@ -89,7 +90,7 @@ public class ScrollBar : NodeUI
 
     protected override void OnInputEvent(InputEvent e)
     {
-        if (e is MouseBtnInputEvent @event && _holding
+        if (e.Is<MouseBtnInputEvent>(out var @event) && _holding
         && @event.action == Silk.NET.GLFW.InputAction.Release)
             _holding = false;
 

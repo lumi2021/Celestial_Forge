@@ -209,11 +209,11 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
 
     protected virtual void OnFocusedUIInputEvent(InputEvent e)
     {
-        if (e is MouseInputEvent)
+        if (e.Is<MouseInputEvent>())
         {
             if (mouseFilter == MouseFilter.Ignore) return;
 
-            if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == Silk.NET.GLFW.InputAction.Press)
             if (!new Rect(Position, Size).Intersects(@event.position))
             {
                 Unfocus();
@@ -222,11 +222,11 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
     }
     protected virtual void OnUIInputEvent(InputEvent e)
     {
-        if (e is MouseInputEvent)
+        if (e.Is<MouseInputEvent>())
         {
             if (mouseFilter == MouseFilter.Ignore) return;
 
-            if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == Silk.NET.GLFW.InputAction.Press)
             if (new Rect(Position, Size).Intersects(@event.position + Viewport!.Camera2D.position))
             {
                 onClick.Emit(this);

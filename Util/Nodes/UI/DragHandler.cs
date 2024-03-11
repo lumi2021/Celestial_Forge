@@ -1,7 +1,6 @@
 using System.Numerics;
 using GameEngine.Core;
 using GameEngine.Util.Attributes;
-using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.GLFW;
@@ -46,9 +45,9 @@ public class DragHandler : NodeUI
 
         Color = defaultColor;
 
-        float[] v = new float[] { 0.0f,0.0f, 1.0f,0.0f, 1.0f,1.0f, 0.0f,1.0f };
-        float[] uv = new float[] { 0f,0f, 1f,0f, 1f,1f, 0f,1f };
-        uint[] i = new uint[] {0,1,3, 1,2,3};
+        float[] v = [ 0.0f,0.0f, 1.0f,0.0f, 1.0f,1.0f, 0.0f,1.0f ];
+        float[] uv = [ 0f,0f, 1f,0f, 1f,1f, 0f,1f ];
+        uint[] i = [ 0,1,3, 1,2,3 ];
 
         DrawService.CreateBuffer(NID, "aPosition");
         DrawService.SetBufferData(NID, "aPosition", v, 2);
@@ -62,7 +61,7 @@ public class DragHandler : NodeUI
 
     }
 
-    protected override void OnUIInputEvent(Window.InputHandler.InputEvent e)
+    protected override void OnUIInputEvent(InputEvent e)
     {
 
         var mousePos = Input.GetMousePosition() + Viewport!.Camera2D.position;

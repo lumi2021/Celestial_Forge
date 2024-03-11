@@ -2,7 +2,6 @@ using GameEngine.Util.Attributes;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.GLFW;
-using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
@@ -85,11 +84,11 @@ public class WriteTextField : TextField
 
     protected override void OnUIInputEvent(InputEvent e)
     {
-        if (e is MouseInputEvent)
+        if (e.Is<MouseInputEvent>())
         {
             if (mouseFilter == MouseFilter.Ignore) return;
 
-            if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == Silk.NET.GLFW.InputAction.Press)
             if (new Rect(Position, Size).Intersects(@event.position))
             {
                 onClick.Emit(this);
@@ -136,7 +135,7 @@ public class WriteTextField : TextField
     {
         base.OnFocusedUIInputEvent(e);
 
-        if (e is KeyboardInputEvent @event && @event.action != InputAction.Release)
+        if (e.Is<KeyboardInputEvent>(out var @event) && @event.action != InputAction.Release)
         {
             if (Input.LastInputedChars.Length > 0)
                 AppendBeforeCursor(Input.LastInputedChars);
