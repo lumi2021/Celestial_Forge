@@ -58,6 +58,7 @@ public class TextField : NodeUI
         set {
             _color = value;
             material.SetUniform("color", _color);
+            ReconfigurateDraw();
         }
     }
     [Inspect] public Aligin horizontalAligin = Aligin.Start;

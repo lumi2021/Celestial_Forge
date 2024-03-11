@@ -675,6 +675,10 @@ public class EditorMain
             for (int i = 0; i < values.Length; i++)
                 field.AddValue( (int) values.GetValue(i)!, values.GetValue(i)!.ToString()! );
             
+            field.OnValueChange.Connect((from, args) => {
+                fieldInfo?.SetValue(obj, args![0]);
+                properInfo?.SetValue(obj, args![0]);
+            });
 
             container.AddAsChild(field);
         }

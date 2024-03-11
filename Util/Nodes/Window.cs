@@ -6,7 +6,6 @@ using Silk.NET.GLFW;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
@@ -48,8 +47,6 @@ public class Window : Viewport
             window.WindowState = value;
         }
     }
-
-    private ManualResetEvent renderWaitHandle = new ManualResetEvent(false);
 
     #region rendering things
     private uint _vao;
@@ -173,12 +170,9 @@ public class Window : Viewport
                 toIterate.Insert(0,  current.children[i]);
         }
 
-        var toEventIndexSorted = toEventIndexes.ToList();
-        toEventIndexSorted.Sort((a,b) => a.Key - b.Key);
-
         List<Node> toEvent = [];
 
-        foreach (var i in toEventIndexSorted)
+        foreach (var i in toEventIndexes)
             toEvent.AddRange(i.Value);
 
         // invert and iterate from top to bottom
@@ -387,4 +381,5 @@ public class Window : Viewport
             LastInputs.Add(e);
         }
     }
+
 }

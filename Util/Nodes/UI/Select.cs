@@ -5,6 +5,7 @@ namespace GameEngine.Util.Nodes;
 
 public class Select : NodeUI
 {
+
     private int _value = 0;
     [Inspect]
     public int Value
@@ -21,7 +22,10 @@ public class Select : NodeUI
     public Dictionary<int, string> values = [];
 
     private readonly Pannel Container = new();
-    private readonly TextField Label = new() { mouseFilter = MouseFilter.Ignore };
+    private readonly TextField Label = new() {
+        mouseFilter = MouseFilter.Ignore,
+        verticalAligin = TextField.Aligin.Center
+    };
     private readonly Pannel OptionsContainer = new()
     {
         positionPercent = new(0, 1),
@@ -77,7 +81,6 @@ public class Select : NodeUI
             nOp.AddAsChild(nLb);
 
             nOp.OnPressed.Connect((object? from, dynamic[]? args) => {
-                Console.WriteLine(number);
                 CloseOptionsList();
                 Value = number;
 
@@ -94,6 +97,7 @@ public class Select : NodeUI
     private void UpdateValue()
     {
         Label.Text = values.Count <= 0 ? "" : values[ Value ];
+        OnValueChange.Emit(this, [Value]);
     }
     private void SortButtons()
     {
@@ -108,4 +112,5 @@ public class Select : NodeUI
         }
         OptionsContainer.sizePixels.Y = position;
     }
+
 }
