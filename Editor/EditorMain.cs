@@ -31,7 +31,7 @@ public class EditorMain
 
     /* ETC */
     private int maintab = 0;
-    private int bottomtab = 0;
+    //private int bottomtab = 0;
 
     private FileReference? fileBeingEdited = null;
 
@@ -188,34 +188,32 @@ public class EditorMain
 
         var outputBtn = bottomBar!.GetChild("Tabs/OutputBtn") as Button;
         var errorsBtn = bottomBar!.GetChild("Tabs/ErrorsBtn") as Button;
-        var monitorsBtn = bottomBar!.GetChild("Tabs/MonitorsButton") as Button;
+        var monitorsBtn = bottomBar!.GetChild("Tabs/MonitorsBtn") as Button;
 
         var consoleTab = bottomBar!.GetChild("BottomBarWindow/ConsoleTab") as NodeUI;
         var errorsTab = bottomBar!.GetChild("BottomBarWindow/ErrorsTab") as NodeUI;
         var monitorsTab = bottomBar!.GetChild("BottomBarWindow/MonitorsTab") as NodeUI;
 
-        /*
+
         outputBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
-            bottomtab = 0;
+            //bottomtab = 0;
             consoleTab!.Visible = true;
             errorsTab!.Visible = false;
             monitorsTab!.Visible = false;
         });
-
         errorsBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
-            bottomtab = 1;
+            //bottomtab = 1;
             consoleTab!.Visible = false;
             errorsTab!.Visible = true;
             monitorsTab!.Visible = false;
         });
-
         monitorsBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
-            bottomtab = 1;
+            //bottomtab = 2;
             consoleTab!.Visible = false;
             errorsTab!.Visible = false;
             monitorsTab!.Visible = true;
         });
-        */
+        
 
         // console
         console = bottomBar!.GetChild("BottomBarWindow/ConsoleTab/Console/ConsoleLog") as NodeUI;
@@ -495,6 +493,7 @@ public class EditorMain
         {
             sizePercent = new(1, 0),
             sizePixels = new(0, 25),
+            name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter"
         };
         var label = new TextField()
         {
@@ -504,6 +503,7 @@ public class EditorMain
             verticalAligin = TextField.Aligin.Center,
             anchor = NodeUI.ANCHOR.TOP_LEFT,
             Color = new(255, 255, 255),
+            name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_label"
         };
         
         container.AddAsChild(label);
@@ -516,13 +516,15 @@ public class EditorMain
             {
                 BackgroundColor = new(149, 173, 190),
                 sizePercent = new(0.5f, 1),
-                anchor = NodeUI.ANCHOR.TOP_RIGHT
+                anchor = NodeUI.ANCHOR.TOP_RIGHT,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_container"
             };
             var field = new WriteTextField()
             {
                 Text = value,
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
-                Color = new(0, 0, 0)
+                Color = new(0, 0, 0),
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_TextField"
             };
 
             field.OnTextEdited.Connect((object? from, dynamic[]? args) => {
@@ -553,7 +555,8 @@ public class EditorMain
             var fieldContainer = new NodeUI()
             {
                 sizePercent = new(0.5f, 1),
-                anchor = NodeUI.ANCHOR.TOP_RIGHT
+                anchor = NodeUI.ANCHOR.TOP_RIGHT,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_container"
             };
             var checkbox = new Checkbox()
             {
@@ -564,7 +567,8 @@ public class EditorMain
                 value = value,
                 mouseFilter = NodeUI.MouseFilter.Ignore,
                 actived_texture = texture_check,
-                unactived_texture = texture_uncheck
+                unactived_texture = texture_uncheck,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_checkbox"
             };
             var text = new TextField()
             {
@@ -573,7 +577,8 @@ public class EditorMain
                 verticalAligin = TextField.Aligin.Center,
                 sizePixels = new(-28, 0),
                 Color = new(255, 255, 255),
-                mouseFilter = NodeUI.MouseFilter.Ignore
+                mouseFilter = NodeUI.MouseFilter.Ignore,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_value_label"
             };
 
             fieldContainer.onClick.Connect((object? from, dynamic[]? args) =>
@@ -603,7 +608,8 @@ public class EditorMain
                 BackgroundColor = new(149, 173, 190),
                 sizePercent = new(0.5f, 0),
                 sizePixels = new(0, 25),
-                anchor = NodeUI.ANCHOR.TOP_RIGHT
+                anchor = NodeUI.ANCHOR.TOP_RIGHT,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_x_container"
             };
             var fieldContainer2 = new Pannel()
             {
@@ -611,20 +617,23 @@ public class EditorMain
                 sizePercent = new(0.5f, 0),
                 positionPercent = new(0f, 0.5f),
                 sizePixels = new(0, 25),
-                anchor = NodeUI.ANCHOR.TOP_RIGHT
+                anchor = NodeUI.ANCHOR.TOP_RIGHT,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_y_container"
             };
             
             var field1 = new WriteTextField()
             {
                 Text = "" + value.X,
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
-                Color = new(0, 0, 0)
+                Color = new(0, 0, 0),
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_x_field"
             };
             var field2 = new WriteTextField()
             {
                 Text = "" + value.Y,
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
-                Color = new(0, 0, 0)
+                Color = new(0, 0, 0),
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_y_field"
             };
 
             field1.OnTextEdited.Connect((object? from, dynamic[]? args) => {
@@ -659,7 +668,8 @@ public class EditorMain
             var field = new Select()
             {
                 sizePercent = new(0.5f, 1),
-                anchor = NodeUI.ANCHOR.TOP_RIGHT
+                anchor = NodeUI.ANCHOR.TOP_RIGHT,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_select_box"
             };
 
             for (int i = 0; i < values.Length; i++)

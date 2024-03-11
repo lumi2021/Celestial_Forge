@@ -26,10 +26,8 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
         BOTTOM_CENTER,
         BOTTOM_RIGHT,
     }
-    [Inspect]
-    public ANCHOR anchor = ANCHOR.TOP_LEFT;
-    [Inspect]
-    public uint padding = 0;
+    [Inspect] public ANCHOR anchor = ANCHOR.TOP_LEFT;
+    [Inspect] public uint padding = 0;
 
     //Get parent size
     private Vector2<float> ParentSize {
@@ -142,22 +140,20 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
         }
     }
 
-    [Inspect]
-    public bool ClipChildren {get;set;} = false;
+    [Inspect] public bool ClipChildren {get;set;} = false;
 
     // Mouse options
     public enum MouseFilter {Block, Pass, Ignore}
-    [Inspect]
-    public MouseFilter mouseFilter = MouseFilter.Block;
+    [Inspect] public MouseFilter mouseFilter = MouseFilter.Block;
 
     // CSS and styles
     public List<string> classes = [];
 
 
-    [Inspect]
-    public bool Visible { get; set; } = true;
-    [Inspect]
-    public int ZIndex { get; set; } = 0;
+    [Inspect] public bool Visible { get; set; } = true;
+    public bool GlobalVisible => ((parent as ICanvasItem)?.GlobalVisible ?? true) && Visible;
+
+    [Inspect] public int ZIndex { get; set; } = 0;
     public int GlobalZIndex
     {
         get {
@@ -170,7 +166,6 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
 
         }
     }
-
 
     public Rect GetClippingArea()
     {
@@ -214,11 +209,11 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
 
     protected virtual void OnFocusedUIInputEvent(InputEvent e)
     {
-        if (e is MouseInputEvent)
+        if (e.Is<MouseInputEvent>())
         {
             if (mouseFilter == MouseFilter.Ignore) return;
 
-            if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == Silk.NET.GLFW.InputAction.Press)
             if (!new Rect(Position, Size).Intersects(@event.position))
             {
                 Unfocus();
@@ -227,11 +222,11 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
     }
     protected virtual void OnUIInputEvent(InputEvent e)
     {
-        if (e is MouseInputEvent)
+        if (e.Is<MouseInputEvent>())
         {
             if (mouseFilter == MouseFilter.Ignore) return;
 
-            if (e is MouseBtnInputEvent @event && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == Silk.NET.GLFW.InputAction.Press)
             if (new Rect(Position, Size).Intersects(@event.position + Viewport!.Camera2D.position))
             {
                 onClick.Emit(this);
