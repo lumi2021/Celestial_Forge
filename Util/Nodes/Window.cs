@@ -89,7 +89,7 @@ public class Window : Viewport
     {
         input.CallQueuedInputs();
 
-        List<Node> toUpdate = [];
+        List<Node> toUpdate = new();
         toUpdate.AddRange(children);
 
         while (toUpdate.Count > 0)
@@ -154,7 +154,7 @@ public class Window : Viewport
 
         List<Node> toIterate = [.. children];
 
-        Dictionary<int, List<Node>> toEventIndexes = [];
+        List<Node> toEvent = new();
 
         // Get ordered nodes list
         while (toIterate.Count > 0)
@@ -164,37 +164,29 @@ public class Window : Viewport
 
             if (current is Window) continue;
 
-            var zindex = (current as ICanvasItem)?.GlobalZIndex ?? 0;
-
-            if (!toEventIndexes.ContainsKey(zindex)) toEventIndexes.Add(zindex, []);
-            toEventIndexes[zindex].Add(current);
+            toEvent.Add(current);
 
             for (int i = current.children.Count - 1; i >= 0; i--)
                 toIterate.Insert(0,  current.children[i]);
         }
-
-        List<Node> toEvent = [];
-
-        foreach (var i in toEventIndexes)
-            toEvent.AddRange(i.Value);
-
+    
         // invert and iterate from top to bottom
         toEvent.Reverse();
+
+        // Focused UI event
+        _focusedUiNode?.RunFocusedUIInputEvent(e);
 
         // UI event
         proceedInput = true;
         foreach(var i in toEvent.Where(e => e is NodeUI))
         {
             var a = i as NodeUI;
-            if (a!.GlobalVisible && !i.Freeled)
+            if (a is not ICanvasItem || (a as ICanvasItem)!.Visible && !a.Freeled)
                 a!.RunUIInputEvent(e);
             
             if (!proceedInput) break;
         }
         
-        // Focused UI event
-        _focusedUiNode?.RunFocusedUIInputEvent(e);
-
         // default unhandled event
         proceedInput = true;
         foreach(var i in toEvent)
@@ -329,8 +321,11 @@ public class Window : Viewport
                 keysPressed.Remove(key);
             }
 
-            var eo = new KeyboardInputEvent(action == InputAction.Repeat,key, action);
-            var e = new InputEvent(DateTime.Now.TimeOfDay, eo);
+            var e = new KeyboardInputEvent(
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                action == InputAction.Repeat,
+                key, action
+            );
 
             LastInputs.Add(e);
         }
@@ -350,8 +345,10 @@ public class Window : Viewport
             }
             mouseDelta = currentPos - lastMousePosition;
 
-            var eo = new MouseMoveInputEvent(currentPos, lastMousePosition, mouseDelta);
-            var e = new InputEvent(DateTime.Now.TimeOfDay, eo);
+            var e = new MouseMoveInputEvent(
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                currentPos, lastMousePosition, mouseDelta
+            );
 
             lastMousePosition = currentPos;
 
@@ -371,17 +368,129 @@ public class Window : Viewport
             }
             else return;
 
-            var eo = new MouseBtnInputEvent(button, action, GetMousePosition());
-            var e = new InputEvent(DateTime.Now.TimeOfDay, eo);
+            var e = new MouseBtnInputEvent(
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                button, action, GetMousePosition()
+            );
 
             LastInputs.Add(e);
         }
         private void MouseScrollCallback(WindowHandle* window, double offsetX, double offsetY)
         {
-            var eo = new MouseScrollInputEvent(new( offsetX, offsetY ));
-            var e = new InputEvent(DateTime.Now.TimeOfDay, eo);
+            var e = new MouseScrollInputEvent(
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                new( offsetX, offsetY )
+            );
 
             LastInputs.Add(e);
         }
+
+        #region INNER CLASSES
+        public class InputEvent(
+            long timestamp
+        )
+        {
+            public readonly long timestamp = timestamp;
+
+            protected virtual string GetDataAsString()
+            {
+                return string.Format("timestamp:\t{0};", timestamp);
+            }
+
+            public override string ToString()
+            {
+                return string.Format("{0}(\n{1}\n)",GetType().Name , GetDataAsString());
+            }
+        }
+        public class KeyboardInputEvent(
+            long timestamp,
+            bool repeating,
+            Keys key,
+            InputAction action
+        ) : InputEvent(timestamp)
+        {
+            public readonly bool repeating = repeating;
+            public readonly Keys key = key;
+            public readonly InputAction action = action;
+
+            protected override string GetDataAsString()
+            {
+                string bd = base.GetDataAsString();
+                return string.Format(
+                    "repeating:\t{0};\n" +
+                    "key:\t{1};\n" +
+                    "action:\t{2};\n",
+                    repeating, key, action
+                    ) + bd;
+            }
+        }
+        public class MouseInputEvent(
+            long timestamp
+        ) : InputEvent(timestamp)
+        {
+        }
+        public class MouseBtnInputEvent(
+            long timestamp,
+            MouseButton button,
+            InputAction action,
+            Vector2<int> position
+        ) : MouseInputEvent(timestamp)
+        {
+            public readonly MouseButton button = button;
+            public readonly InputAction action = action;
+            public readonly Vector2<int> position = position;
+
+            protected override string GetDataAsString()
+            {
+                string bd = base.GetDataAsString();
+                return string.Format(
+                    "button:\t{0};\n" +
+                    "action:\t{1};\n" +
+                    "position:\t{2};\n",
+                    button, action, position
+                    ) + bd;
+            }
+        }
+        public class MouseMoveInputEvent(
+            long timestamp,
+            Vector2<int> position,
+            Vector2<int> lastPosition,
+            Vector2<int> positionDelta
+        ) : MouseInputEvent(timestamp)
+        {
+            public readonly Vector2<int> position = position;
+            public readonly Vector2<int> lastPosition = lastPosition;
+            public readonly Vector2<int> positionDelta = positionDelta;
+
+            protected override string GetDataAsString()
+            {
+                string bd = base.GetDataAsString();
+                return string.Format(
+                    "position:\t{0};\n" +
+                    "last position:\t{1};\n",
+                    "delta:\t{2};\n",
+                    position, lastPosition, positionDelta
+                    ) + bd;
+            }
+
+        }
+        public class MouseScrollInputEvent(
+            long timestamp,
+            Vector2<double> offset
+        ) : MouseInputEvent(timestamp)
+        {
+            public readonly Vector2<double> offset = offset;
+
+            protected override string GetDataAsString()
+            {
+                string bd = base.GetDataAsString();
+                return string.Format(
+                    "offset:\t{0};\n",
+                    offset
+                    ) + bd;
+            }
+
+        }
+        #endregion
     }
 }

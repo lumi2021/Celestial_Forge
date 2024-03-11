@@ -1,8 +1,8 @@
 using GameEngine.Core;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
-using GameEngine.Util.Resources;
 using static GameEngine.Util.Nodes.Window;
+using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 

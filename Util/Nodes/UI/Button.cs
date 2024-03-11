@@ -62,13 +62,13 @@ public class Button : NodeUI
         AddAsChild(Container);
     }
 
-    protected override void OnUIInputEvent(InputEvent e)
+    protected override void OnUIInputEvent(Window.InputHandler.InputEvent e)
     {
-        if (e.Is<MouseInputEvent>())
+        if (e is MouseInputEvent)
         {
             if (mouseFilter == MouseFilter.Ignore) return;
 
-            if (e.Is<MouseMoveInputEvent>(out var @mEvent))
+            if (e is MouseMoveInputEvent @mEvent)
             {
                 if (State <= ButtonState.Hover)
                 {
@@ -87,7 +87,7 @@ public class Button : NodeUI
                 }
             }
 
-            if (e.Is<MouseBtnInputEvent>(out var @bEvent))
+            if (e is MouseBtnInputEvent @bEvent)
             {
 
                 if (new Rect(Position, Size).Intersects(@bEvent.position + Viewport!.Camera2D.position))
@@ -104,7 +104,6 @@ public class Button : NodeUI
                         actionTrigger == ActionTrigger.release &&
                         @bEvent.action == Silk.NET.GLFW.InputAction.Release
                     ) {
-                        Viewport?.SupressInputEvent();
                         OnPressed.Emit(this);
                     }
 

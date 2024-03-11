@@ -38,7 +38,8 @@ public class PackagedScene : Resource
         return root.CreateNodeInstance( resRepository.ToArray() );
     }
 
-    #region inner types and desserialiser
+    
+    #region inner classes and desserialiser
 
     struct PackagedNode
     {

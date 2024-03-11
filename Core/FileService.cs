@@ -73,7 +73,7 @@ public static class FileService
             return p;
 
         else
-            p = "../../../" + p;
+            p ="../../../" + p;
 
         return Path.GetFullPath(p);
     }

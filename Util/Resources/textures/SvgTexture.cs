@@ -13,8 +13,8 @@ public unsafe class SvgTexture : Texture
     { LoadFromFile(path, new(sizex, sizey)); }
     public void LoadFromFile(string path, Vector2<uint> size)
     {
-        var fileRef = new FileReference(path);
-        var svgDocument = SvgDocument.Open(fileRef.GlobalPath);
+
+        var svgDocument = SvgDocument.Open("../../../" + path);
 
         svgDocument.Width = new SvgUnit(SvgUnitType.Pixel, size.X);
         svgDocument.Height = new SvgUnit(SvgUnitType.Pixel, size.Y);
