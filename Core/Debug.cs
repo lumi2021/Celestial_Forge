@@ -1,9 +1,8 @@
 using System.Runtime.CompilerServices;
-using YamlDotNet.Core.Tokens;
 
-namespace GameEngine.Debug;
+namespace GameEngine.Debugging;
 
-public static class Console
+public static class Debug
 {
 
     public delegate void OnLogHandler(LogInfo log);

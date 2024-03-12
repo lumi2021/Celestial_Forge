@@ -1,10 +1,12 @@
 using GameEngine.Core;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
+using GameEngine.Util.Resources;
 using static GameEngine.Util.Nodes.Window;
-using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/Node.svg")]
 public class Node
 {
     /* System variables */
@@ -14,12 +16,14 @@ public class Node
     public readonly uint NID = 0;
 
     /* Script & load variables */
-    private Dictionary<string, object?> _fieldsToLoadWhenReady = new();
+    private Dictionary<string, object?> _fieldsToLoadWhenReady = [];
 
     public Node? parent;
+    public bool isGhostChildren = false;
 
-    public List<Node> children = new();
-    protected List<Node> ghostChildren = new();
+    public List<Node> children = [];
+    protected List<Node> ghostChildren = [];
+    public List<Node> GetAllChildren => [.. ghostChildren, .. children];
 
     public string name = "";
 
@@ -133,6 +137,7 @@ public class Node
         node.parent?.children.Remove(node);
 
         node.parent = this;
+        node.isGhostChildren = false;
 
         //verify if name isn't empty
         if (node.name == "")
@@ -159,6 +164,7 @@ public class Node
             node.parent.children.Remove(node);
 
         node.parent = this;
+        node.isGhostChildren = true;
 
         // Verify if theres no other child with the same name
         var count = 0;
@@ -218,11 +224,31 @@ public class Node
             Freeled = true;
 
             ResourcesService.FreeNode(NID);
-            foreach (var i in children.ToArray()) i.Free();
-            parent?.children.Remove(this);
+            foreach (var i in GetAllChildren.ToArray())
+                i.Free();
+
+            if (!isGhostChildren) parent?.children.Remove(this);
+            else parent?.ghostChildren.Remove(this);
+
             parent = null;
 
-            if (!_gcCalled) GC.SuppressFinalize(this);
+            if (!_gcCalled)
+                GC.SuppressFinalize(this);
+        }
+    }
+    public void FreeChildren()
+    {
+        while (children.Count > 0)
+        {
+
+            children[0].Free();
+        }
+    }
+    public void FreeGhostChildren()
+    {
+        while (ghostChildren.Count > 0)
+        {
+            ghostChildren[0].Free();
         }
     }
 
@@ -233,6 +259,7 @@ public class Node
 
     ~Node()
     {
+        if (Freeled) return;
         _gcCalled = true;
         Free();
         Console.WriteLine("Node {0} of base {1} is being freeled from GC!" +

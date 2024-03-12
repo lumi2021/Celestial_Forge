@@ -69,12 +69,12 @@ public static class FileService
             p = Engine.projectSettings.projectPath
             + p[6..];
         
-        else if (p.StartsWith("c:/") || p.StartsWith("C:/"))
+        else if (p.ToLower().StartsWith("c:/"))
             return p;
 
         else
-            p ="../../../" + p;
+            p = "../../../" + p;
 
-        return p;
+        return Path.GetFullPath(p);
     }
 }

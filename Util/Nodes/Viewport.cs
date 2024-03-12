@@ -1,3 +1,4 @@
+using System.Reflection;
 using GameEngine.Core;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Values;
@@ -111,35 +112,49 @@ public class Viewport : Node
         gl.ClearColor(backgroundColor);
         gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        List<Node> toDraw = [.. children];
+        List<Node> toIterate = [.. children];
+        Dictionary<int, List<Node>> toDraw = [];
 
-        while (toDraw.Count > 0)
+        while (toIterate.Count > 0)
         {
-            Node current = toDraw[0];
-            toDraw.RemoveAt(0);
+            Node current = toIterate[0];
+            toIterate.RemoveAt(0);
 
-            if (current is Viewport || current.Freeled) continue;
+            if (
+                current is Viewport || current.Freeled ||
+                current is not ICanvasItem || !(current as ICanvasItem)!.Visible
+            ) continue;
 
-            if (current is ICanvasItem)
+            int zindex = (current as ICanvasItem)!.GlobalZIndex;
+
+            if (!toDraw.ContainsKey(zindex))
+                toDraw.Add(zindex, []);
+
+            toDraw[zindex].Add(current);
+
+            var childrenToAdd = current.GetAllChildren;
+            for (int i = childrenToAdd.Count - 1; i >= 0; i--)
+                toIterate.Insert(0, childrenToAdd[i]);
+        }
+
+        foreach (var i in toDraw)
+        foreach (var current in i.Value)
+        {
+
+            var ci = (current as ICanvasItem)!;
+
+            // configurate scissor
+            if (current.parent is IClipChildren)
             {
-                // configurate scissor
-                if (current.parent is IClipChildren)
-                {
-                    var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
-                    clipRect = clipRect.InvertVerticallyIn(
-                        new(Camera2D.position.X, Camera2D.position.Y, size.X, size.Y) );
-                    gl.Scissor(clipRect);
-                }
+                var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
+                var viewRect = new Rect(Camera2D.position.X, Camera2D.position.Y, size.X, size.Y);
 
-                // checks if it's visible and draw
-                if ((current as ICanvasItem)!.Visible)
-                    current.RunDraw(deltaTime);
-                
-                else continue; // Don't draw childrens
+                clipRect = clipRect.InvertVerticallyIn(viewRect);
+                gl.Scissor(clipRect);
             }
 
-            for (int i = current.children.Count - 1; i >= 0; i--)
-                toDraw.Insert(0,  current.children[i]);
+            current.RunDraw(deltaTime);
+
         }
 
         DrawService.PopViewport();
@@ -172,10 +187,7 @@ public class Viewport : Node
         Engine.gl.BindTexture(TextureTarget.Texture2D, viewportTexture);
     }
 
-    public void SupressInputEvent()
-    {
-        proceedInput = false;
-    }
+    public void SupressInputEvent() => proceedInput = false;
 
     public void SetCurrentCamera(Camera2D? cam) => _currentCamera2D = cam;
 

@@ -6,11 +6,8 @@ using GameEngine.Util.Resources;
 
 namespace GameEngine.Util.Nodes;
 
-public class TextureRect : NodeUI, ICanvasItem
+public class TextureRect : NodeUI
 {
-
-    [Inspect]
-    public bool Visible { get; set; } = true;
 
     [Inspect]
     public Texture? texture = null;
@@ -49,8 +46,5 @@ public class TextureRect : NodeUI, ICanvasItem
 
         DrawService.Draw(NID);
     }
-
-    public void Show() { Visible = true; }
-    public void Hide() { Visible = false; }
 
 }

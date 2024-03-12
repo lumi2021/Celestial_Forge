@@ -1,4 +1,3 @@
-using System.Numerics;
 using GameEngine.Core;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
@@ -6,15 +5,12 @@ using GameEngine.Util.Resources;
 
 namespace GameEngine.Util.Nodes;
 
-public class ViewportContainer : NodeUI, ICanvasItem
+public class ViewportContainer : NodeUI
 {
-    public bool Visible { get ; set; } = true;
 
-    [Inspect]
-    public Viewport? linkedViewport = null;
+    [Inspect] public Viewport? linkedViewport = null;
 
-    [Inspect]
-    public Material material = new Material2D( Material2D.DrawTypes.Texture );
+    [Inspect] public Material material = new Material2D( Material2D.DrawTypes.Texture );
 
     protected override void Init_()
     {
@@ -64,8 +60,5 @@ public class ViewportContainer : NodeUI, ICanvasItem
         DrawService.Draw(NID);
 
     }
-
-    public void Hide() => Visible = false;
-    public void Show() => Visible = true;
 
 }

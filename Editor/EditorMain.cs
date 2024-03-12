@@ -7,10 +7,8 @@ using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using Silk.NET.Windowing;
-using GameEngine.Debug;
+using GameEngine.Debugging;
 using Window = GameEngine.Util.Nodes.Window;
-using Console = System.Console;
-using InnerConsole = GameEngine.Debug.Console;
 using GameEngineEditor.EditorNodes;
 
 namespace GameEngine.Editor;
@@ -33,6 +31,7 @@ public class EditorMain
 
     /* ETC */
     private int maintab = 0;
+    //private int bottomtab = 0;
 
     private FileReference? fileBeingEdited = null;
 
@@ -51,7 +50,7 @@ public class EditorMain
         mainWindow.Title = "Celestial Forge";
 
         /* INSTANTIATE EDITOR */
-        var scene = PackagedScene.Load("Data/Screens/editor.json")!.Instantiate();
+        var scene = PackagedScene.Load("Data/Screens/mainEditor/editor.json")!.Instantiate();
         mainWindow.AddAsChild(scene);
         editorRoot = scene;
 
@@ -73,6 +72,11 @@ public class EditorMain
 
         var textCompileBtn = (textEditor!.GetChild("Toolbar/CompileBtn") as Button)!;
         textCompileBtn.OnPressed.Connect( (object? from, dynamic[]? args) => CompileOpenTextFile() );
+
+        var textEditorField = textEditor.GetChild("FileContentContainer/FileContent") as WriteTextField;
+        textEditorField!.OnTextEdited.Connect((object? node, dynamic[]? args) => {
+            textEditorField.colorsList = CSharpCompiler.Highlight(args![0]);
+        });
 
         #endregion
 
@@ -176,11 +180,44 @@ public class EditorMain
         sb!.target = nodesList;
         #endregion
 
-        /* INSTANTIATE AND CONFIGURATE CONSOLE */
+        /* INSTANTIATE AND CONFIGURATE BOTTOM BAR */
         #region
         
-        console = editorRoot!.GetChild("Main/Center/BottomBar/BottomBarWindow/Console/ConsoleLog") as NodeUI;
-        InnerConsole.OnLogEvent += OnLog;
+        // tab buttons
+        var bottomBar = editorRoot!.GetChild("Main/Center/BottomBar") as Pannel;
+
+        var outputBtn = bottomBar!.GetChild("Tabs/OutputBtn") as Button;
+        var errorsBtn = bottomBar!.GetChild("Tabs/ErrorsBtn") as Button;
+        var monitorsBtn = bottomBar!.GetChild("Tabs/MonitorsBtn") as Button;
+
+        var consoleTab = bottomBar!.GetChild("BottomBarWindow/ConsoleTab") as NodeUI;
+        var errorsTab = bottomBar!.GetChild("BottomBarWindow/ErrorsTab") as NodeUI;
+        var monitorsTab = bottomBar!.GetChild("BottomBarWindow/MonitorsTab") as NodeUI;
+
+
+        outputBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
+            //bottomtab = 0;
+            consoleTab!.Visible = true;
+            errorsTab!.Visible = false;
+            monitorsTab!.Visible = false;
+        });
+        errorsBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
+            //bottomtab = 1;
+            consoleTab!.Visible = false;
+            errorsTab!.Visible = true;
+            monitorsTab!.Visible = false;
+        });
+        monitorsBtn!.OnPressed.Connect((object? from, dynamic[]? args) => {
+            //bottomtab = 2;
+            consoleTab!.Visible = false;
+            errorsTab!.Visible = false;
+            monitorsTab!.Visible = true;
+        });
+        
+
+        // console
+        console = bottomBar!.GetChild("BottomBarWindow/ConsoleTab/Console/ConsoleLog") as NodeUI;
+        Debug.OnLogEvent += OnLog;
 
         #endregion
 
@@ -260,7 +297,7 @@ public class EditorMain
 
     private void LoadSceneInEditor(string scenePath)
     {
-        sceneEnviropment.children.Clear();
+        sceneEnviropment.FreeChildren();
 
         var cam = new SceneEditor2DCamera();
         sceneEnviropment.AddAsChild(cam);
@@ -272,7 +309,7 @@ public class EditorMain
         sceneEnviropment!.AddAsChild(scene);
 
         // LOAD NODES LIST //
-        List<KeyValuePair<string, Node>> ToList = new();
+        List<KeyValuePair<string, Node>> ToList = [];
         foreach (var i in scene.children) ToList.Add(new("", i));
 
         Dictionary<string, Texture> IconsBuffer = [];
@@ -289,7 +326,8 @@ public class EditorMain
             else
             {
                 var nTexture = new SvgTexture() { Filter = false };
-                nTexture.LoadFromFile("Assets/icons/Nodes/" + node.GetType().Name + ".svg", 20, 20);
+                IconAttribute nodeIconAtrib = (IconAttribute)node.GetType().GetCustomAttribute(typeof(IconAttribute))!;
+                nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
                 IconsBuffer.Add(node.GetType().Name, nTexture);
                 nodeIcon = nTexture;
             }
@@ -308,7 +346,8 @@ public class EditorMain
         else
         {
             var nTexture = new SvgTexture() { Filter = false };
-            nTexture.LoadFromFile("Assets/icons/Nodes/" + scene.GetType().Name + ".svg", 20, 20);
+            IconAttribute nodeIconAtrib = (IconAttribute)scene.GetType().GetCustomAttribute(typeof(IconAttribute))!;
+            nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
             IconsBuffer.Add(scene.GetType().Name, nTexture);
             rootIcon = nTexture;
         }
@@ -347,7 +386,18 @@ public class EditorMain
         var code = textField.Text;
 
         var csc = new CSharpCompiler();
-        csc.Compile(code, fileBeingEdited!.Value.path);
+        Type? scriptType = csc.Compile(code, fileBeingEdited!.Value.GlobalPath);
+
+        if (scriptType != null)
+        {
+            object scriptInstance = Activator.CreateInstance(scriptType)!;
+            
+            MethodInfo executeMethod = scriptType.GetMethod("Execute")!;
+            MethodInfo freeMethod = scriptType.GetMethod("Free")!;
+
+            executeMethod.Invoke(scriptInstance, null);
+            freeMethod.Invoke(scriptInstance, null);
+        }
     }
 
     private void LoadInspectorInformation(Node node)
@@ -355,7 +405,7 @@ public class EditorMain
         Type nodeType = node.GetType();
 
         var inspecContainer = editorRoot!.GetChild("Main/RightPannel/Inspector/InspectorContainer")! as NodeUI;
-        inspecContainer!.children.Clear();
+        inspecContainer!.FreeChildren();
 
         Type currentType = nodeType;
 
@@ -404,6 +454,7 @@ public class EditorMain
         }
     }
 
+
     #region really random stuff
 
     private static Pannel CreateTitleItem(string title)
@@ -429,7 +480,12 @@ public class EditorMain
         var properInfo = memberInfo as PropertyInfo;
 
         Type fieldType = fieldInfo?.FieldType ?? properInfo!.PropertyType;
-        if (fieldType.IsGenericType) fieldType = fieldType.GetGenericTypeDefinition();
+        Type[] fieldGenericArgs = [];
+        if (fieldType.IsGenericType)
+        {
+            fieldGenericArgs = fieldType.GetGenericArguments();
+            fieldType = fieldType.GetGenericTypeDefinition();
+        }
 
         InspectAttribute inspectAtt = memberInfo.GetCustomAttribute<InspectAttribute>()!;
 
@@ -437,6 +493,7 @@ public class EditorMain
         {
             sizePercent = new(1, 0),
             sizePixels = new(0, 25),
+            name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter"
         };
         var label = new TextField()
         {
@@ -446,6 +503,7 @@ public class EditorMain
             verticalAligin = TextField.Aligin.Center,
             anchor = NodeUI.ANCHOR.TOP_LEFT,
             Color = new(255, 255, 255),
+            name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_label"
         };
         
         container.AddAsChild(label);
@@ -458,13 +516,15 @@ public class EditorMain
             {
                 BackgroundColor = new(149, 173, 190),
                 sizePercent = new(0.5f, 1),
-                anchor = NodeUI.ANCHOR.TOP_RIGHT
+                anchor = NodeUI.ANCHOR.TOP_RIGHT,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_container"
             };
             var field = new WriteTextField()
             {
                 Text = value,
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
-                Color = new(0, 0, 0)
+                Color = new(0, 0, 0),
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_TextField"
             };
 
             field.OnTextEdited.Connect((object? from, dynamic[]? args) => {
@@ -495,7 +555,8 @@ public class EditorMain
             var fieldContainer = new NodeUI()
             {
                 sizePercent = new(0.5f, 1),
-                anchor = NodeUI.ANCHOR.TOP_RIGHT
+                anchor = NodeUI.ANCHOR.TOP_RIGHT,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_container"
             };
             var checkbox = new Checkbox()
             {
@@ -506,7 +567,8 @@ public class EditorMain
                 value = value,
                 mouseFilter = NodeUI.MouseFilter.Ignore,
                 actived_texture = texture_check,
-                unactived_texture = texture_uncheck
+                unactived_texture = texture_uncheck,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_checkbox"
             };
             var text = new TextField()
             {
@@ -515,7 +577,8 @@ public class EditorMain
                 verticalAligin = TextField.Aligin.Center,
                 sizePixels = new(-28, 0),
                 Color = new(255, 255, 255),
-                mouseFilter = NodeUI.MouseFilter.Ignore
+                mouseFilter = NodeUI.MouseFilter.Ignore,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_value_label"
             };
 
             fieldContainer.onClick.Connect((object? from, dynamic[]? args) =>
@@ -545,7 +608,8 @@ public class EditorMain
                 BackgroundColor = new(149, 173, 190),
                 sizePercent = new(0.5f, 0),
                 sizePixels = new(0, 25),
-                anchor = NodeUI.ANCHOR.TOP_RIGHT
+                anchor = NodeUI.ANCHOR.TOP_RIGHT,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_x_container"
             };
             var fieldContainer2 = new Pannel()
             {
@@ -553,21 +617,41 @@ public class EditorMain
                 sizePercent = new(0.5f, 0),
                 positionPercent = new(0f, 0.5f),
                 sizePixels = new(0, 25),
-                anchor = NodeUI.ANCHOR.TOP_RIGHT
+                anchor = NodeUI.ANCHOR.TOP_RIGHT,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_y_container"
             };
             
             var field1 = new WriteTextField()
             {
                 Text = "" + value.X,
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
-                Color = new(0, 0, 0)
+                Color = new(0, 0, 0),
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_x_field"
             };
             var field2 = new WriteTextField()
             {
                 Text = "" + value.Y,
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
-                Color = new(0, 0, 0)
+                Color = new(0, 0, 0),
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_y_field"
             };
+
+            field1.OnTextEdited.Connect((object? from, dynamic[]? args) => {
+                if (!double.TryParse(args![0], out double _)) args![0] = "0";
+
+                dynamic value = fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj)!;
+                value.X = Convert.ChangeType(double.Parse(args![0]), fieldGenericArgs[0]);
+                fieldInfo?.SetValue(obj, value);
+                properInfo?.SetValue(obj, value);
+            });
+            field2.OnTextEdited.Connect((object? from, dynamic[]? args) => {
+                if (!double.TryParse(args![0], out double _)) args![0] = "0";
+
+                dynamic value = fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj)!;
+                value.Y = Convert.ChangeType(double.Parse(args![0]), fieldGenericArgs[0]);
+                fieldInfo?.SetValue(obj, value);
+                properInfo?.SetValue(obj, value);
+            });
 
             fieldContainer1.AddAsChild(field1);
             fieldContainer2.AddAsChild(field2);
@@ -578,22 +662,25 @@ public class EditorMain
         else if (fieldType.IsEnum)
         {
             int value = (int) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
-            Console.WriteLine("Enum value as int is: " + value);
 
             var values = Enum.GetValues(fieldType);
-
-            //for (int i = 0; i < values.Length; i++)
-            //{
-            //    Console.WriteLine("{0}\t{1}\t{2}", i == value? "=>" : "",
-            //    Convert.ChangeType(values.GetValue(i), Enum.GetUnderlyingType(fieldType)),
-            //    values.GetValue(i));
-            //}
 
             var field = new Select()
             {
                 sizePercent = new(0.5f, 1),
-                anchor = NodeUI.ANCHOR.TOP_RIGHT
+                anchor = NodeUI.ANCHOR.TOP_RIGHT,
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_select_box"
             };
+
+            for (int i = 0; i < values.Length; i++)
+                field.AddValue( (int) values.GetValue(i)!, values.GetValue(i)!.ToString()! );
+            
+            field.Value = value;
+
+            field.OnValueChange.Connect((from, args) => {
+                fieldInfo?.SetValue(obj, args![0]);
+                properInfo?.SetValue(obj, args![0]);
+            });
 
             container.AddAsChild(field);
         }
@@ -604,25 +691,27 @@ public class EditorMain
     private static Pannel CreateLogItem(LogInfo log)
     {
 
-        var nLog = new Pannel();
-        nLog.sizePercent = new(1, 0);
-        nLog.sizePixels = new(0, 32);
-
+        var nLog = new Pannel
+        {
+            sizePercent = new(1, 0),
+            sizePixels = new(0, 40)
+        };
         var message = new TextField
         {
             Color = new(255, 255, 255),
             Font = new("./Assets/Fonts/calibri.ttf", 15),
-            Text = log.message
+            Text = log.message,
+            sizePixels = new(-10, -22),
+            positionPixels = new(5, 5)
         };
-
         var details = new TextField
         {
             anchor = NodeUI.ANCHOR.BOTTOM_LEFT,
             Color = new(255, 255, 255, 0.5f),
             Font = new("./Assets/Fonts/consola.ttf", 10),
-            ForceTextSize = true
+            sizePercent = new(1, 0),
+            sizePixels = new(0, 12)
         };
-        details.positionPixels.Y = 5;
          
         var sourceFile = log.sourceFile != "" ? log.sourceFile : "undefined";
         var timestamp = log.timestamp.ToString(@"hh\:mm\:ss");
