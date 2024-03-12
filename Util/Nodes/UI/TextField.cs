@@ -8,11 +8,8 @@ using GameEngine.Util.Values;
 namespace GameEngine.Util.Nodes;
 
 [Icon("./Assets/icons/Nodes/TextField.svg")]
-public class TextField : NodeUI, ICanvasItem
+public class TextField : NodeUI
 {
-    [Inspect]
-    public bool Visible { get; set; } = true;
-
     public enum Aligin {
         Start,
         Center,
@@ -61,6 +58,7 @@ public class TextField : NodeUI, ICanvasItem
         set {
             _color = value;
             material.SetUniform("color", _color);
+            ReconfigurateDraw();
         }
     }
     [Inspect] public Aligin horizontalAligin = Aligin.Start;
@@ -164,9 +162,6 @@ public class TextField : NodeUI, ICanvasItem
     {
         TextEdited();
     }
-
-    public void Show() { Visible = true; }
-    public void Hide() { Visible = false; }
 
     private void ReconfigurateDraw()
     {

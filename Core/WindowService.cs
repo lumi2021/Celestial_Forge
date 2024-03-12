@@ -67,7 +67,6 @@ public static class WindowService
 
         // GL configurations //
         gl.ClearColor(1f, 1f, 1f, 1f);
-        gl.Enable(EnableCap.Multisample);
         gl.Enable(EnableCap.ScissorTest);
         gl.Enable(EnableCap.Blend);
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);

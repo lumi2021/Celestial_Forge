@@ -6,6 +6,8 @@ namespace GameEngine.Core;
 public static class ResourceHeap
 {
 
+    private static byte _lastFullColect = 0;
+
     #region to delete
     private static List<uint> _texturesToDelete = [];
     private static List<uint> _shaderProgsToDelete = [];
@@ -33,6 +35,10 @@ public static class ResourceHeap
     #region shared resources management
     private static List<WeakReference<SharedResource>> _sharedResources = [];
 
+    public static void AddReference(SharedResource resource)
+    {
+        _sharedResources.Add(new WeakReference<SharedResource>(resource));
+    }
     public static T? TryGetReference<T>(params object?[] args) where T : SharedResource
     {
         
@@ -70,6 +76,22 @@ public static class ResourceHeap
             foreach (var i in _shaderProgsToDelete) gl.DeleteProgram( i );
             _shaderProgsToDelete.Clear();
         }
+    
+        // execute a full garbage collection after 100 frames
+        if (_lastFullColect >= 100)
+        {
+
+            for (int i = 0; i < _sharedResources.Count; i++)
+            if (!_sharedResources[i].TryGetTarget(out var _))
+            {
+                _sharedResources.RemoveAt(i);
+                i--;
+            }
+
+
+            _lastFullColect = 0;
+        }
+        else _lastFullColect++;
     }
     public static void CallProcess()
     {

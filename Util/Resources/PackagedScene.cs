@@ -38,8 +38,7 @@ public class PackagedScene : Resource
         return root.CreateNodeInstance( resRepository.ToArray() );
     }
 
-    
-    #region inner classes and desserialiser
+    #region inner types and desserialiser
 
     struct PackagedNode
     {
@@ -134,7 +133,6 @@ public class PackagedScene : Resource
 
     }
 
-
     class PackagedSceneFileConverter : JsonConverter<PackagedScene>
     {
         public override PackagedScene? ReadJson(JsonReader reader, Type objectType, PackagedScene? existingValue, bool hasExistingValue, JsonSerializer serializer)
@@ -175,7 +173,6 @@ public class PackagedScene : Resource
             throw new NotImplementedException();
         }
 
-
         private PackagedNode? LoadPackagedNodeFromJson(JObject data)
         {
             Type? t = null;
@@ -189,6 +186,19 @@ public class PackagedScene : Resource
                 var csc = new CSharpCompiler();
                 FileReference script = new(tkn2.Value<string>()!);
                 t = csc.Compile(script.ReadAllFile(), script.GlobalPath);
+            }
+
+            else if (data.TryGetValue("SceneRef", out var tkn3))
+            {
+                PackagedScene? scene = Load(tkn3.Value<string>()!);
+                if (scene != null)
+                {
+                    
+                    scene.root.Name = data.Value<string>("Name")!;
+                    return scene.root;
+                
+                }
+                else return null;
             }
 
             if (t != null)

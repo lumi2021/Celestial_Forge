@@ -44,8 +44,9 @@ public partial class CascadingStyleSheet : Resource
                 }
                 if (c == ' ')
                 {
-                    if (token.StartsWith("#"))
-                        tokens.Add(new(TokenType.id_ref, token[1..]));
+                    if (token.StartsWith('#'))
+                        tokens.Add(new(TokenType.id_ref, token[1..])); 
+
                     else
                         tokens.Add(new(TokenType.tag_ref, token));
 
@@ -132,6 +133,7 @@ public partial class CascadingStyleSheet : Resource
         class_ref,
         id_ref,
         tag_ref,
+        mod_ref,
         style_target,
         style_value,
         char_key,

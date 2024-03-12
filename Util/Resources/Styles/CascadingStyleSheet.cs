@@ -11,6 +11,7 @@ public partial class CascadingStyleSheet : Resource
         public string[] ids;
         public string[] tags;
         public string[] classes;
+        public string[] modifiers;
 
         public StyleItem[] items;
     }

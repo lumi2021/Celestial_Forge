@@ -5,8 +5,14 @@ Pannel {
     border: 1px solid black;
 }
 
-Pannel #Screen {
+Pannel #Screen.a {
 
     background: rgb(255, 0, 0);
     
+}
+
+Pannel Button:hover {
+
+    background: rgb(0, 0, 255);
+
 }

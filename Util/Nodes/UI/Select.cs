@@ -5,6 +5,7 @@ namespace GameEngine.Util.Nodes;
 
 public class Select : NodeUI
 {
+
     private int _value = 0;
     [Inspect]
     public int Value
@@ -18,25 +19,29 @@ public class Select : NodeUI
     }
 
     [Inspect]
-    public Dictionary<int, string> values = new();
+    public Dictionary<int, string> values = [];
 
     private readonly Pannel Container = new();
-    private readonly TextField Label = new() { mouseFilter = MouseFilter.Ignore };
+    private readonly TextField Label = new() {
+        mouseFilter = MouseFilter.Ignore,
+        verticalAligin = TextField.Aligin.Center
+    };
     private readonly Pannel OptionsContainer = new()
     {
         positionPercent = new(0, 1),
         sizePercent = new(1,0),
-        Visible = false
+        Visible = false,
+        ZIndex = 999
     };
-    private readonly Dictionary<int, Button> options = new();
+    private readonly Dictionary<int, Button> options = [];
 
     public readonly Signal OnValueChange = new();
 
     protected override void Init_()
     {
-        AddAsChild(Container);
+        AddAsGhostChild(Container);
         Container.AddAsChild(Label);
-        AddAsChild(OptionsContainer);
+        AddAsGhostChild(OptionsContainer);
         UpdateValue();
 
         Container.onFocus.Connect((object? _, dynamic[]? _) => ToggleOptionsList());
@@ -58,20 +63,28 @@ public class Select : NodeUI
 
     public void AddValue(int number, string label)
     {
-        if (!values.ContainsKey(number))
+        if (values.TryAdd(number, label))
         {
-            values.Add(number, label);
 
             var nOp = new Button()
             {
                 sizePercent = new(1, 0),
-                sizePixels = new(0, 16)
+                sizePixels = new(0, 25),
+                name = $"select_option_{number}_{label}"
             };
             var nLb = new TextField()
             {
-                Text = label
+                Text = label,
+                verticalAligin = TextField.Aligin.Center,
+                mouseFilter = MouseFilter.Pass
             };
             nOp.AddAsChild(nLb);
+
+            nOp.OnPressed.Connect((object? from, dynamic[]? args) => {
+                CloseOptionsList();
+                Value = number;
+
+            });
 
             OptionsContainer.AddAsChild(nOp);
             options.Add(number, nOp);
@@ -84,6 +97,7 @@ public class Select : NodeUI
     private void UpdateValue()
     {
         Label.Text = values.Count <= 0 ? "" : values[ Value ];
+        OnValueChange.Emit(this, [Value]);
     }
     private void SortButtons()
     {
@@ -98,4 +112,5 @@ public class Select : NodeUI
         }
         OptionsContainer.sizePixels.Y = position;
     }
+
 }

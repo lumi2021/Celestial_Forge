@@ -66,7 +66,6 @@ public class CSharpCompiler : Resource, IScriptCompiler
         var tokens = root.DescendantTokens();
         foreach (var token in tokens)
         {
-            //Console.WriteLine($"{token.Value} ({token.Kind()})");
             if (token.Kind().ToString().EndsWith("Keyword"))
                 spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(255, 0, 0)));
 
@@ -80,6 +79,9 @@ public class CSharpCompiler : Resource, IScriptCompiler
                 spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(255, 255, 0)));
             
         }
+
+        // comments and trivias //
+        //var comments = [];
 
         return [.. spans];
 
