@@ -166,8 +166,9 @@ public class Window : Viewport
             if (!toEventIndexes.ContainsKey(zindex)) toEventIndexes.Add(zindex, []);
             toEventIndexes[zindex].Add(current);
 
-            for (int i = current.children.Count - 1; i >= 0; i--)
-                toIterate.Insert(0,  current.children[i]);
+            var childrenToAdd = current.GetAllChildren;
+            for (int i = childrenToAdd.Count - 1; i >= 0; i--)
+                toIterate.Insert(0, childrenToAdd[i]);
         }
 
         List<Node> toEvent = [];

@@ -1,3 +1,4 @@
+using System.Reflection;
 using GameEngine.Core;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Values;
@@ -131,8 +132,9 @@ public class Viewport : Node
 
             toDraw[zindex].Add(current);
 
-            for (int i = current.children.Count - 1; i >= 0; i--)
-                toIterate.Insert(0, current.children[i]);
+            var childrenToAdd = current.GetAllChildren;
+            for (int i = childrenToAdd.Count - 1; i >= 0; i--)
+                toIterate.Insert(0, childrenToAdd[i]);
         }
 
         foreach (var i in toDraw)

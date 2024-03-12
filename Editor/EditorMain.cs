@@ -297,7 +297,7 @@ public class EditorMain
 
     private void LoadSceneInEditor(string scenePath)
     {
-        sceneEnviropment.children.Clear();
+        sceneEnviropment.FreeChildren();
 
         var cam = new SceneEditor2DCamera();
         sceneEnviropment.AddAsChild(cam);
@@ -309,7 +309,7 @@ public class EditorMain
         sceneEnviropment!.AddAsChild(scene);
 
         // LOAD NODES LIST //
-        List<KeyValuePair<string, Node>> ToList = new();
+        List<KeyValuePair<string, Node>> ToList = [];
         foreach (var i in scene.children) ToList.Add(new("", i));
 
         Dictionary<string, Texture> IconsBuffer = [];
@@ -405,7 +405,7 @@ public class EditorMain
         Type nodeType = node.GetType();
 
         var inspecContainer = editorRoot!.GetChild("Main/RightPannel/Inspector/InspectorContainer")! as NodeUI;
-        inspecContainer!.children.Clear();
+        inspecContainer!.FreeChildren();
 
         Type currentType = nodeType;
 
@@ -675,6 +675,8 @@ public class EditorMain
             for (int i = 0; i < values.Length; i++)
                 field.AddValue( (int) values.GetValue(i)!, values.GetValue(i)!.ToString()! );
             
+            field.Value = value;
+
             field.OnValueChange.Connect((from, args) => {
                 fieldInfo?.SetValue(obj, args![0]);
                 properInfo?.SetValue(obj, args![0]);

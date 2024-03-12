@@ -59,7 +59,7 @@ public class Button : NodeUI
 
     protected override void Init_()
     {
-        AddAsChild(Container);
+        AddAsGhostChild(Container);
     }
 
     protected override void OnUIInputEvent(InputEvent e)

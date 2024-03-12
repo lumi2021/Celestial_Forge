@@ -39,9 +39,9 @@ public class Select : NodeUI
 
     protected override void Init_()
     {
-        AddAsChild(Container);
+        AddAsGhostChild(Container);
         Container.AddAsChild(Label);
-        AddAsChild(OptionsContainer);
+        AddAsGhostChild(OptionsContainer);
         UpdateValue();
 
         Container.onFocus.Connect((object? _, dynamic[]? _) => ToggleOptionsList());

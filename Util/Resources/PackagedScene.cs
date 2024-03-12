@@ -133,7 +133,6 @@ public class PackagedScene : Resource
 
     }
 
-
     class PackagedSceneFileConverter : JsonConverter<PackagedScene>
     {
         public override PackagedScene? ReadJson(JsonReader reader, Type objectType, PackagedScene? existingValue, bool hasExistingValue, JsonSerializer serializer)
@@ -173,7 +172,6 @@ public class PackagedScene : Resource
         {
             throw new NotImplementedException();
         }
-
 
         private PackagedNode? LoadPackagedNodeFromJson(JObject data)
         {
