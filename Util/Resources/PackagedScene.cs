@@ -1,4 +1,5 @@
 using GameEngine.Core;
+using GameEngine.Core.Scripting;
 using GameEngine.Util.Nodes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,9 +12,16 @@ public class PackagedScene : Resource
     public string Path { get; private set; }
     private PackagedNode root;
     private PackagedResource[] resources;
+    private Script[] scriptsToCompile = [];
 
-    private PackagedScene(string path, PackagedNode root, PackagedResource[] resources)
+    private PackagedScene(string path, PackagedNode root, PackagedResource[] resources, FileReference[] scripts)
     {
+        List<Script> stcList = [];
+        foreach(var i in scripts)
+            stcList.Add(new(i, "cs"));
+
+        ScriptService.Compile([.. stcList]);
+
         Path = path;
         this.root = root;
         this.resources = resources;
@@ -21,39 +29,65 @@ public class PackagedScene : Resource
 
     public static PackagedScene? Load(string path)
     {
-        var data = FileService.GetFile(path);
+        string data = FileService.GetFile(path);
 
         var settings = new JsonSerializerSettings
-        { Converters = { new PackagedSceneFileConverter() } };
+        { Converters = [new PackagedSceneFileConverter()] };
 
         return JsonConvert.DeserializeObject<PackagedScene>(data, settings);
     }
 
     public Node Instantiate()
     {
-        List<Resource> resRepository = new();
+        List<Resource> resRepository = [];
+
         foreach (var i in resources)
             resRepository.Add( i.CreateResourceInstance() );
 
-        return root.CreateNodeInstance( resRepository.ToArray() );
+        return root.CreateNodeInstance( [.. resRepository] );
     }
-
-    #region inner types and desserialiser
 
     struct PackagedNode
     {
-        public Type NodeType {get;set;} = typeof(Node);
+        public string ScriptPath {get;set;} = null!;
+
+        public bool alreadyCompiled = true;
+        public Type NodeType {get;set;} = null!;
+        public string NodeTypeName {get;set;} = "";
+
         public string Name {get;set;} = "";
-        public Dictionary<string, object?> data = new();
-        public PackagedNode[] Children {get;set;} = Array.Empty<PackagedNode>();
+        public Dictionary<string, JToken?> rawData = [];
+        public Dictionary<string, object?> data = [];
+        public PackagedNode[] Children {get;set;} = [];
 
         public PackagedNode() {}
 
         public Node CreateNodeInstance( Resource[] resRepo )
         {
-            var newNode = (Node) Activator.CreateInstance(NodeType)!;
+            Node newNode;
 
-            newNode.name = Name;
+            if (alreadyCompiled && NodeType != null)
+                newNode = (Node) Activator.CreateInstance(NodeType)!;
+
+            else
+            {
+                var t = ScriptService.GetDinamicCompiledType(NodeTypeName);
+                if (t != null)
+                {
+                    NodeType = t;
+                    newNode = (Node) Activator.CreateInstance(t)!;
+                    alreadyCompiled = true;
+
+                    foreach (var i in rawData)
+                    {
+                        var res = RawData2FinalData(i, NodeType);
+                        data.Add(res.Key, res.Value);
+                    }
+                }
+
+                else throw new Exception($"Invalid type \"{NodeTypeName}\"");
+
+            }
 
             foreach (var i in data)
             {
@@ -87,7 +121,10 @@ public class PackagedScene : Resource
                 i.Key, NodeType.Name));
 
             }
-            
+
+
+            newNode.name = Name;
+
             foreach (var i in Children)
                 newNode.AddAsChild(i.CreateNodeInstance( resRepo ));
             
@@ -103,7 +140,7 @@ public class PackagedScene : Resource
 
         public PackagedResource() {}
 
-        public Resource CreateResourceInstance()
+        public readonly Resource CreateResourceInstance()
         {
             var newRes = (Resource) Activator.CreateInstance(ResType)!;
 
@@ -133,7 +170,7 @@ public class PackagedScene : Resource
 
     }
 
-    class PackagedSceneFileConverter : JsonConverter<PackagedScene>
+    private class PackagedSceneFileConverter : JsonConverter<PackagedScene>
     {
         public override PackagedScene? ReadJson(JsonReader reader, Type objectType, PackagedScene? existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
@@ -141,13 +178,15 @@ public class PackagedScene : Resource
             JObject json = JObject.Load(reader);
 
             PackagedNode root = new();
-            List<PackagedResource> resources = new();
+            List<PackagedResource> resources = [];
+            List<FileReference> scriptsToCompile = [];
 
             // Load Tree
             if (json["NodeTree"] != null && json["NodeTree"] is JObject)
             {
                 
-                var treeResult = LoadPackagedNodeFromJson((JObject) json["NodeTree"]!);
+                var treeResult = LoadPackagedNodeFromJson((JObject) json["NodeTree"]!, out var scripts);
+                scriptsToCompile.AddRange(scripts);
                 if (treeResult != null) root = (PackagedNode) treeResult;
 
             } else throw new ApplicationException("PackagedScene File is corrupted!");
@@ -158,13 +197,13 @@ public class PackagedScene : Resource
                 foreach (var i in ((JArray)json["Resources"]!)!)
                 if (i is JObject @object)
                 {
-                    var res = LoadPackagedResourceFromJson(@object);
+                    var res = LoadPackagedResourceFromJson(@object, out var script);
+                    if (script.HasValue) scriptsToCompile.Add(script.Value);
                     if (res != null) resources.Add( (PackagedResource) res );
                 }
             }
 
-
-            return new PackagedScene( "", root, resources.ToArray() );
+            return new PackagedScene("", root, [.. resources], [.. scriptsToCompile]);
 
         }
 
@@ -173,9 +212,13 @@ public class PackagedScene : Resource
             throw new NotImplementedException();
         }
 
-        private PackagedNode? LoadPackagedNodeFromJson(JObject data)
+        private PackagedNode? LoadPackagedNodeFromJson(JObject data, out FileReference[] scripts)
         {
+            scripts = [];
+
+            bool alreadyCompiledClass = true;
             Type? t = null;
+            string tname = "";
             
             if (data.TryGetValue("NodeType", out var tkn1))
                 t = Type.GetType("GameEngine.Util.Nodes." + tkn1.Value<string>());
@@ -183,9 +226,10 @@ public class PackagedScene : Resource
             // compile the script and get the class back
             else if (data.TryGetValue("NodeScript", out var tkn2))
             {
-                var csc = new CSharpCompiler();
-                FileReference script = new(tkn2.Value<string>()!);
-                t = csc.Compile(script.ReadAllFile(), script.GlobalPath);
+                string[] classRef = tkn2.Value<string>()!.Split('>');
+                scripts = [.. scripts, new(classRef[0].Trim())];
+                tname = classRef[1].Trim();
+                alreadyCompiledClass = false;
             }
 
             else if (data.TryGetValue("SceneRef", out var tkn3))
@@ -201,14 +245,24 @@ public class PackagedScene : Resource
                 else return null;
             }
 
-            if (t != null)
+            if (t != null || !alreadyCompiledClass)
             {
 
                 PackagedNode node = new()
                 {
-                    NodeType = t,
                     Name = data.GetValue("Name")!.ToString()
                 };
+
+                if (alreadyCompiledClass)
+                {
+                    node.NodeType = t!;
+                    node.alreadyCompiled = true;
+                }
+                else
+                {
+                    node.NodeTypeName = tname;
+                    node.alreadyCompiled = false;
+                }
 
                 // LOAD DATA
                 string[] ignore = ["NodeType", "NodeScript", "Name", "Children"];
@@ -216,33 +270,11 @@ public class PackagedScene : Resource
                 {
                     if (ignore.Contains(i.Key)) continue;
 
-                    var field = t.GetField(i.Key);
-                    var prop = t.GetProperty(i.Key);
-
-                    // Check if data field exists
-                    if (field == null && prop == null)
-                        throw new ApplicationException(string.Format("Field {0} don't exist in base {1}!",
-                        i.Key, t.Name));
-                    
-                    if (i.Value is JArray) // Unpack custom values in arrays
+                    node.rawData.Add(i.Key, i.Value);
+                    if (t != null)
                     {
-                        var obj = (field != null)?
-                        Activator.CreateInstance(field?.FieldType!, i.Value.Values<float>().ToArray()) :
-                        Activator.CreateInstance(prop?.PropertyType!, i.Value.Values<float>().ToArray());
-                        
-                        if (obj!=null) node.data.Add(i.Key, obj);
-                    }
-                    else {
-                        if (
-                            (field != null && field.FieldType.IsAssignableTo(typeof(Node))) ||
-                            (prop != null && prop.PropertyType.IsAssignableTo(typeof(Node)))
-                        )
-                        {
-                            node.data.Add(i.Key, i.Value!.ToString());
-                            continue;
-                        }
-
-                        node.data.Add(i.Key, i.Value);
+                        var res = RawData2FinalData(i, t);
+                        node.data.Add(res.Key, res.Value);
                     }
                 }
 
@@ -253,8 +285,12 @@ public class PackagedScene : Resource
                 if (children != null && children is JArray)
                 foreach( var i in children)
                 {
-                    var c = LoadPackagedNodeFromJson((JObject) i);
-                    if (c != null) childrenList.Add( (PackagedNode) c );
+                    var c = LoadPackagedNodeFromJson((JObject) i, out var childScripts);
+                    if (c != null) 
+                    {
+                        childrenList.Add( (PackagedNode) c );
+                        scripts = [.. scripts, .. childScripts];
+                    }
                 }
 
                 node.Children = childrenList.ToArray();
@@ -265,8 +301,11 @@ public class PackagedScene : Resource
 
             return null; // Error
         }
-        private PackagedResource? LoadPackagedResourceFromJson(JObject data)
+        private PackagedResource? LoadPackagedResourceFromJson(JObject data, out FileReference? script)
         {
+
+            script = null;
+
             Type? t = Type.GetType("GameEngine.Util.Resources." + data.GetValue("ResourceType")!.Value<string>());
 
             if (t != null)
@@ -312,6 +351,40 @@ public class PackagedScene : Resource
         }
     }
 
-    #endregion
+    private static KeyValuePair<string, object?> RawData2FinalData(KeyValuePair<string, JToken?> i, Type t)
+    {
+
+        object? data = null;
+
+        var field = t.GetField(i.Key);
+        var prop = t.GetProperty(i.Key);
+
+        // Check if data field exists
+        if (field == null && prop == null)
+            throw new ApplicationException(string.Format("Field {0} don't exist in base {1}!",
+            i.Key, t.Name));
+        
+        if (i.Value is JArray) // Unpack custom values in arrays
+        {
+            var obj = (field != null)?
+            Activator.CreateInstance(field?.FieldType!, i.Value.Values<float>().ToArray()) :
+            Activator.CreateInstance(prop?.PropertyType!, i.Value.Values<float>().ToArray());
+            
+            if (obj!=null) data = obj;
+        }
+        else {
+            if (
+                (field != null && field.FieldType.IsAssignableTo(typeof(Node))) ||
+                (prop != null && prop.PropertyType.IsAssignableTo(typeof(Node)))
+            )
+                data = i.Value!.ToString();
+            
+            else data = i.Value;
+        }
+
+        return new(i.Key, data);
+
+    }
+
 
 }

@@ -70,9 +70,6 @@ public class EditorMain
         var textSaveBtn = (textEditor!.GetChild("Toolbar/SaveBtn") as Button)!;
         textSaveBtn.OnPressed.Connect( (object? from, dynamic[]? args) => SaveOpenTextFile() );
 
-        var textCompileBtn = (textEditor!.GetChild("Toolbar/CompileBtn") as Button)!;
-        textCompileBtn.OnPressed.Connect( (object? from, dynamic[]? args) => CompileOpenTextFile() );
-
         var textEditorField = textEditor.GetChild("FileContentContainer/FileContent") as WriteTextField;
         textEditorField!.OnTextEdited.Connect((object? node, dynamic[]? args) => {
             textEditorField.colorsList = CSharpCompiler.Highlight(args![0]);
@@ -379,25 +376,6 @@ public class EditorMain
     {
         var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
         fileBeingEdited?.Write(textField.Text);
-    }
-    private void CompileOpenTextFile()
-    {
-        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
-        var code = textField.Text;
-
-        var csc = new CSharpCompiler();
-        Type? scriptType = csc.Compile(code, fileBeingEdited!.Value.GlobalPath);
-
-        if (scriptType != null)
-        {
-            object scriptInstance = Activator.CreateInstance(scriptType)!;
-            
-            MethodInfo executeMethod = scriptType.GetMethod("Execute")!;
-            MethodInfo freeMethod = scriptType.GetMethod("Free")!;
-
-            executeMethod.Invoke(scriptInstance, null);
-            freeMethod.Invoke(scriptInstance, null);
-        }
     }
 
     private void LoadInspectorInformation(Node node)
@@ -715,8 +693,9 @@ public class EditorMain
          
         var sourceFile = log.sourceFile != "" ? log.sourceFile : "undefined";
         var timestamp = log.timestamp.ToString(@"hh\:mm\:ss");
+        var srcFile = new FileReference(sourceFile);
 
-        details.Text = $"{sourceFile}:{log.callerName} (l. {log.lineNumber}) at {timestamp}";
+        details.Text = $"{srcFile.RelativePath}:{log.callerName} (l. {log.lineNumber}) at {timestamp}";
 
         nLog.AddAsChild(message);
         nLog.AddAsChild(details);

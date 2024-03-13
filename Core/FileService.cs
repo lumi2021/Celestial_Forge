@@ -42,6 +42,7 @@ public static class FileService
         }
     }
 
+    /* SEARCH */
     public static FileSystemInfo[] GetDirectory(string path)
     {
         var gPath = GetGlobalPath(path);
@@ -52,6 +53,7 @@ public static class FileService
         return itens;
     }
 
+    /* FILE/DIR PATH OPERATIONS */
     public static string GetProjRelativePath(string path)
     {
         string p = path.Replace("\\", "/");
@@ -77,4 +79,7 @@ public static class FileService
 
         return Path.GetFullPath(p);
     }
+
+    public static bool HaveRelativePath(string path) => path.StartsWith(Engine.projectSettings.projectPath);
+
 }

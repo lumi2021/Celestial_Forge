@@ -1,20 +1,10 @@
 namespace GameEngine.Util.Resources;
 
-public class Script : Resource
+public class Script(FileReference src, string lang) : Resource
 {
 
-    public FileReference? source;
-    public string? language;
-
-    public bool compiled = false;
-
-    public void Compile()
-    {
-        Compile(source?.ReadAllFile() ?? "");
-    }
-    public void Compile(string src)
-    {
-
-    }
+    public string Code => path.ReadAllFile();
+    public readonly FileReference path = src;
+    public readonly string language = lang;
 
 }

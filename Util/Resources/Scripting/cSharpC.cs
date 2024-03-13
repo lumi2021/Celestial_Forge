@@ -11,47 +11,28 @@ namespace GameEngine.Util.Resources;
 public class CSharpCompiler : Resource, IScriptCompiler
 {
 
-    public Type? Compile(string src, string sourcePath="")
+    public static Assembly? Compile(Script script)
     {
 
-        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(src, null, sourcePath);
+        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(script.Code, null, script.path.GlobalPath);
         syntaxTree = PreprocessSyntaxTree(syntaxTree);
+        
+        return CompileAndGetAsm([syntaxTree], out _);
 
-        string assemblyName = "DynamicAss.dll";
-        List<MetadataReference> assembliesRefs = [];
+    }
+    public static Assembly? CompileMultiple(Script[] scripts)
+    {
 
-        assembliesRefs.AddRange(Basic.Reference.Assemblies.Net80.References.All);
-        assembliesRefs.Add(MetadataReference.CreateFromFile(typeof(Program).Assembly.Location));
+        List<SyntaxTree> trees = [];
 
-        var compilation = CSharpCompilation.Create(
-            assemblyName,
-            syntaxTrees: [ syntaxTree ],
-            references: assembliesRefs,
-            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-        );
-
-        using var ms = new MemoryStream();
-        EmitResult result = compilation.Emit(ms);
-
-        if (!result.Success)
+        foreach (var script in scripts)
         {
-            Console.WriteLine("Compilation error:");
-            foreach (var diagnostic in result.Diagnostics)
-            {
-                Console.WriteLine($"{diagnostic.Id}: {diagnostic.GetMessage()} (l. {diagnostic.Location.GetLineSpan().StartLinePosition.Line})");
-            }
-        }
-        else
-        {
-            ms.Seek(0, SeekOrigin.Begin);
-            Assembly assembly = Assembly.Load(ms.ToArray());
-
-            Type scriptType = assembly.GetType("Script")!;
-            return scriptType;
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(script.Code, null, script.path.GlobalPath);
+            syntaxTree = PreprocessSyntaxTree(syntaxTree);
+            trees.Add(syntaxTree);
         }
 
-        return null;
-
+        return CompileAndGetAsm([.. trees], out _);
     }
 
     public static TextField.ColorSpan[] Highlight(string src)
@@ -86,6 +67,7 @@ public class CSharpCompiler : Resource, IScriptCompiler
         return [.. spans];
 
     }
+
 
     private static SyntaxTree PreprocessSyntaxTree(SyntaxTree syntaxTree)
     {
@@ -143,6 +125,46 @@ public class CSharpCompiler : Resource, IScriptCompiler
 
         return tree;
 
+    }
+
+    private static Assembly? CompileAndGetAsm(SyntaxTree[] trees, out Compilation comp)
+    {
+
+        string assemblyName = "DynamicAss.dll";
+        List<MetadataReference> assembliesRefs = [];
+
+        assembliesRefs.AddRange(Basic.Reference.Assemblies.Net80.References.All);
+        assembliesRefs.Add(MetadataReference.CreateFromFile(typeof(Program).Assembly.Location));
+
+        var compilation = CSharpCompilation.Create(
+            assemblyName,
+            syntaxTrees: trees,
+            references: assembliesRefs,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        );
+
+        comp = compilation;
+
+        using var ms = new MemoryStream();
+        EmitResult result = compilation.Emit(ms);
+
+        if (!result.Success)
+        {
+            Console.WriteLine("Compilation error:");
+            foreach (var diagnostic in result.Diagnostics)
+            {
+                Console.WriteLine($"{diagnostic.Id}: {diagnostic.GetMessage()} (l. {diagnostic.Location.GetLineSpan().StartLinePosition.Line})");
+            }
+        }
+        else
+        {
+            ms.Seek(0, SeekOrigin.Begin);
+            Assembly assembly = Assembly.Load(ms.ToArray());
+
+            return assembly;
+        }
+
+        return null;
     }
 
 }

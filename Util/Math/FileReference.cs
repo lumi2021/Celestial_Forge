@@ -9,6 +9,7 @@ public struct FileReference
 
     public readonly string GlobalPath => _globalPath;
     public readonly string RelativePath => FileService.GetProjRelativePath(_globalPath);
+    public readonly bool HaveRelativePath => FileService.HaveRelativePath(_globalPath);
 
     public FileReference(string path)
     {
@@ -57,7 +58,7 @@ public struct FileReference
 
     public override readonly string ToString()
     {
-        return string.Format("path(\"{0}\")", _globalPath);
+        return string.Format("path(\"{0}\")", RelativePath);
     }
 
 }

@@ -1,7 +1,6 @@
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
-using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 

@@ -122,10 +122,10 @@ public class Viewport : Node
 
             if (
                 current is Viewport || current.Freeled ||
-                current is not ICanvasItem || !(current as ICanvasItem)!.Visible
+                current is ICanvasItem ci && !ci.Visible
             ) continue;
 
-            int zindex = (current as ICanvasItem)!.GlobalZIndex;
+            int zindex = (current as ICanvasItem)?.GlobalZIndex ?? 0;
 
             if (!toDraw.ContainsKey(zindex))
                 toDraw.Add(zindex, []);

@@ -1,3 +1,5 @@
+using System.Reflection;
+using GameEngine.Util.Resources;
 using static GameEngine.Util.Nodes.TextField;
 
 namespace GameEngine.Util.Interfaces;
@@ -5,7 +7,8 @@ namespace GameEngine.Util.Interfaces;
 public interface IScriptCompiler
 {
 
-    public Type? Compile(string src, string sourcepath);
+    public virtual static Assembly? Compile(Script script) => null;
+    public virtual static Assembly? CompileMultiple(Script[] scripts) => null;
 
     public static ColorSpan[] Highlight(string src) => [];
 

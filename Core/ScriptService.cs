@@ -1,4 +1,38 @@
+using System.Reflection;
+using GameEngine.Util.Resources;
+
 namespace GameEngine.Core.Scripting;
+
+public static class ScriptService
+{
+
+    private static List<Assembly> _assemblies = [];
+    private static Dictionary<string, Type> _typeReferences = [];
+
+    public static void Compile(Script[] scripts)
+    {
+        _assemblies.Clear();
+        _typeReferences.Clear();
+
+        var csScripts = scripts.Where(s => s.language == "cs").ToArray();
+        var asm = CSharpCompiler.CompileMultiple(csScripts);
+
+        if (asm != null)
+        {
+            _assemblies.Add(asm);
+
+            foreach (var i in asm.GetTypes())
+                _typeReferences.Add(i.Name, i);
+
+        }
+    }
+
+    public static Type? GetDinamicCompiledType(string name) =>
+        _typeReferences.TryGetValue(name, out var res)? res : null;
+
+}
+
+#region drasm enuns
 
 public enum DrasmOperations : byte
 {
@@ -72,3 +106,5 @@ public enum DrasmParameterTypes : byte
     _undefined
 
 }
+
+#endregion
