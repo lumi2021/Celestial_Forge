@@ -1,0 +1,72 @@
+{
+    "NodeTree" : {
+        "NodeType" : "NodeUI",
+        "Name" : "NodeMananger",
+
+        "anchor" : 1,
+        "sizePixels" : [-32, -32],
+        "sizePercent" : [1, 0.5],
+        "positionPixels" : [0, 16],
+
+        
+        "Children" : [
+            
+            {
+                "NodeType" : "TextField",
+                "Name" : "TabTitle",
+                "Text" : "Node Mananger",
+                "sizePercent" : [1, 0],
+                "sizePixels" : [0, 24],
+                "horizontalAligin" : 1
+            },
+            {
+                "NodeType" : "Panel",
+                "Name" : "Container",
+
+                "positionPixels" : [0, 24],
+                "sizePixels" : [0, -24],
+
+                "BackgroundColor" : [60, 42, 77],
+                "StrokeColor" : [224, 240, 234],
+                "StrokeSize" : 2,
+                "CornerRadius" : [40, 40, 40, 40],
+                "padding" : 20,
+
+                "ClipChildren" : true,
+
+                "Children" : [
+                    
+                    {
+                        "NodeType" : "TreeGraph",
+                        "Name" : "NodesList",
+
+                        "HideRoot" : true
+                    },
+
+                    {
+                        "NodeType" : "ScrollBar",
+                        "Name" : "scrollbar",
+                        "anchor" : 2,
+                        "sizePercent" : [0, 1],
+                        "sizePixels" : [15, 0],
+
+                        "target" : "../NodesList"
+                    }
+
+                ]
+
+            }
+
+        ]
+
+    },
+
+    "Resources" : [
+        {
+            "ResourceType" : "Font",
+            "Path" : "Assets/Fonts/calibri.ttf",
+            "Size" : 18
+        }
+    ]
+
+}

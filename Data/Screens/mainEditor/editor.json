@@ -2,7 +2,7 @@
 
     "NodeTree" :
     {
-        "NodeType" : "Pannel",
+        "NodeType" : "Panel",
         "Name" : "Screen",
 
         "BackgroundColor" : [15, 0, 51],
@@ -11,7 +11,7 @@
         [
 
             {
-                "NodeType" : "Pannel",
+                "NodeType" : "Panel",
                 "Name" : "TopBar",
                 
                 "BackgroundColor" : [60, 42, 77],
@@ -103,8 +103,8 @@
                 [
 
                     {
-                        "NodeType" : "Pannel",
-                        "Name" : "LeftPannel",
+                        "NodeType" : "Panel",
+                        "Name" : "LeftPanel",
                         
                         "BackgroundColor" : [80, 58, 101],
                         "CornerRadius" : [0, 40, 0, 0],
@@ -116,7 +116,7 @@
                         [
 
                             {
-                                "NodeType" : "Pannel",
+                                "NodeType" : "Panel",
                                 "Name" : "FileMananger",
 
                                 "BackgroundColor" : [60, 42, 77],
@@ -132,8 +132,8 @@
                     },
 
                     {
-                        "NodeType" : "Pannel",
-                        "Name" : "RightPannel",
+                        "NodeType" : "Panel",
+                        "Name" : "RightPanel",
                         
                         "BackgroundColor" : [80, 58, 101],
                         "CornerRadius" : [40, 0, 0, 0],
@@ -142,27 +142,9 @@
                         "anchor" : 8,
 
                         "Children" :
-                        [
-
+                        [   
                             {
-                                "NodeType" : "Pannel",
-                                "Name" : "NodeMananger",
-
-                                "BackgroundColor" : [60, 42, 77],
-                                "StrokeColor" : [224, 240, 234],
-                                "StrokeSize" : 2,
-                                "CornerRadius" : [40, 40, 40, 40],
-                                "padding" : 20,
-
-                                "anchor" : 1,
-                                "sizePixels" : [-32, -32],
-                                "sizePercent" : [1, 0.5],
-                                "positionPixels" : [0, 16],
-                                "ClipChildren" : true
-                            },
-
-                            {
-                                "NodeType" : "Pannel",
+                                "NodeType" : "Panel",
                                 "Name" : "Inspector",
 
                                 "BackgroundColor" : [60, 42, 77],
@@ -199,7 +181,6 @@
                                 "NodeType" : "DragHandler",
                                 "Name" : "CenterHandler",
         
-                                "nodeA" : "../NodeMananger",
                                 "nodeB" : "../Inspector",
         
                                 "dragAxis" : 2,
@@ -237,7 +218,7 @@
                                 "Children" :
                                 [
                                     {
-                                        "NodeType" : "Pannel",
+                                        "NodeType" : "Panel",
                                         "Name" : "Viewport",
         
                                         "BackgroundColor" : [0, 0, 0],
@@ -246,7 +227,7 @@
                                     },
         
                                     {
-                                        "NodeType": "Pannel",
+                                        "NodeType": "Panel",
                                         "Name": "TextEditor",
         
                                         "Visible": false,
@@ -255,7 +236,7 @@
                                         "Children" : [
                                         
                                         {
-                                            "NodeType" : "Pannel",
+                                            "NodeType" : "Panel",
                                             "Name" : "FileContentContainer",
         
                                             "sizePixels": [ 0, -80 ],
@@ -289,7 +270,7 @@
                                         },
         
                                         {
-                                            "NodeType" : "Pannel",
+                                            "NodeType" : "Panel",
                                             "Name" : "Toolbar",
         
                                             "sizePixels" : [0, 32],
@@ -345,7 +326,7 @@
                         "NodeType" : "DragHandler",
                         "Name" : "LeftHandler",
 
-                        "nodeA" : "../LeftPannel",
+                        "nodeA" : "../LeftPanel",
                         "nodeB" : "../Center",
 
                         "dragAxis" : 1,
@@ -364,7 +345,7 @@
                         "Name" : "RightHandler",
 
                         "nodeA" : "../Center",
-                        "nodeB" : "../RightPannel",
+                        "nodeB" : "../RightPanel",
 
                         "dragAxis" : 1,
 
@@ -395,7 +376,7 @@
         {
             "ResourceType" : "Font",
             "Path" : "Assets/Fonts/consola.ttf",
-            "Size" : 12
+            "Size" : 15
         }
     ]
 

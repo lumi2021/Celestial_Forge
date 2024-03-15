@@ -27,11 +27,16 @@ public struct Rect
         set {Size.Y = value;}
     }
 
-    public Rect(Vector2<int> positionPixels) {}
+    public Rect() {}
     public Rect(Vector2<float> position, Vector2<float> size)
     {
         Position = position;
         Size = size;
+    }
+    public Rect(Vector2<int> position, Vector2<int> size)
+    {
+        Position = (Vector2<float>) position;
+        Size = (Vector2<float>) size;
     }
     public Rect(float x, float y, float width, float height)
     {

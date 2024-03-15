@@ -7,7 +7,7 @@ namespace GameEngine.Util.Nodes;
 public class ScrollBar : NodeUI
 {
     
-    private readonly Pannel _scrollButton = new()
+    private readonly Panel _scrollButton = new()
     {
         BackgroundColor = new(255, 0, 0),
         sizePercent = new(0,0),
@@ -44,7 +44,7 @@ public class ScrollBar : NodeUI
     {
         base.Init_();
 
-        AddAsChild(_scrollButton);
+        AddAsGhostChild(_scrollButton);
     }
 
     protected override void OnUIInputEvent(InputEvent e)

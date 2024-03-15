@@ -20,19 +20,37 @@ public class CSharpCompiler : Resource, IScriptCompiler
         return CompileAndGetAsm([syntaxTree], out _);
 
     }
-    public static Assembly? CompileMultiple(Script[] scripts)
+    public static Assembly? CompileMultiple(Script[] scripts, out Dictionary<Script, string[]> fileTypeMap)
     {
 
-        List<SyntaxTree> trees = [];
+        List<(Script, SyntaxTree)> scriptsAndTrees = [];
 
         foreach (var script in scripts)
         {
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(script.Code, null, script.path.GlobalPath);
             syntaxTree = PreprocessSyntaxTree(syntaxTree);
-            trees.Add(syntaxTree);
+            scriptsAndTrees.Add( (script, syntaxTree) );
         }
 
-        return CompileAndGetAsm([.. trees], out _);
+        var asm = CompileAndGetAsm([.. scriptsAndTrees.Select(e => e.Item2)], out var compilation);
+
+        Dictionary<Script, string[]> typesPerFile = [];
+
+        foreach (var (script, syntaxTree) in scriptsAndTrees)
+        {
+            var sm = compilation.GetSemanticModel(syntaxTree);
+            var root = syntaxTree.GetRoot();
+
+            var namedTypes = root.DescendantNodes().OfType<TypeDeclarationSyntax>()
+            .Select(ts => sm.GetDeclaredSymbol(ts)).OfType<INamedTypeSymbol>()
+            .ToList();
+
+            typesPerFile.Add(script, [.. namedTypes.Select(e => e.Name)]);
+        }
+
+        fileTypeMap = typesPerFile;
+
+        return asm;
     }
 
     public static TextField.ColorSpan[] Highlight(string src)

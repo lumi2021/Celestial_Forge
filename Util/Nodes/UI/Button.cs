@@ -26,7 +26,7 @@ public class Button : NodeUI
     public enum ActionTrigger { press, release }
     public ActionTrigger actionTrigger = ActionTrigger.release;
 
-    private Pannel Container = new() { mouseFilter = MouseFilter.Ignore };
+    private Panel Container = new() { mouseFilter = MouseFilter.Ignore };
 
     // Styles
     #region default

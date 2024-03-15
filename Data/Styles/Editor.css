@@ -1,17 +1,17 @@
 ﻿
-Pannel {
+Panel {
 
     background: rgb(0, 255, 33), rgba(255, 216, 0, 0.5);
     border: 1px solid black;
 }
 
-Pannel #Screen.a {
+Panel #Screen.a {
 
     background: rgb(255, 0, 0);
     
 }
 
-Pannel Button:hover {
+Panel Button:hover {
 
     background: rgb(0, 0, 255);
 

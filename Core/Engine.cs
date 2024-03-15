@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using GameEngine.Editor;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
+using GameEngineEditor.Editor;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 

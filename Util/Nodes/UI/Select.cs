@@ -21,12 +21,12 @@ public class Select : NodeUI
     [Inspect]
     public Dictionary<int, string> values = [];
 
-    private readonly Pannel Container = new();
+    private readonly Panel Container = new();
     private readonly TextField Label = new() {
         mouseFilter = MouseFilter.Ignore,
         verticalAligin = TextField.Aligin.Center
     };
-    private readonly Pannel OptionsContainer = new()
+    private readonly Panel OptionsContainer = new()
     {
         positionPercent = new(0, 1),
         sizePercent = new(1,0),

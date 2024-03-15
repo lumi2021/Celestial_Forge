@@ -10,8 +10,9 @@ using Silk.NET.Windowing;
 using GameEngine.Debugging;
 using Window = GameEngine.Util.Nodes.Window;
 using GameEngineEditor.EditorNodes;
+using GameEngine;
 
-namespace GameEngine.Editor;
+namespace GameEngineEditor.Editor;
 
 public class EditorMain
 {
@@ -22,10 +23,11 @@ public class EditorMain
     /* IMPORTANT NODES */
     private Node? editorRoot;
     private TreeGraph? filesList;
-    private TreeGraph? nodesList;
-    private Pannel? sceneViewport;
-    private Pannel? textEditor;
+    private Panel? sceneViewport;
+    private Panel? textEditor;
     private NodeUI? console;
+
+    private NodeMananger? nodeMananger = null;
 
     private Viewport sceneEnviropment = null!;
 
@@ -57,8 +59,8 @@ public class EditorMain
         /* CONFIGURATE MAIN SCREEN */
         #region
 
-        sceneViewport = editorRoot!.GetChild("Main/Center/Main/Viewport") as Pannel;
-        textEditor = editorRoot!.GetChild("Main/Center/Main/TextEditor") as Pannel;
+        sceneViewport = editorRoot!.GetChild("Main/Center/Main/Viewport") as Panel;
+        textEditor = editorRoot!.GetChild("Main/Center/Main/TextEditor") as Panel;
 
         Button sceneBtn = (editorRoot!.GetChild("TopBar/MainOptions/SceneEditor") as Button)!;
         Button scriptBtn = (editorRoot!.GetChild("TopBar/MainOptions/ScriptEditor") as Button)!;
@@ -97,7 +99,7 @@ public class EditorMain
 
         /* INSTANTIATE AND CONFIGURATE FILE MANANGER */
         #region
-        var filesSection = scene.GetChild("Main/LeftPannel/FileMananger");
+        var filesSection = scene.GetChild("Main/LeftPanel/FileMananger");
 
         filesList = new TreeGraph() { ClipChildren = true };
         filesSection!.AddAsChild(filesList);
@@ -161,27 +163,22 @@ public class EditorMain
         /* INSTANTIATE AND CONFIGURATE NODE MANANGER */
         #region
 
-        var nodesSection = scene.GetChild("Main/RightPannel/NodeMananger");
+        nodeMananger = new NodeMananger();
 
-        nodesList = new TreeGraph();
-        nodesSection!.AddAsChild(nodesList);
+        var nodeMngNode = nodeMananger.CreateNodeMananger() as NodeUI;
+        scene.GetChild("Main/RightPanel")!.AddAsChild(nodeMngNode!);
 
+        (scene.GetChild("Main/RightPanel/CenterHandler") as DragHandler)!.nodeA = nodeMngNode!; 
 
-        var sb = new ScrollBar()
-        {
-            anchor = NodeUI.ANCHOR.TOP_RIGHT,
-            sizePercent = new(0, 1),
-            sizePixels = new(15, 0)
-        };
-        nodesSection.AddAsChild(sb);
-        sb!.target = nodesList;
         #endregion
 
         /* INSTANTIATE AND CONFIGURATE BOTTOM BAR */
         #region
         
         // tab buttons
-        var bottomBar = editorRoot!.GetChild("Main/Center/BottomBar") as Pannel;
+        var bottomBar = editorRoot!.GetChild("Main/Center/BottomBar") as Panel;
+
+        var aaa = bottomBar!.GetChild("Tabs");
 
         var outputBtn = bottomBar!.GetChild("Tabs/OutputBtn") as Button;
         var errorsBtn = bottomBar!.GetChild("Tabs/ErrorsBtn") as Button;
@@ -299,61 +296,11 @@ public class EditorMain
         var cam = new SceneEditor2DCamera();
         sceneEnviropment.AddAsChild(cam);
         cam.Current = true;
-
-        nodesList!.ClearGraph();
         
         var scene = PackagedScene.Load(scenePath)!.Instantiate();
         sceneEnviropment!.AddAsChild(scene);
 
-        // LOAD NODES LIST //
-        List<KeyValuePair<string, Node>> ToList = [];
-        foreach (var i in scene.children) ToList.Add(new("", i));
-
-        Dictionary<string, Texture> IconsBuffer = [];
-
-        while ( ToList.Count > 0 )
-        {
-            var keyValue = ToList.Unqueue();
-            var path = keyValue.Key;
-            var node = keyValue.Value;
-
-            Texture nodeIcon;
-            if (IconsBuffer.ContainsKey(node.GetType().Name))
-                nodeIcon = IconsBuffer[node.GetType().Name];
-            else
-            {
-                var nTexture = new SvgTexture() { Filter = false };
-                IconAttribute nodeIconAtrib = (IconAttribute)node.GetType().GetCustomAttribute(typeof(IconAttribute))!;
-                nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
-                IconsBuffer.Add(node.GetType().Name, nTexture);
-                nodeIcon = nTexture;
-            }
-
-            var item = nodesList!.AddItem(path, node.name, nodeIcon);
-            item!.data.Add("NodeRef", node);
-            item!.OnClick.Connect(OnNodeClicked);
-
-            for (int i = node.children.Count-1; i >= 0 ; i--)
-                ToList.Insert(0, new(path+"/"+node.name, node.children[i]));
-        }
-
-        Texture rootIcon;
-        if (IconsBuffer.ContainsKey(scene.GetType().Name))
-            rootIcon = IconsBuffer[scene.GetType().Name];
-        else
-        {
-            var nTexture = new SvgTexture() { Filter = false };
-            IconAttribute nodeIconAtrib = (IconAttribute)scene.GetType().GetCustomAttribute(typeof(IconAttribute))!;
-            nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
-            IconsBuffer.Add(scene.GetType().Name, nTexture);
-            rootIcon = nTexture;
-        }
-
-        nodesList!.Root.Name = scene.name;
-        nodesList!.Root.Icon = rootIcon;
-
-        nodesList!.Root.data.Add("NodeRef", scene);
-        nodesList!.Root.OnClick.Connect(OnNodeClicked);
+        nodeMananger?.LoadSceneNodes(scene);
     
         ChangeMainView(0);
     }
@@ -382,7 +329,7 @@ public class EditorMain
     {
         Type nodeType = node.GetType();
 
-        var inspecContainer = editorRoot!.GetChild("Main/RightPannel/Inspector/InspectorContainer")! as NodeUI;
+        var inspecContainer = editorRoot!.GetChild("Main/RightPanel/Inspector/InspectorContainer")! as NodeUI;
         inspecContainer!.FreeChildren();
 
         Type currentType = nodeType;
@@ -435,9 +382,9 @@ public class EditorMain
 
     #region really random stuff
 
-    private static Pannel CreateTitleItem(string title)
+    private static Panel CreateTitleItem(string title)
     {
-        var panel = new Pannel()
+        var panel = new Panel()
         {
             sizePercent = new(1, 0),
             sizePixels = new(0, 25)
@@ -490,7 +437,7 @@ public class EditorMain
         {
             string value = (string) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
 
-            var fieldContainer = new Pannel()
+            var fieldContainer = new Panel()
             {
                 BackgroundColor = new(149, 173, 190),
                 sizePercent = new(0.5f, 1),
@@ -581,7 +528,7 @@ public class EditorMain
             container.sizePixels.Y = 50;
             label.sizePercent.Y = 0.5f;
 
-            var fieldContainer1 = new Pannel()
+            var fieldContainer1 = new Panel()
             {
                 BackgroundColor = new(149, 173, 190),
                 sizePercent = new(0.5f, 0),
@@ -589,7 +536,7 @@ public class EditorMain
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
                 name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_x_container"
             };
-            var fieldContainer2 = new Pannel()
+            var fieldContainer2 = new Panel()
             {
                 BackgroundColor = new(149, 173, 190),
                 sizePercent = new(0.5f, 0),
@@ -666,10 +613,10 @@ public class EditorMain
         return container;
     }
 
-    private static Pannel CreateLogItem(LogInfo log)
+    private static Panel CreateLogItem(LogInfo log)
     {
 
-        var nLog = new Pannel
+        var nLog = new Panel
         {
             sizePercent = new(1, 0),
             sizePixels = new(0, 40)

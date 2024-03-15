@@ -7,7 +7,7 @@ public static class ScriptService
 {
 
     private static List<Assembly> _assemblies = [];
-    private static Dictionary<string, Type> _typeReferences = [];
+    private static Dictionary<Script, Dictionary<string, Type>> _typeReferences = [];
 
     public static void Compile(Script[] scripts)
     {
@@ -15,20 +15,28 @@ public static class ScriptService
         _typeReferences.Clear();
 
         var csScripts = scripts.Where(s => s.language == "cs").ToArray();
-        var asm = CSharpCompiler.CompileMultiple(csScripts);
+        var asm = CSharpCompiler.CompileMultiple(csScripts, out var scriptTypesMap);
 
         if (asm != null)
         {
             _assemblies.Add(asm);
 
-            foreach (var i in asm.GetTypes())
-                _typeReferences.Add(i.Name, i);
+            foreach (var script in scriptTypesMap)
+            {
+                Dictionary<string, Type> typeMap = [];
+
+                foreach (var type in script.Value)
+                    typeMap.Add(type, asm.GetType(type)!);
+
+                _typeReferences.Add(script.Key, typeMap);
+
+            }
 
         }
     }
 
-    public static Type? GetDinamicCompiledType(string name) =>
-        _typeReferences.TryGetValue(name, out var res)? res : null;
+    public static Type GetDinamicCompiledType(string name) =>
+        _typeReferences.First(e => e.Value.TryGetValue(name, out _)).Value[name];
 
 }
 

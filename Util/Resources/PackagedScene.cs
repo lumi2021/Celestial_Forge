@@ -19,8 +19,8 @@ public class PackagedScene : Resource
         List<Script> stcList = [];
         foreach(var i in scripts)
             stcList.Add(new(i, "cs"));
-
-        ScriptService.Compile([.. stcList]);
+        
+        scriptsToCompile = [.. stcList];
 
         Path = path;
         this.root = root;
@@ -39,6 +39,8 @@ public class PackagedScene : Resource
 
     public Node Instantiate()
     {
+        ScriptService.Compile([.. scriptsToCompile]);
+
         List<Resource> resRepository = [];
 
         foreach (var i in resources)
@@ -216,6 +218,8 @@ public class PackagedScene : Resource
         {
             scripts = [];
 
+            PackagedNode? referedScene = null;
+
             bool alreadyCompiledClass = true;
             Type? t = null;
             string tname = "";
@@ -239,7 +243,12 @@ public class PackagedScene : Resource
                 {
                     
                     scene.root.Name = data.Value<string>("Name")!;
-                    return scene.root;
+                    referedScene = scene.root;
+                    
+                    if (scene.root.alreadyCompiled)
+                        t = scene.root.NodeType;
+                    else
+                        tname = scene.root.NodeTypeName;
                 
                 }
                 else return null;
@@ -248,7 +257,7 @@ public class PackagedScene : Resource
             if (t != null || !alreadyCompiledClass)
             {
 
-                PackagedNode node = new()
+                PackagedNode node = referedScene ?? new()
                 {
                     Name = data.GetValue("Name")!.ToString()
                 };
@@ -265,35 +274,38 @@ public class PackagedScene : Resource
                 }
 
                 // LOAD DATA
-                string[] ignore = ["NodeType", "NodeScript", "Name", "Children"];
+                string[] ignore = ["NodeType", "NodeScript", "SceneRef", "Name", "Children"];
                 foreach (var i in data)
                 {
                     if (ignore.Contains(i.Key)) continue;
 
-                    node.rawData.Add(i.Key, i.Value);
+                    if (!node.rawData.TryAdd(i.Key, i.Value)) node.rawData[i.Key] = i.Value;
                     if (t != null)
                     {
                         var res = RawData2FinalData(i, t);
-                        node.data.Add(res.Key, res.Value);
+                        if(!node.data.TryAdd(res.Key, res.Value)) node.data[res.Key] = res.Value;
                     }
                 }
 
                 // LOAD CHILDREN
-                var children = data.GetValue("Children");
-                List<PackagedNode> childrenList = new();
-
-                if (children != null && children is JArray)
-                foreach( var i in children)
+                if (referedScene == null)
                 {
-                    var c = LoadPackagedNodeFromJson((JObject) i, out var childScripts);
-                    if (c != null) 
-                    {
-                        childrenList.Add( (PackagedNode) c );
-                        scripts = [.. scripts, .. childScripts];
-                    }
-                }
+                    var children = data.GetValue("Children");
+                    List<PackagedNode> childrenList = [];
 
-                node.Children = childrenList.ToArray();
+                    if (children != null && children is JArray)
+                    foreach( var i in children)
+                    {
+                        var c = LoadPackagedNodeFromJson((JObject) i, out var childScripts);
+                        if (c != null) 
+                        {
+                            childrenList.Add( (PackagedNode) c );
+                            scripts = [.. scripts, .. childScripts];
+                        }
+                    }
+
+                    node.Children = [.. childrenList];
+                }
 
                 return node;
 

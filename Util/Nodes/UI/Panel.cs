@@ -8,7 +8,7 @@ using GameEngine.Util.Values;
 namespace GameEngine.Util.Nodes;
 
 [Icon("./Assets/icons/Nodes/Panel.svg")]
-public class Pannel : NodeUI, ICanvasItem
+public class Panel : NodeUI, ICanvasItem
 {
 
     private Color _bgColor = new(100, 100, 100, 0.9f);

@@ -6,9 +6,16 @@ public class TreeGraph : NodeUI
 {
 
     private TreeGraphItem _root;
-    public TreeGraphItem Root
-    {
-        get { return _root; }
+    public TreeGraphItem Root => _root;
+
+    public bool _hideRoot = false;
+    public bool HideRoot {
+        get => _hideRoot;
+        set
+        {
+            _hideRoot = value;
+            UpdateList();
+        }
     }
 
     public TreeGraph()
@@ -46,7 +53,9 @@ public class TreeGraph : NodeUI
 
     public void UpdateList()
     {
-        List<TreeGraphItem> toUpdate = new() { _root };
+        List<TreeGraphItem> toUpdate = !_hideRoot ? [_root] : [.. _root.children];
+
+        if (_hideRoot) _root.SelfVisible = false;
 
         int listIndex = 0;
         while (toUpdate.Count > 0)
@@ -67,6 +76,7 @@ public class TreeGraph : NodeUI
     {
         _root.Delete();
         _root = new(this) {Name = "root"};
+        GC.Collect();
     }
 
     #region inner classes/strucs
@@ -111,7 +121,7 @@ public class TreeGraph : NodeUI
                 if (parent != null)
                     return parent.ArrayPath.Append(Name).ToArray();
                 else
-                    return new string[] {Name};   
+                    return [Name];   
             }
         }
         public int Index
@@ -123,6 +133,17 @@ public class TreeGraph : NodeUI
             }
         }
         
+        public int Level
+        {
+            get
+            {
+                if (parent != null)
+                    return parent.Level + (SelfVisible ? 1 : 0);
+            
+                return 0;   
+            }
+        }
+
         private bool _collapsed = false;
         public bool Collapsed
         {
@@ -137,8 +158,9 @@ public class TreeGraph : NodeUI
         private int positionIndex = 0;
 
         public TreeGraphItem? parent = null;
-        public List<TreeGraphItem> children = new();
+        public List<TreeGraphItem> children = [];
 
+        private bool _selfVisible = true;
         public bool Visible
         {
             get { return container.Visible; }
@@ -147,11 +169,16 @@ public class TreeGraph : NodeUI
                 ChildrenVisibility(value);
                 }
         }
+        public bool SelfVisible
+        {
+            get { return _selfVisible; }
+            set { _selfVisible = value; }
+        }
 
         #region random variables
 
         /* * * * * * */
-        private readonly Pannel container = new()
+        private readonly Panel container = new()
         {
             sizePercent = new(1, 0),
             sizePixels = new(0, 32),
@@ -212,8 +239,7 @@ public class TreeGraph : NodeUI
             positionIndex = pIndex;
             container.positionPixels.Y = (int) (container.Size.Y * positionIndex);
 
-            int level = ArrayPath.Length - 1;
-            container.positionPixels.X = 32 * level;
+            container.positionPixels.X = 32 * Level;
 
             if (_icon != null)
             {

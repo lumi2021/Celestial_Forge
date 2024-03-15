@@ -36,7 +36,7 @@ public class WriteTextField : TextField
     private uint caretRow = 0;
     //private uint caretRowMax = 0;
 
-    private readonly Pannel caret = new();
+    private readonly Panel caret = new();
 
     public readonly Signal OnTextEdited = new();
 

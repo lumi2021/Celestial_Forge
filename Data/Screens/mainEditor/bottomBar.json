@@ -1,7 +1,7 @@
 {
     "NodeTree" : {
 
-        "NodeType" : "Pannel",
+        "NodeType" : "Panel",
         "Name" : "BottomBar",
 
         "BackgroundColor" : [60, 42, 77],
@@ -35,7 +35,7 @@
                                 "Text":  "Output"
                             },
                             {
-                                "NodeType": "Pannel",
+                                "NodeType": "Panel",
                                 "Name": "Console",
 
                                 "sizePixels": [ 0, -32 ],
@@ -71,7 +71,7 @@
                                 "Text":  "Errors"
                             },
                             {
-                                "NodeType": "Pannel",
+                                "NodeType": "Panel",
                                 "Name": "Errors",
 
                                 "sizePixels": [ 0, -32 ],
@@ -107,7 +107,7 @@
                                 "Text":  "Monitors"
                             },
                             {
-                                "NodeType": "Pannel",
+                                "NodeType": "Panel",
                                 "Name": "Monitors",
 
                                 "sizePixels": [ 0, -32 ],
