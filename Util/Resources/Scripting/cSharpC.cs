@@ -61,10 +61,19 @@ public class CSharpCompiler : Resource, IScriptCompiler
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(src);
         var root = (CompilationUnitSyntax) syntaxTree.GetRoot();
 
+        // comments and trivias //
+        var comments = root.DescendantTrivia().Where(e => e.IsKind(SyntaxKind.SingleLineCommentTrivia) || e.IsKind(SyntaxKind.MultiLineCommentTrivia));
+        foreach (var comment in comments)
+        {
+            spans.Add(new(comment.FullSpan.Start, comment.FullSpan.End, new(255, 255, 255, 0.5f)));
+        }
+
         // generic tokens //
         var tokens = root.DescendantTokens();
         foreach (var token in tokens)
         {
+            //Console.WriteLine($"{token} ({token.Kind()}");
+
             if (token.Kind().ToString().EndsWith("Keyword"))
                 spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(255, 0, 0)));
 
@@ -74,16 +83,18 @@ public class CSharpCompiler : Resource, IScriptCompiler
                     spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(0, 255, 0)));
             }
 
-            else if (token.IsKind(SyntaxKind.StringLiteralToken))
+            else if (
+                token.IsKind(SyntaxKind.StringLiteralToken) ||
+
+                token.IsKind(SyntaxKind.InterpolatedStringTextToken) ||
+                token.IsKind(SyntaxKind.InterpolatedStringStartToken) ||
+                token.IsKind(SyntaxKind.InterpolatedStringEndToken)
+                )
                 spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(255, 255, 0)));
             
         }
 
-        // comments and trivias //
-        //var comments = [];
-
         return [.. spans];
-
     }
 
 
@@ -92,6 +103,16 @@ public class CSharpCompiler : Resource, IScriptCompiler
 
         SyntaxTree tree = syntaxTree;
         var root = (CompilationUnitSyntax) tree.GetRoot();
+
+        Console.WriteLine($"before:\n\n{root}");
+
+        #region check if it's just a node and compile it into a class
+
+        SyntaxNode[] a = [.. root.DescendantNodes().Where(e => e.DescendantTokens().ToArray()[0].ValueText == "extends" )];
+
+        Console.WriteLine($"a: {a[0]}");
+
+        #endregion
 
         #region add omitable using namespaces
 
@@ -102,6 +123,7 @@ public class CSharpCompiler : Resource, IScriptCompiler
             new("", "GameEngine.Core"),
             new("", "GameEngine.Util.Nodes"),
             new("", "GameEngine.Util.Values"),
+            new("", "GameEngine.Util.Attributes"),
             new("Console", "GameEngine.Debugging.Debug")
         };
 
@@ -125,12 +147,17 @@ public class CSharpCompiler : Resource, IScriptCompiler
                 usingDir = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(nSpace.Value)
                 .WithLeadingTrivia(SyntaxFactory.Space))
                 .WithAlias(SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(nSpace.Key)
+                .WithLeadingTrivia(SyntaxFactory.Space)
                 .WithTrailingTrivia(SyntaxFactory.Space)));
 
-            if (i == autoUsing.Length -1)
-                usingDir = usingDir.WithTrailingTrivia(SyntaxFactory.LineFeed);
+            if (i != 0)
+                usingDir = usingDir.WithLeadingTrivia(SyntaxFactory.LineFeed);
 
-            usingTokens.Add(usingDir.WithLeadingTrivia(SyntaxFactory.LineFeed));
+            if (i == autoUsing.Length - 1)
+                usingDir = usingDir.WithTrailingTrivia(new SyntaxTrivia[] { SyntaxFactory.LineFeed, SyntaxFactory.LineFeed });
+            
+
+            usingTokens.Add(usingDir);
         }
 
         root = root.AddUsings([.. usingTokens]);
@@ -139,7 +166,7 @@ public class CSharpCompiler : Resource, IScriptCompiler
 
         tree = tree.WithRootAndOptions(root, tree.Options);
 
-        //Console.WriteLine(root);
+        Console.WriteLine($"after:\n\n{root}");
 
         return tree;
 
@@ -184,5 +211,13 @@ public class CSharpCompiler : Resource, IScriptCompiler
 
         return null;
     }
+
+
+
+    private enum MySyntaxKind
+    {
+        ExtendsKeyword = 9078 + 1,
+    }
+
 
 }
