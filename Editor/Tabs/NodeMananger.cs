@@ -3,6 +3,7 @@ using GameEngine;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
+using static GameEngine.Util.Nodes.TreeGraph;
 
 namespace GameEngineEditor.Editor;
 
@@ -13,6 +14,12 @@ public class NodeMananger
 
     private TreeGraph _nodesList = null!;
 
+    public delegate void NodeClickedHandler(object node);
+    public NodeClickedHandler? onNodeClickedEvent;
+
+    public Node? sceneRoot = null;
+    public TreeGraphItem? selectedNodeTGI = null;
+    public Node? selectedNode = null;
 
     public Node? CreateNodeMananger()
     {
@@ -20,11 +27,21 @@ public class NodeMananger
 
         _nodesList = (nodeMananger!.GetChild("Container/NodesList") as TreeGraph)!;
 
+        var newNodeBtn = nodeMananger.GetChild("Controls/NewNodeBtn") as Button;
+
+        newNodeBtn!.OnPressed.Connect((_, _) => CreateNewNodeRequest());
+
         return nodeMananger;
     }
 
+    public void ReloadSceneNodes()
+    {
+        if (sceneRoot != null)
+            LoadSceneNodes(sceneRoot);
+    }
     public void LoadSceneNodes(Node sceneRoot)
     {
+        this.sceneRoot = sceneRoot;
 
         _nodesList.ClearGraph();
 
@@ -51,32 +68,51 @@ public class NodeMananger
             }
 
             var item = _nodesList.AddItem(path, node.name, nodeIcon);
-            item!.data.Add("NodeRef", node);
-            //item!.OnClick.Connect(OnNodeClicked);
+            item!.SetData("NodeRef", node);
+            item!.OnClick.Connect(OnNodeClicked);
 
             for (int i = node.children.Count-1; i >= 0 ; i--)
                 ToList.Insert(0, new(path+"/"+node.name, node.children[i]));
         }
 
-        Texture rootIcon;
-        if (IconsBuffer.ContainsKey(sceneRoot.GetType().Name))
-            rootIcon = IconsBuffer[sceneRoot.GetType().Name];
-        else
+    }
+
+    private void OnNodeClicked(object? from, dynamic[]? args)
+    {
+        var tgi = (from as TreeGraphItem)!;
+
+        var node = tgi.GetData("NodeRef", null) as Node;
+
+        selectedNodeTGI = tgi;
+        selectedNode = node;
+
+        onNodeClickedEvent?.Invoke(node!);
+    }
+
+    private void CreateNewNodeRequest()
+    {
+        if (selectedNode != null && selectedNodeTGI != null)
         {
+
+            var nNode = new Panel();
+            nNode.name = nNode.GetType().Name;
+
+            selectedNode.AddAsChild(nNode);
+
+            var a = _nodesList.AddItem(selectedNodeTGI.Path, nNode.name, null);
+
             var nTexture = new SvgTexture() { Filter = false };
-            IconAttribute nodeIconAtrib = (IconAttribute)sceneRoot.GetType()
+            IconAttribute nodeIconAtrib = (IconAttribute)nNode.GetType()
             .GetCustomAttribute(typeof(IconAttribute))!;
             nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
-            IconsBuffer.Add(sceneRoot.GetType().Name, nTexture);
-            rootIcon = nTexture;
+            a!.Icon = nTexture;
+
+            a!.SetData("NodeRef", nNode);
+
+            a!.OnClick.Connect(OnNodeClicked);
+
+            _nodesList.UpdateList();
         }
-
-        _nodesList.Root.Name = sceneRoot.name;
-        _nodesList.Root.Icon = rootIcon;
-
-        _nodesList.Root.data.Add("NodeRef", sceneRoot);
-        //_nodesList.Root.OnClick.Connect(OnNodeClicked);
-
     }
 
 }

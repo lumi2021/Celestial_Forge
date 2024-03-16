@@ -101,7 +101,7 @@ public class EditorMain
         #region
         var filesSection = scene.GetChild("Main/LeftPanel/FileMananger");
 
-        filesList = new TreeGraph() { ClipChildren = true };
+        filesList = new TreeGraph();
         filesSection!.AddAsChild(filesList);
         
         var txtFile = new SvgTexture() { Filter = false }; txtFile.LoadFromFile("Assets/Icons/Files/textFile.svg", 20, 20);
@@ -114,8 +114,7 @@ public class EditorMain
         filesList.Root.Icon = cFolder;
         filesList.Root.Name = "res://";
 
-        List<FileSystemInfo> itens = new();
-        itens.AddRange(FileService.GetDirectory("res://"));
+        List<FileSystemInfo> itens = [.. FileService.GetDirectory("res://")];
         itens.Sort((a, b) => {
             if (a.Extension == "" && b.Extension != "") return -1;
             else if (a.Extension != "" && b.Extension == "") return 1;
@@ -155,7 +154,7 @@ public class EditorMain
 
             var item = filesList.AddItem(path, i.Name, iconImage);
             item!.Collapsed = type == "folder";
-            item!.data.Add("type", type);
+            item!.SetData("type", type);
             item!.OnClick.Connect(OnFileClicked);
         }
         #endregion
@@ -169,6 +168,8 @@ public class EditorMain
         scene.GetChild("Main/RightPanel")!.AddAsChild(nodeMngNode!);
 
         (scene.GetChild("Main/RightPanel/CenterHandler") as DragHandler)!.nodeA = nodeMngNode!; 
+
+        nodeMananger.onNodeClickedEvent = LoadInInspector;
 
         #endregion
 
@@ -208,7 +209,6 @@ public class EditorMain
             monitorsTab!.Visible = true;
         });
         
-
         // console
         console = bottomBar!.GetChild("BottomBarWindow/ConsoleTab/Console/ConsoleLog") as NodeUI;
         Debug.OnLogEvent += OnLog;
@@ -220,6 +220,7 @@ public class EditorMain
         runButton?.OnPressed.Connect(RunButtonPressed);
 
     }
+
 
     private void ChangeMainView(int to)
     {
@@ -264,12 +265,12 @@ public class EditorMain
 
         var path = "res://" + item!.Path[7..];
 
-        if (item!.data["type"] == "folder")
+        if (item!.GetData("type", "") == "folder")
             item.Collapsed = !item.Collapsed;
         
         else
         {
-            switch (item!.data["type"])
+            switch (item!.GetData("type", ""))
             {
                 case ".sce":
                     LoadSceneInEditor(path); break;
@@ -279,14 +280,9 @@ public class EditorMain
             }
         }
     }
-    
-    private void OnNodeClicked(object? from, dynamic[]? args)
+    private void LoadInInspector(object node)
     {
-        var item = from as TreeGraph.TreeGraphItem;
-        var node = item!.data["NodeRef"] as Node;
-
-        LoadInspectorInformation(node!);
-
+        LoadInspectorNodeInformation((node as Node)!);
     }
 
     private void LoadSceneInEditor(string scenePath)
@@ -304,7 +300,6 @@ public class EditorMain
     
         ChangeMainView(0);
     }
-
     private void OpenTextFile(string filePath)
     {
         var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
@@ -325,7 +320,7 @@ public class EditorMain
         fileBeingEdited?.Write(textField.Text);
     }
 
-    private void LoadInspectorInformation(Node node)
+    private void LoadInspectorNodeInformation(Node node)
     {
         Type nodeType = node.GetType();
 

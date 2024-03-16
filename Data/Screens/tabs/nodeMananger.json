@@ -1,5 +1,7 @@
 {
+
     "NodeTree" : {
+
         "NodeType" : "NodeUI",
         "Name" : "NodeMananger",
 
@@ -19,12 +21,40 @@
                 "sizePixels" : [0, 24],
                 "horizontalAligin" : 1
             },
+
+            {
+                "NodeType" : "NodeUI",
+                "Name" : "Controls",
+                "sizePercent" : [1, 0],
+                "sizePixels" : [0, 26],
+                "positionPixels" : [0, 18],
+
+                "Children" : [
+
+                    {
+                        "NodeType" : "Button",
+                        "Name" : "NewNodeBtn",
+                        "sizePercent" : [0, 0],
+                        "sizePixels" : [20, 20],
+                        "positionPixels" : [2, 2]
+                    },
+                    {
+                        "NodeType" : "Button",
+                        "Name" : "NewScriptBtn",
+                        "sizePercent" : [0, 0],
+                        "sizePixels" : [20, 20],
+                        "positionPixels" : [30, 2]
+                    }
+
+                ]
+            },
+
             {
                 "NodeType" : "Panel",
                 "Name" : "Container",
 
-                "positionPixels" : [0, 24],
-                "sizePixels" : [0, -24],
+                "positionPixels" : [0, 48],
+                "sizePixels" : [0, -48],
 
                 "BackgroundColor" : [60, 42, 77],
                 "StrokeColor" : [224, 240, 234],
@@ -40,7 +70,8 @@
                         "NodeType" : "TreeGraph",
                         "Name" : "NodesList",
 
-                        "HideRoot" : true
+                        "HideRoot" : true,
+                        "ClipChildren" : true
                     },
 
                     {

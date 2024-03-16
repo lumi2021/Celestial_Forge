@@ -1,4 +1,4 @@
-#version 330 core
+#version 430 core
 
 uniform int configDrawType;
 
@@ -44,33 +44,33 @@ void main()
     // calclulate corner roundness
 
     if (int(cornerRadius.x) > 0 &&
-    pixelCoord.x < cornerRadius.x && pixelCoord.y < cornerRadius.x)
+    pixelCoord.x < cornerRadius.x + strokeSize && pixelCoord.y < cornerRadius.x + strokeSize)
     {
-        float d = distance(vec2(cornerRadius.x, cornerRadius.x), pixelCoord);
+        float d = distance(vec2(cornerRadius.x + strokeSize, cornerRadius.x + strokeSize), pixelCoord);
 
         if (d > cornerRadius.x + strokeSize) discard;
         else if (d > cornerRadius.x) out_color = strokeColor;
 
     }else if (int(cornerRadius.y) > 0 &&
-    size_in_pixels.x - pixelCoord.x < cornerRadius.y && pixelCoord.y < cornerRadius.y)
+    size_in_pixels.x - pixelCoord.x < cornerRadius.y - strokeSize && pixelCoord.y < cornerRadius.y + strokeSize)
     {
-        float d = distance(vec2(size_in_pixels.x - cornerRadius.y, cornerRadius.y), pixelCoord);
+        float d = distance(vec2(size_in_pixels.x - cornerRadius.y - strokeSize, cornerRadius.y + strokeSize), pixelCoord);
 
         if (d > cornerRadius.y + strokeSize) discard;
         else if (d > cornerRadius.y) out_color = strokeColor;
 
     }else if (int(cornerRadius.z) > 0 &&
-    size_in_pixels.x - pixelCoord.x < cornerRadius.z && size_in_pixels.y - pixelCoord.y < cornerRadius.z)
+    size_in_pixels.x - pixelCoord.x < cornerRadius.z - strokeSize && size_in_pixels.y - pixelCoord.y < cornerRadius.z - strokeSize)
     {
-        float d = distance(vec2(size_in_pixels.x - cornerRadius.z, size_in_pixels.y - cornerRadius.z), pixelCoord);
+        float d = distance(vec2(size_in_pixels.x - cornerRadius.z - strokeSize, size_in_pixels.y - cornerRadius.z - strokeSize), pixelCoord);
 
         if (d > cornerRadius.z + strokeSize) discard;
         else if (d > cornerRadius.z) out_color = strokeColor;
 
     }else if (int(cornerRadius.w) > 0 &&
-    pixelCoord.x < cornerRadius.w && size_in_pixels.y - pixelCoord.y < cornerRadius.w)
+    pixelCoord.x < cornerRadius.w + strokeSize && size_in_pixels.y - pixelCoord.y < cornerRadius.w - strokeSize)
     {
-        float d = distance(vec2(cornerRadius.w, size_in_pixels.y - cornerRadius.w), pixelCoord);
+        float d = distance(vec2(cornerRadius.w + strokeSize, size_in_pixels.y - cornerRadius.w - strokeSize), pixelCoord);
 
         if (d > cornerRadius.w + strokeSize) discard;
         else if (d > cornerRadius.w) out_color = strokeColor;

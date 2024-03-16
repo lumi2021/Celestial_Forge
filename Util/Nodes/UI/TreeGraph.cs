@@ -5,6 +5,8 @@ namespace GameEngine.Util.Nodes;
 public class TreeGraph : NodeUI
 {
 
+    private ButtonGroup _buttonGroup = new();
+
     private TreeGraphItem _root;
     public TreeGraphItem Root => _root;
 
@@ -26,7 +28,11 @@ public class TreeGraph : NodeUI
     public TreeGraphItem? GetItem(string path)
     {
         var p = path.Split('/').Where(e => e != "").ToArray();
-        return _root?.GetChild(p);
+        if (p[0] == "root")
+            return _root?.GetChild(p[1 ..]);
+        else
+            return _root?.GetChild(p);
+
     }
     public TreeGraphItem? AddItem(string path, string name, Texture? icon = null)
     {
@@ -79,7 +85,6 @@ public class TreeGraph : NodeUI
         GC.Collect();
     }
 
-    #region inner classes/strucs
 
     public class TreeGraphItem
     {
@@ -105,21 +110,13 @@ public class TreeGraph : NodeUI
             }
         }
         
-        public string Path
-        {
-            get {
-                if (parent != null)
-                    return parent.Path + "/" + Name;
-                else
-                    return Name;
-            }
-        }
+        public string Path => string.Join("/", ArrayPath);
         public string[] ArrayPath
         {
             get
             {
                 if (parent != null)
-                    return parent.ArrayPath.Append(Name).ToArray();
+                    return [.. parent.ArrayPath, Name];
                 else
                     return [Name];   
             }
@@ -140,7 +137,7 @@ public class TreeGraph : NodeUI
                 if (parent != null)
                     return parent.Level + (SelfVisible ? 1 : 0);
             
-                return 0;   
+                return SelfVisible ? 0 : -1;   
             }
         }
 
@@ -160,30 +157,39 @@ public class TreeGraph : NodeUI
         public TreeGraphItem? parent = null;
         public List<TreeGraphItem> children = [];
 
-        private bool _selfVisible = true;
         public bool Visible
         {
-            get { return container.Visible; }
+            get => container.Visible;
             set {
                 container.Visible = value;
                 ChildrenVisibility(value);
-                }
+            }
         }
         public bool SelfVisible
         {
-            get { return _selfVisible; }
-            set { _selfVisible = value; }
+            get => container.Visible;
+            set { container.Visible = value; }
         }
 
-        #region random variables
-
         /* * * * * * */
-        private readonly Panel container = new()
+        private readonly Button container = new()
         {
             sizePercent = new(1, 0),
             sizePixels = new(0, 32),
-            BackgroundColor = new(0,0,0,0f),
-            mouseFilter = MouseFilter.Block
+            mouseFilter = MouseFilter.Block,
+            Togleable = true,
+
+            defaultBackgroundColor = new(255, 255, 255, 0),
+            hoverBackgroundColor = new(255, 255, 255, 0.5f),
+            hoverCornerRadius = new(10, 10, 10, 10),
+            activeBackgroundColor = new(255, 255, 255, 0.25f),
+
+            selectedBackgroundColor = new(255, 255, 255, 0.25f),
+            selectedCornerRadius = new(10, 10, 10, 10),
+            selectedStrokeColor = new(217, 217, 217),
+            selectedStrokeSize = 2,
+
+            ClipChildren = true
         };
         private readonly TextureRect icon = new()
         {
@@ -201,9 +207,7 @@ public class TreeGraph : NodeUI
         };
         /* * * * * * */
 
-        #endregion
-
-        public readonly Dictionary<string, dynamic> data = [];
+        private readonly Dictionary<string, object> _data = [];
 
         public readonly Signal OnClick = new();
 
@@ -214,6 +218,8 @@ public class TreeGraph : NodeUI
             graph.AddAsChild(container);
             container.AddAsChild(icon);
             container.AddAsChild(title);
+
+            container.ButtonGroup = graph._buttonGroup;
 
             container.onClick.Connect((a,b) => OnClick.Emit(this));
         }
@@ -226,13 +232,6 @@ public class TreeGraph : NodeUI
             else
                 return c;
         }
-        public void RemoveItem()
-        {
-            foreach (var i in children)
-                i.RemoveItem();
-            container.Free();
-            parent?.children.Remove(this);
-        }
     
         public void Update(int pIndex = 0)
         {
@@ -240,6 +239,7 @@ public class TreeGraph : NodeUI
             container.positionPixels.Y = (int) (container.Size.Y * positionIndex);
 
             container.positionPixels.X = 32 * Level;
+            container.sizePixels.X = -32 * Level;
 
             if (_icon != null)
             {
@@ -266,6 +266,31 @@ public class TreeGraph : NodeUI
             }
         }
 
+        public void SetData(string name, object value)
+        {
+            if (_data.TryAdd(name, value))
+                _data[name] = value;
+        }
+        public void RemoveData(string name)
+        {
+            if (_data.ContainsKey(name))
+                _data.Remove(name);
+        }
+        public dynamic? GetData(string name, dynamic? defaultValue)
+        {
+            if (_data.TryGetValue(name, out var v))
+                return v;
+            else
+                return defaultValue;
+        }
+        public dynamic? GetData(string name)
+        {
+            if (_data.TryGetValue(name, out var v))
+                return v;
+            else
+                return null;
+        }
+
         public void Delete()
         {
             Dispose();
@@ -274,10 +299,8 @@ public class TreeGraph : NodeUI
             parent?.children.Remove(this);
             parent = null;
         }
-
         ~TreeGraphItem()
         {
-            Console.WriteLine("a");
             Dispose(true);
         }
         public void Dispose(bool fromGC = false)
@@ -286,7 +309,5 @@ public class TreeGraph : NodeUI
             if (!fromGC) GC.SuppressFinalize(this);
         }
     }
-
-    #endregion
 
 }

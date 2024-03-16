@@ -110,7 +110,7 @@ public class Viewport : Node
         DrawService.SetViewport(size);
         gl.Scissor(0,0, size.X, size.Y);
         gl.ClearColor(backgroundColor);
-        gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        gl.Clear(ClearBufferMask.ColorBufferBit);
 
         List<Node> toIterate = [.. children];
         Dictionary<int, List<Node>> toDraw = [];
@@ -140,18 +140,16 @@ public class Viewport : Node
         foreach (var i in toDraw)
         foreach (var current in i.Value)
         {
-
-            var ci = (current as ICanvasItem)!;
-
             // configurate scissor
-            if (current.parent is IClipChildren)
+            if (current.parent is IClipChildren @p)
             {
-                var clipRect = (current.parent as IClipChildren)!.GetClippingArea();
+                var clipRect = @p.GetClippingArea();
                 var viewRect = new Rect(Camera2D.position.X, Camera2D.position.Y, size.X, size.Y);
 
                 clipRect = clipRect.InvertVerticallyIn(viewRect);
                 gl.Scissor(clipRect);
             }
+            else gl.Scissor(0,0, size.X, size.Y);
 
             current.RunDraw(deltaTime);
 

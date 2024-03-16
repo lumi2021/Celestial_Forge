@@ -61,6 +61,15 @@ public class CSharpCompiler : Resource, IScriptCompiler
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(src);
         var root = (CompilationUnitSyntax) syntaxTree.GetRoot();
 
+        // comments and trivias //
+        var comments = root.DescendantTrivia()
+        .Where(e => e.IsKind(SyntaxKind.SingleLineCommentTrivia) || e.IsKind(SyntaxKind.MultiLineCommentTrivia));
+        foreach (var comment in comments)
+        {
+            spans.Add(new(comment.FullSpan.Start, comment.FullSpan.End, new(255, 255, 255, 0.5f)));
+        }
+
+
         // generic tokens //
         var tokens = root.DescendantTokens();
         foreach (var token in tokens)
@@ -78,9 +87,6 @@ public class CSharpCompiler : Resource, IScriptCompiler
                 spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(255, 255, 0)));
             
         }
-
-        // comments and trivias //
-        //var comments = [];
 
         return [.. spans];
 

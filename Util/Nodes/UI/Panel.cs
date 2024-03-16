@@ -1,24 +1,20 @@
-using System.Numerics;
 using GameEngine.Core;
 using GameEngine.Util.Attributes;
-using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 
 namespace GameEngine.Util.Nodes;
 
 [Icon("./Assets/icons/Nodes/Panel.svg")]
-public class Panel : NodeUI, ICanvasItem
+public class Panel : NodeUI
 {
 
     private Color _bgColor = new(100, 100, 100, 0.9f);
     private Color _strokeColor = new(0, 0, 0, 0.9f);
     private uint _strokeSize = 0;
-
     private Vector4<uint> _cornerRadius = new(0,0,0,0);
 
-    [Inspect]
-    public Color BackgroundColor
+    [Inspect] public Color BackgroundColor
     {
         get { return _bgColor; }
         set {
@@ -26,8 +22,7 @@ public class Panel : NodeUI, ICanvasItem
             material.SetUniform("color", _bgColor);
         }
     }
-    [Inspect]
-    public Color StrokeColor
+    [Inspect] public Color StrokeColor
     {
         get { return _strokeColor; }
         set {
@@ -35,8 +30,7 @@ public class Panel : NodeUI, ICanvasItem
             material.SetUniform("strokeColor", _strokeColor);
         }
     }
-    [Inspect]
-    public uint StrokeSize
+    [Inspect] public uint StrokeSize
     {
         get { return _strokeSize; }
         set {
@@ -45,8 +39,7 @@ public class Panel : NodeUI, ICanvasItem
         }
     }
 
-    [Inspect]
-    public Vector4<uint> CornerRadius
+    [Inspect] public Vector4<uint> CornerRadius
     {
         get { return _cornerRadius; }
         set {
@@ -55,8 +48,7 @@ public class Panel : NodeUI, ICanvasItem
         }
     }
 
-    [Inspect]
-    public Material material = new Material2D( Material2D.DrawTypes.SolidColor );
+    [Inspect] public Material material = new Material2D( Material2D.DrawTypes.SolidColor );
 
     protected override void Init_()
     {
@@ -82,8 +74,6 @@ public class Panel : NodeUI, ICanvasItem
 
     protected override unsafe void Draw(double deltaT)
     {
-        var gl = Engine.gl;
-
         material.Use();
 
         var fPos = Position - new Vector2<float>(_strokeSize, _strokeSize);
