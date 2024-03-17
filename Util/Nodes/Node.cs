@@ -23,7 +23,8 @@ public class Node
 
     public List<Node> children = [];
     protected List<Node> ghostChildren = [];
-    public List<Node> GetAllChildren => [.. ghostChildren, .. children];
+    
+    public Node[] GetAllChildren => [.. ghostChildren, .. children];
 
     public string name = "";
 
@@ -160,11 +161,13 @@ public class Node
     protected void AddAsGhostChild(Node node)
     {
         // Remove the node from the old parent if it as one
-        if (node.parent != null)
-            node.parent.children.Remove(node);
+        node.parent?.children.Remove(node);
 
         node.parent = this;
         node.isGhostChildren = true;
+
+        if (node.name == "")
+        node.name = node.GetType().Name + "_" + node.GetHashCode();
 
         // Verify if theres no other child with the same name
         var count = 0;

@@ -243,30 +243,7 @@
                                             "positionPixels": [ 0, 32 ],
                                             "BackgroundColor" : [0, 0, 0],
         
-                                            "ClipChildren" : true,
-        
-                                            "Children" : [
-                                                {
-                                                    "NodeType" : "WriteTextField",
-                                                    "Name" : "FileContent",
-        
-                                                    "Font" : 1,
-                                                    "ForceTextSize" : true,
-                                                    "Color" : [255, 255, 255],
-                
-                                                    "sizePixels" : [ -16, 0 ]
-                                                },
-                                                {
-                                                    "NodeType" : "ScrollBar",
-                                                    "Name" : "Scrollbar",
-                                                    "target" : "../FileContent",
-        
-                                                    "sizePercent" : [0, 1],
-                                                    "sizePixels" : [16, 0],
-                                                    "anchor" : 2
-                                                }
-        
-                                            ]
+                                            "ClipChildren" : true
                                         },
         
                                         {

@@ -71,11 +71,6 @@ public class EditorMain
         var textSaveBtn = (textEditor!.GetChild("Toolbar/SaveBtn") as Button)!;
         textSaveBtn.OnPressed.Connect( (object? from, dynamic[]? args) => SaveOpenTextFile() );
 
-        var textEditorField = textEditor.GetChild("FileContentContainer/FileContent") as WriteTextField;
-        textEditorField!.OnTextEdited.Connect((object? node, dynamic[]? args) => {
-            textEditorField.colorsList = CSharpCompiler.Highlight(args![0]);
-        });
-
         #endregion
 
         /* CONFIGURATE VIEWPORT */
@@ -94,6 +89,16 @@ public class EditorMain
         ViewportContainer viewportContainer = new() { linkedViewport = sceneEnviropment };
         sceneViewport!.AddAsChild(viewportContainer);
 
+        #endregion
+
+        /* CONFIGURATE SCRIPT EDITOR */
+        #region
+        var textEditorField = new CodeEditor() {name = "FileContent"};
+        textEditor.GetChild("FileContentContainer")!.AddAsChild(textEditorField);
+
+        textEditorField.OnTextEdited.Connect((object? node, dynamic[]? args) => {
+            textEditorField.ColorsList = CSharpCompiler.Highlight(args![0]);
+        });
         #endregion
 
         /* INSTANTIATE AND CONFIGURATE FILE MANANGER */
@@ -301,7 +306,7 @@ public class EditorMain
     }
     private void OpenTextFile(string filePath)
     {
-        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
+        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as CodeEditor)!;
 
         var file = new FileReference(filePath);
 
@@ -315,7 +320,7 @@ public class EditorMain
     }
     private void SaveOpenTextFile()
     {
-        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as WriteTextField)!;
+        var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as CodeEditor)!;
         fileBeingEdited?.Write(textField.Text);
     }
 

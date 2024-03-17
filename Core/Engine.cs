@@ -48,18 +48,7 @@ public class Engine
         _ = new EditorMain(projectSettings, mainWin);
 
         /* START RUN */
-        try {
-            Run();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Something goes very wrong!");
-            Console.WriteLine("Exeption:\n{0}", ex);
-            Console.Beep();
-
-            Console.Write("\nPress any key to close...");
-            Console.ReadKey();
-        }
+        Run();
         
         /* END PROGRAM */
         root.Free();
@@ -81,15 +70,25 @@ public class Engine
             foreach (var win in WindowService.windows.ToArray())
             if (win.IsInitialized)
             {
+                
+                try {
 
-                DrawService.GlBinded_ShaderProgram = -1;
+                    DrawService.GlBinded_ShaderProgram = -1;
 
-                win.DoEvents();
-                win.DoUpdate();
-                win.DoRender();
+                    win.DoEvents();
+                    win.DoUpdate();
+                    win.DoRender();
 
-                if (win != WindowService.mainWindow)
-                win.SwapBuffers();
+                    if (win != WindowService.mainWindow)
+                    win.SwapBuffers();
+                
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Something goes wrong!");
+                    Console.WriteLine("Exeption:\n{0}", ex);
+                    Console.Beep();
+                }
 
             }
 
@@ -111,7 +110,7 @@ public class Engine
             if (stopwatch.Elapsed.TotalSeconds >= 1)
             {
                 stopwatch.Restart();
-                Console.Title = "fps: " + fpsHistory.ToArray().Average();
+                Console.Title = $"fps: {fpsHistory.ToArray().Average() : 0.00}";
                 fpsHistory.Clear();
             }
         }

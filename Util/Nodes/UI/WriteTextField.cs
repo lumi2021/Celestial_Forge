@@ -32,9 +32,9 @@ public class WriteTextField : TextField
         }
     }
 
-    private uint caretLine = 0;
-    private uint caretRow = 0;
-    //private uint caretRowMax = 0;
+    private uint _caretLine = 0;
+    private uint _caretCol = 0;
+    private uint _caretLastCol = 0;
 
     private readonly Panel caret = new();
 
@@ -55,11 +55,11 @@ public class WriteTextField : TextField
     protected override void Process(double deltaT)
     {
         int caretPosX = 0;
-        for (int i = 0; i < caretRow; i++)
-            caretPosX += (int)charsList[caretLine][i].Advance;
+        for (int i = 0; i < _caretCol; i++)
+            caretPosX += (int)charsList[_caretLine][i].Advance;
         
         caret.positionPixels.X = caretPosX;
-        caret.positionPixels.Y = (int)caretLine * Font.lineheight;
+        caret.positionPixels.Y = (int)_caretLine * Font.lineheight;
         caret.BackgroundColor = Color;
     }
 
@@ -71,13 +71,13 @@ public class WriteTextField : TextField
     protected override void TextEdited()
     {
         base.TextEdited();
-        if (_textLines.Length <= caretLine)
+        if (_textLines.Length <= _caretLine)
         {
-            caretLine = (uint) _textLines.Length - 1;
-            caretRow = (uint) _textLines[caretLine].Length;
+            _caretLine = (uint) _textLines.Length - 1;
+            _caretCol = (uint) _textLines[_caretLine].Length;
         }
-        else if (_textLines[caretLine].Length < caretRow)
-            caretRow = (uint) _textLines[caretLine].Length;
+        else if (_textLines[_caretLine].Length < _caretCol)
+            _caretCol = (uint) _textLines[_caretLine].Length;
 
         OnTextEdited.Emit(this, Text);
     }
@@ -88,9 +88,10 @@ public class WriteTextField : TextField
         {
             if (mouseFilter == MouseFilter.Ignore) return;
 
-            if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == InputAction.Press)
             if (new Rect(Position, Size).Intersects(@event.position))
             {
+                
                 onClick.Emit(this);
                 if (mouseFilter == MouseFilter.Block)
                 {
@@ -98,37 +99,49 @@ public class WriteTextField : TextField
                     Focus();
 
                     Vector2<int> relativeMousePos = @event.position - Position;
-                    // put the carret on the right position
-                    caretLine = (uint) (relativeMousePos.Y / Font.lineheight);
 
-                    if (caretLine > _textLines.Length-1)
+                    // put the carret on the right position
+                    _caretLine = (uint) (relativeMousePos.Y / Font.lineheight);
+
+                    if (_caretLine > _textLines.Length-1)
                     {
-                        caretLine = (uint) _textLines.Length-1;
-                        caretRow = (uint) _textLines[^1].Length;
+                        _caretLine = (uint) _textLines.Length-1;
+                        _caretCol = (uint) _textLines[^1].Length;
                     }
                     else
                     {
                         int advance = 0;
                         int index = 0;
-                        foreach (var c in charsList[caretLine])
+                        foreach (var c in charsList[_caretLine])
                         {
                             if (advance + c.Advance > relativeMousePos.X) break;
                             advance += (int) c.Advance;
                             index++;
                         }
                         
-                        if (charsList[caretLine].Length < index-1)
+                        if (charsList[_caretLine].Length < index-1)
                         {
                             double d1 = Math.Abs(relativeMousePos.X - advance);
                             double d2 = Math.Abs(relativeMousePos.X
-                            - (advance + charsList[caretLine][index+1].Advance));
+                            - (advance + charsList[_caretLine][index+1].Advance));
                             if (d1 > d2) index++;
                         }
                         
-                        caretRow = (uint) index;
+                        _caretCol = (uint) index;
                     }
+                
+                    _caretLastCol = _caretCol;
                 }
             }
+        
+            //if (e.Is<MouseMoveInputEvent>(out var mMoveEvent))
+            //{
+            //    if (new Rect(Position, Size).Intersects(mMoveEvent.position + Viewport!.Camera2D.position))
+            //    {
+            //        Viewport?.SupressInputEvent();
+            //        Input.SetCursorShape(CursorShape.IBeam);
+            //    }
+            //}
         }
     }
     protected override void OnFocusedUIInputEvent(InputEvent e)
@@ -140,8 +153,8 @@ public class WriteTextField : TextField
             if (!MultiLine && @event.key == Keys.Enter)
             {
                 AppendBeforeCursor("\n");
-                caretLine++;
-                caretRow = 0;
+                _caretLine++;
+                _caretCol = 0;
             }
 
             else if (@event.key == Keys.Backspace)
@@ -156,39 +169,43 @@ public class WriteTextField : TextField
         
             else if (@event.key == Keys.Left)
             {
-                if (caretRow > 0)
-                    caretRow--;
-                else if (caretLine > 0)
+                if (_caretCol > 0)
+                    _caretCol--;
+                else if (_caretLine > 0)
                 {
-                    caretLine--;
-                    caretRow = (uint) _textLines[caretLine].Length;
+                    _caretLine--;
+                    _caretCol = (uint) _textLines[_caretLine].Length;
                 }
+
+                _caretLastCol = _caretCol;
             }
             else if (@event.key == Keys.Right)
             {
-                if (caretRow < _textLines[caretLine].Length)
-                    caretRow++;
+                if (_caretCol < _textLines[_caretLine].Length)
+                    _caretCol++;
                 
-                else if (caretLine < _textLines.Length-1)
+                else if (_caretLine < _textLines.Length-1)
                 {
-                    caretLine++;
-                    caretRow = 0;
+                    _caretLine++;
+                    _caretCol = 0;
                 }
+
+                _caretLastCol = _caretCol;
             }
             else if (@event.key == Keys.Up)
             {
-                if (caretLine > 0)
+                if (_caretLine > 0)
                 {
-                    caretLine--;
-                    caretRow = (uint) _textLines[caretLine].Length;
+                    _caretLine--;
+                    _caretCol = Math.Min(_caretLastCol, (uint) _textLines[_caretLine].Length);
                 }
             }
             else if (@event.key == Keys.Down)
             {
-                if (caretLine < _textLines.Length-1)
+                if (_caretLine < _textLines.Length-1)
                 {
-                    caretLine++;
-                    caretRow = (uint) _textLines[caretLine].Length;
+                    _caretLine++;
+                    _caretCol = Math.Min(_caretLastCol, (uint) _textLines[_caretLine].Length);
                 }
             }
         }
@@ -208,12 +225,12 @@ public class WriteTextField : TextField
         var s = str;
         if (MultiLine) s = s.Replace("\r", "").Replace('\n', ' ');
 
-        var line =  _textLines[caretLine];
-        _textLines[caretLine] =
-        line[..(int)caretRow] + s + line[(int)caretRow..];
+        var line =  _textLines[_caretLine];
+        _textLines[_caretLine] =
+        line[..(int)_caretCol] + s + line[(int)_caretCol..];
         Text = string.Join('\n', _textLines);
 
-        caretRow += (uint) str.Length;
+        _caretCol += (uint) str.Length;
     }
     protected void RemoveBeforeCursor(uint length)
     {
@@ -221,48 +238,48 @@ public class WriteTextField : TextField
 
         while(charsToRemove > 0)
         {
-            var line = _textLines[caretLine];
+            var line = _textLines[_caretLine];
             // Do it if charsToRemove is lower than the caret position
-            if (line[..(int)caretRow].Length >= charsToRemove)
+            if (line[..(int)_caretCol].Length >= charsToRemove)
             {
-                _textLines[caretLine] =
-                line[..(int)(caretRow - charsToRemove)] + line[(int)caretRow..];
-                caretRow -= charsToRemove;
+                _textLines[_caretLine] =
+                line[..(int)(_caretCol - charsToRemove)] + line[(int)_caretCol..];
+                _caretCol -= charsToRemove;
                 charsToRemove = 0;
             }
             // Do it if charsToRemove is higher than the caret position and there's no lines before
-            else if (caretLine <= 0)
+            else if (_caretLine <= 0)
             {
-                int toRemove = line[..(int)caretRow].Length;
-                _textLines[caretLine] = line[toRemove..];
+                int toRemove = line[..(int)_caretCol].Length;
+                _textLines[_caretLine] = line[toRemove..];
 
-                caretRow = 0;
+                _caretCol = 0;
                 charsToRemove = 0;
             }
             // Do it if charsToRemove is higher than the caret position and there's a line before
             else {
-                if (caretRow <= 0) // remove this line and continue in the next
+                if (_caretCol <= 0) // remove this line and continue in the next
                 {
-                    var nextCarretRow =  _textLines[caretLine-1].Length;
+                    var nextCarretRow =  _textLines[_caretLine-1].Length;
 
-                    _textLines[caretLine-1] += line[(int)caretRow..];
+                    _textLines[_caretLine-1] += line[(int)_caretCol..];
                     var linesList = _textLines.ToList();
-                    linesList.RemoveAt((int) caretLine);
+                    linesList.RemoveAt((int) _caretLine);
                     _textLines = linesList.ToArray();
 
-                    caretLine--;
+                    _caretLine--;
 
-                    caretRow = (uint) nextCarretRow;
+                    _caretCol = (uint) nextCarretRow;
                     charsToRemove--;
                 }
                 else
                 {
-                    int toRemove = line[..(int)caretRow].Length;
+                    int toRemove = line[..(int)_caretCol].Length;
 
-                    _textLines[caretLine] = line[toRemove..];
+                    _textLines[_caretLine] = line[toRemove..];
 
                     charsToRemove -= (uint) toRemove;
-                    caretRow -= (uint) toRemove;
+                    _caretCol -= (uint) toRemove;
                 }
 
             }
@@ -276,39 +293,39 @@ public class WriteTextField : TextField
 
         while(charsToRemove > 0)
         {
-            var line = _textLines[caretLine];
+            var line = _textLines[_caretLine];
             // Do it if charsToRemove is lower than the caret position
-            if (line[(int)caretRow..].Length > 0)
+            if (line[(int)_caretCol..].Length > 0)
             {
-                _textLines[caretLine] =
-                line[..(int)caretRow] + line[(int)(caretRow + charsToRemove)..];
+                _textLines[_caretLine] =
+                line[..(int)_caretCol] + line[(int)(_caretCol + charsToRemove)..];
                 charsToRemove = 0;
             }
             // Do it if charsToRemove is higher than the caret position and there's no lines before
-            else if (caretLine >= _textLines.Length)
+            else if (_caretLine >= _textLines.Length)
             {
-                int toRemove = line[(int)caretRow..].Length;
-                _textLines[caretLine] = line[toRemove..];
+                int toRemove = line[(int)_caretCol..].Length;
+                _textLines[_caretLine] = line[toRemove..];
 
                 charsToRemove = 0;
             }
             // Do it if charsToRemove is higher than the caret position and there's a line before
             else {
-                if (caretRow >= _textLines[caretLine].Length) // remove this line and continue in the next
+                if (_caretCol >= _textLines[_caretLine].Length) // remove this line and continue in the next
                 {
                     
-                    _textLines[caretLine] += _textLines[caretLine+1];
+                    _textLines[_caretLine] += _textLines[_caretLine+1];
                     var linesList = _textLines.ToList();
-                    linesList.RemoveAt((int) caretLine+1);
+                    linesList.RemoveAt((int) _caretLine+1);
                     _textLines = [.. linesList];
 
                     charsToRemove--;
                 }
                 else
                 {
-                    int toRemove = line[(int)caretRow..].Length;
+                    int toRemove = line[(int)_caretCol..].Length;
 
-                    _textLines[caretLine] = line[..toRemove];
+                    _textLines[_caretLine] = line[..toRemove];
 
                     charsToRemove -= (uint) toRemove;
                 }

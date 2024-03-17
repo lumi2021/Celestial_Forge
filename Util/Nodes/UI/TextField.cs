@@ -43,6 +43,7 @@ public class TextField : NodeUI
         {
             if (!ForceTextSize)
                 return base.Size;
+            
             else
             {
                 var bs = base.Size;

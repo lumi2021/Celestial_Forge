@@ -117,8 +117,7 @@ public class Viewport : Node
 
         while (toIterate.Count > 0)
         {
-            Node current = toIterate[0];
-            toIterate.RemoveAt(0);
+            Node current = toIterate.Unqueue();
 
             if (
                 current is Viewport || current.Freeled ||
@@ -133,7 +132,7 @@ public class Viewport : Node
             toDraw[zindex].Add(current);
 
             var childrenToAdd = current.GetAllChildren;
-            for (int i = childrenToAdd.Count - 1; i >= 0; i--)
+            for (int i = childrenToAdd.Length - 1; i >= 0; i--)
                 toIterate.Insert(0, childrenToAdd[i]);
         }
 
