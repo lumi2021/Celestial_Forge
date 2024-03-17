@@ -33,7 +33,8 @@ public class Window : Viewport
         }
         set {
             _size = value;
-            window.Size = new((int)value.X, (int)value.Y);
+            if (window != null)
+                window.Size = new((int)value.X, (int)value.Y);
         }
     }
 
@@ -66,15 +67,14 @@ public class Window : Viewport
         window.Render += OnRender;
         window.Resize += OnResize;
 
-        if(window == WindowService.mainWindow)
-            input.Start(window, OnInput);
-
         if (!window.IsInitialized)
             window.Initialize();
     }
 
-    private unsafe void OnLoad()
+    private unsafe void OnLoad(IWindow win)
     {
+        input.Start(win, OnInput);
+        Size = new((uint)win.Size.X, (uint)win.Size.Y);
     }
 
     private void OnClose()
@@ -86,8 +86,7 @@ public class Window : Viewport
     {
         input.CallQueuedInputs();
 
-        List<Node> toUpdate = new();
-        toUpdate.AddRange(children);
+        List<Node> toUpdate = [.. children];
 
         while (toUpdate.Count > 0)
         {
@@ -327,14 +326,17 @@ public class Window : Viewport
                 keysPressed.Remove(key);
             }
 
-            var eo = new KeyboardInputEvent(action == InputAction.Repeat,key, action);
+            var eo = new KeyboardKeyInputEvent(action == InputAction.Repeat,key, action);
             var e = new InputEvent(DateTime.Now.TimeOfDay, eo);
 
             LastInputs.Add(e);
         }
         private void CharCallback(WindowHandle* window, uint codepoint)
         {
-            _inputedCharList.Add(char.ConvertFromUtf32((int)codepoint)[0]);
+            var eo = new KeyboardCharInputEvent(char.ConvertFromUtf32((int)codepoint)[0]);
+            var e = new InputEvent(DateTime.Now.TimeOfDay, eo);
+
+            LastInputs.Add(e);
         }
     
         // MOUSE INPUTS

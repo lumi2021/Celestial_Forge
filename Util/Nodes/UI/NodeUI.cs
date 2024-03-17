@@ -28,6 +28,7 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
     }
     [Inspect] public ANCHOR anchor = ANCHOR.TOP_LEFT;
     [Inspect] public uint padding = 0;
+    [Inspect] public uint margin = 0;
 
     //Get parent size
     private Vector2<float> ParentSize {
@@ -100,7 +101,9 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
                     break;
             }
 
-            return finalPosition + (ParentSize * positionPercent) + parentPos + positionPixels;
+            var marginVec2 = new Vector2<int>((int)margin, (int)margin);
+
+            return finalPosition + (ParentSize * positionPercent) + parentPos + positionPixels + marginVec2;
         }
     }
     
@@ -109,7 +112,7 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
     [Inspect] public Vector2<float> sizePercent = new(1,1);
     public virtual Vector2<float> Size {
         get {
-            var a = ParentSize * sizePercent + sizePixels;
+            var a = ParentSize * sizePercent + sizePixels - new Vector2<int>((int)margin, (int)margin) * 2;
             return new(MathF.Max(0f, a.X), MathF.Max(0f, a.Y));
         }
     }

@@ -33,7 +33,6 @@ public class EditorMain
 
     /* ETC */
     private int maintab = 0;
-    //private int bottomtab = 0;
 
     private FileReference? fileBeingEdited = null;
 
@@ -444,7 +443,8 @@ public class EditorMain
                 Text = value,
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
                 Color = new(0, 0, 0),
-                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_TextField"
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_TextField",
+                MultiLine = false
             };
 
             field.OnTextEdited.Connect((object? from, dynamic[]? args) => {
@@ -454,6 +454,7 @@ public class EditorMain
 
             if (inspectAtt.usage == InspectAttribute.Usage.multiline_text)
             {
+                field.MultiLine = true;
                 container.sizePixels.Y = 25 + 100;
                 fieldContainer.sizePercent = new(1, 0);
                 fieldContainer.sizePixels.Y = 100;
@@ -546,14 +547,18 @@ public class EditorMain
                 Text = "" + value.X,
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
                 Color = new(0, 0, 0),
-                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_x_field"
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_x_field",
+                verticalAligin = TextField.Aligin.Center,
+                MultiLine = false
             };
             var field2 = new WriteTextField()
             {
                 Text = "" + value.Y,
                 anchor = NodeUI.ANCHOR.TOP_RIGHT,
                 Color = new(0, 0, 0),
-                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_y_field"
+                name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_y_field",
+                verticalAligin = TextField.Aligin.Center,
+                MultiLine = false
             };
 
             field1.OnTextEdited.Connect((object? from, dynamic[]? args) => {

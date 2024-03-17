@@ -179,15 +179,15 @@ public class TreeGraph : NodeUI
             mouseFilter = MouseFilter.Block,
             Togleable = true,
 
-            defaultBackgroundColor = new(255, 255, 255, 0),
-            hoverBackgroundColor = new(255, 255, 255, 0.5f),
-            hoverCornerRadius = new(10, 10, 10, 10),
-            activeBackgroundColor = new(255, 255, 255, 0.25f),
+            DefaultBackgroundColor = new(255, 255, 255, 0),
+            HoverBackgroundColor = new(255, 255, 255, 0.5f),
+            HoverCornerRadius = new(10, 10, 10, 10),
+            ActiveBackgroundColor = new(255, 255, 255, 0.25f),
 
-            selectedBackgroundColor = new(255, 255, 255, 0.25f),
-            selectedCornerRadius = new(10, 10, 10, 10),
-            selectedStrokeColor = new(217, 217, 217),
-            selectedStrokeSize = 2,
+            SelectedBackgroundColor = new(255, 255, 255, 0.25f),
+            SelectedCornerRadius = new(10, 10, 10, 10),
+            SelectedStrokeColor = new(217, 217, 217),
+            SelectedStrokeSize = 2,
 
             ClipChildren = true
         };

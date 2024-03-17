@@ -39,7 +39,7 @@
                                 "sizePixels": [ -8, 0 ],
                                 "anchor": 3,
 
-                                "defaultBackgroundColor": [0,0,0,0],
+                                "DefaultBackgroundColor": [0,0,0,0],
 
                                 "Children" : [
                                     {
@@ -63,7 +63,7 @@
                                 "sizePixels": [ -8, 0 ],
                                 "anchor": 5,
 
-                                "defaultBackgroundColor": [0,0,0,0],
+                                "DefaultBackgroundColor": [0,0,0,0],
 
                                 "Children" : [
                                     {

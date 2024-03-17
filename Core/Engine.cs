@@ -55,9 +55,12 @@ public class Engine
         {
             Console.WriteLine("Something goes very wrong!");
             Console.WriteLine("Exeption:\n{0}", ex);
+            Console.Beep();
+
+            Console.Write("\nPress any key to close...");
             Console.ReadKey();
         }
-
+        
         /* END PROGRAM */
         root.Free();
         gl.Dispose();
@@ -71,24 +74,30 @@ public class Engine
         Stopwatch stopwatch = new();
         frameTime.Start();
         stopwatch.Start();
-        List<double> fpsHistory = new();
+        List<double> fpsHistory = [];
 
         while (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
         {
             foreach (var win in WindowService.windows.ToArray())
             if (win.IsInitialized)
             {
+
                 DrawService.GlBinded_ShaderProgram = -1;
+
                 win.DoEvents();
                 win.DoUpdate();
                 win.DoRender();
 
                 if (win != WindowService.mainWindow)
                 win.SwapBuffers();
+
             }
 
             if (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
-            WindowService.mainWindow.SwapBuffers();
+            {
+                WindowService.mainWindow.MakeCurrent();
+                WindowService.mainWindow.SwapBuffers();
+            }
 
             WindowService.CallProcess();
             ResourceHeap.CallProcess();
@@ -102,7 +111,7 @@ public class Engine
             if (stopwatch.Elapsed.TotalSeconds >= 1)
             {
                 stopwatch.Restart();
-                Console.Title = "fps: " + Math.Round(fpsHistory.ToArray().Average());
+                Console.Title = "fps: " + fpsHistory.ToArray().Average();
                 fpsHistory.Clear();
             }
         }

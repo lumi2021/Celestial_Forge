@@ -105,16 +105,6 @@ public class CSharpCompiler : Resource, IScriptCompiler
         SyntaxTree tree = syntaxTree;
         var root = (CompilationUnitSyntax) tree.GetRoot();
 
-        Console.WriteLine($"before:\n\n{root}");
-
-        #region check if it's just a node and compile it into a class
-
-        SyntaxNode[] a = [.. root.DescendantNodes().Where(e => e.DescendantTokens().ToArray()[0].ValueText == "extends" )];
-
-        Console.WriteLine($"a: {a[0]}");
-
-        #endregion
-
         #region add omitable using namespaces
 
         var usingDirectives = root.DescendantNodes().OfType<UsingDirectiveSyntax>();
@@ -167,8 +157,6 @@ public class CSharpCompiler : Resource, IScriptCompiler
 
         tree = tree.WithRootAndOptions(root, tree.Options);
 
-        Console.WriteLine($"after:\n\n{root}");
-
         return tree;
 
     }
@@ -219,6 +207,5 @@ public class CSharpCompiler : Resource, IScriptCompiler
     {
         ExtendsKeyword = 9078 + 1,
     }
-
 
 }

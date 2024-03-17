@@ -36,7 +36,21 @@
                         "Name" : "NewNodeBtn",
                         "sizePercent" : [0, 0],
                         "sizePixels" : [20, 20],
-                        "positionPixels" : [2, 2]
+                        "positionPixels" : [2, 2],
+
+                        "DefaultBackgroundColor" : [0, 0, 0, 0],
+                        "HoverBackgroundColor" : [0, 0, 0, 0],
+                        "ActiveBackgroundColor" : [0, 0, 0, 0],
+                        "SelectedBackgroundColor" : [0, 0, 0, 0],
+                        "DisabledBackgroundColor" : [0, 0, 0, 0],
+
+                        "Children" : [
+                            {
+                                "NodeType" : "TextureRect",
+                                "Name" : "Icon",
+                                "texture" : 1
+                            }
+                        ]
                     },
                     {
                         "NodeType" : "Button",
@@ -97,6 +111,11 @@
             "ResourceType" : "Font",
             "Path" : "Assets/Fonts/calibri.ttf",
             "Size" : 18
+        },
+        {
+            "ResourceType" : "SvgTexture",
+            "Path" : "./Assets/icons/Buttons/plus.svg",
+            "SvgSize" : [20, 20]
         }
     ]
 

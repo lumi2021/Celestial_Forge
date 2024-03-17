@@ -136,9 +136,9 @@
                         "NodeType": "Button",
                         "Name": "OutputBtn",
 
-                        "defaultBackgroundColor" : [0,0,0,0],
-                        "hoverBackgroundColor" : null,
-                        "activeBackgroundColor" : null,
+                        "DefaultBackgroundColor" : [0,0,0,0],
+                        "HoverBackgroundColor" : null,
+                        "ActiveBackgroundColor" : null,
 
                         "sizePercent" :  [0, 0],
                         "sizePixels": [ 100,32 ],
@@ -159,9 +159,9 @@
                         "NodeType": "Button",
                         "Name": "ErrorsBtn",
 
-                        "defaultBackgroundColor" : [0,0,0,0],
-                        "hoverBackgroundColor" : null,
-                        "activeBackgroundColor" : null,
+                        "DefaultBackgroundColor" : [0,0,0,0],
+                        "HoverBackgroundColor" : null,
+                        "ActiveBackgroundColor" : null,
 
                         "sizePercent" :  [0, 0],
                         "sizePixels": [ 100,32 ],
@@ -182,9 +182,9 @@
                         "NodeType": "Button",
                         "Name": "MonitorsBtn",
 
-                        "defaultBackgroundColor" : [0,0,0,0],
-                        "hoverBackgroundColor" : null,
-                        "activeBackgroundColor" : null,
+                        "DefaultBackgroundColor" : [0,0,0,0],
+                        "HoverBackgroundColor" : null,
+                        "ActiveBackgroundColor" : null,
 
                         "sizePercent": [ 0, 0 ],
                         "sizePixels": [ 100, 32 ],

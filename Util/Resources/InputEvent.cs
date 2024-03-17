@@ -38,9 +38,26 @@ public readonly struct InputEvent(TimeSpan timestamp, IInputEvent eventObject)
 }
 
 /* input events */
-public readonly struct KeyboardInputEvent(bool repeating, Keys key, InputAction action) : IInputEvent
+public readonly struct KeyboardInputEvent() : IInputEvent
 {
     private readonly Type[] inheritance = [ typeof(InputEvent) ];
+
+    public bool Is<T>() where T : IInputEvent => inheritance.Contains(typeof(T))||GetType()==typeof(T);
+    public bool Is(Type inputEventType) => inheritance.Contains(inputEventType);
+
+    public readonly string DataToString()
+    {
+        return "";
+    }
+    public override readonly string ToString()
+    {
+        return $"{GetType().Name} ()";
+    }
+
+}
+public readonly struct KeyboardKeyInputEvent(bool repeating, Keys key, InputAction action) : IInputEvent
+{
+    private readonly Type[] inheritance = [ typeof(InputEvent), typeof(KeyboardInputEvent) ];
     public bool Is<T>() where T : IInputEvent => inheritance.Contains(typeof(T))||GetType()==typeof(T);
     public bool Is(Type inputEventType) => inheritance.Contains(inputEventType);
     
@@ -58,10 +75,28 @@ public readonly struct KeyboardInputEvent(bool repeating, Keys key, InputAction 
         return $"{GetType().Name} (" + DataToString() + ")";
     }
 }
+public readonly struct KeyboardCharInputEvent(char character) : IInputEvent
+{
+    private readonly Type[] inheritance = [ typeof(InputEvent), typeof(KeyboardInputEvent) ];
+    public bool Is<T>() where T : IInputEvent => inheritance.Contains(typeof(T))||GetType()==typeof(T);
+    public bool Is(Type inputEventType) => inheritance.Contains(inputEventType);
+    
+    public readonly char character = character;
+
+    public readonly string DataToString()
+    {
+        return $"character: {character}";
+    }
+
+    public override readonly string ToString()
+    {
+        return $"{GetType().Name} (" + DataToString() + ")";
+    }
+}
 
 public readonly struct MouseInputEvent() : IInputEvent
 {
-    private readonly Type[] inheritance = [ typeof(InputEvent), typeof(MouseInputEvent) ];
+    private readonly Type[] inheritance = [ typeof(InputEvent) ];
 
     public bool Is<T>() where T : IInputEvent => inheritance.Contains(typeof(T))||GetType()==typeof(T);
     public bool Is(Type inputEventType) => inheritance.Contains(inputEventType);

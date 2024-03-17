@@ -8,15 +8,15 @@ public static class WindowService
 {
 
     public static IWindow? mainWindow = null;
-    public static List<IWindow> windows = new();
+    public static List<IWindow> windows = [];
 
-    private static List<IWindow> _windowsToClose = new();
+    private static List<IWindow> _windowsToClose = [];
 
-    public static IWindow CreateNewWindow(Action? onload=null)
+    public static IWindow CreateNewWindow(Action<IWindow>? onload=null)
     {
         return CreateNewWindow(new Vector2<int>(800, 600), "New Window " + windows.Count, onload);
     }
-    public static IWindow CreateNewWindow(Vector2<int> size, string title, Action? onload=null)
+    public static IWindow CreateNewWindow(Vector2<int> size, string title, Action<IWindow>? onload=null)
     {
         
         WindowOptions options = WindowOptions.Default with
@@ -36,9 +36,8 @@ public static class WindowService
 
         var nWin = Window.Create(options);
 
-        windows.Add(nWin);
-
-        if (onload!=null) nWin.Load += onload;
+        if (onload!=null)
+            nWin.Load += () => onload(nWin);
 
         nWin.Initialize();
 
@@ -49,6 +48,8 @@ public static class WindowService
         }
 
         nWin.ConfigWindow();
+
+        windows.Add(nWin);
 
         return nWin;
 

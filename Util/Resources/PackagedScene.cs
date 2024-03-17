@@ -115,7 +115,10 @@ public class PackagedScene : Resource
                     else if (prop.PropertyType.IsAssignableTo(typeof(Resource)))
                         prop.SetValue(newNode, resRepo[int.Parse(i.Value!.ToString()!)]);
 
-                    else prop.SetValue(newNode, Convert.ChangeType(i.Value, prop.PropertyType));
+                    else if (i.Value is IConvertible) 
+                        prop.SetValue(newNode, Convert.ChangeType(i.Value, prop.PropertyType));
+                    else prop.SetValue(newNode, i.Value);
+
                     continue;
                 }
 
@@ -376,11 +379,13 @@ public class PackagedScene : Resource
             throw new ApplicationException(string.Format("Field {0} don't exist in base {1}!",
             i.Key, t.Name));
         
+        var type = field?.FieldType ?? prop?.PropertyType!;
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            type = type.GenericTypeArguments[0];
+        
         if (i.Value is JArray) // Unpack custom values in arrays
         {
-            var obj = (field != null)?
-            Activator.CreateInstance(field?.FieldType!, i.Value.Values<float>().ToArray()) :
-            Activator.CreateInstance(prop?.PropertyType!, i.Value.Values<float>().ToArray());
+            var obj = Activator.CreateInstance(type, i.Value.Values<float>().ToArray());
             
             if (obj!=null) data = obj;
         }
@@ -397,6 +402,5 @@ public class PackagedScene : Resource
         return new(i.Key, data);
 
     }
-
 
 }

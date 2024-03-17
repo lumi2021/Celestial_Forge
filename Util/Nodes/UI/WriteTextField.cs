@@ -135,11 +135,8 @@ public class WriteTextField : TextField
     {
         base.OnFocusedUIInputEvent(e);
 
-        if (e.Is<KeyboardInputEvent>(out var @event) && @event.action != InputAction.Release)
+        if (e.Is<KeyboardKeyInputEvent>(out var @event) && @event.action != InputAction.Release)
         {
-            if (Input.LastInputedChars.Length > 0)
-                AppendBeforeCursor(Input.LastInputedChars);
-
             if (!MultiLine && @event.key == Keys.Enter)
             {
                 AppendBeforeCursor("\n");
@@ -195,6 +192,10 @@ public class WriteTextField : TextField
                 }
             }
         }
+        else if (e.Is<KeyboardCharInputEvent>(out var @charEvent))
+        {
+            AppendBeforeCursor("" + @charEvent.character);
+        }
     }
 
     protected override void OnFocusChanged(bool focused)
@@ -212,7 +213,7 @@ public class WriteTextField : TextField
         line[..(int)caretRow] + s + line[(int)caretRow..];
         Text = string.Join('\n', _textLines);
 
-        caretRow += (uint) Input.LastInputedChars.Length;
+        caretRow += (uint) str.Length;
     }
     protected void RemoveBeforeCursor(uint length)
     {

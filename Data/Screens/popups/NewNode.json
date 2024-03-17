@@ -1,0 +1,100 @@
+{
+
+    "NodeTree" : {
+
+        "NodeType" : "Window",
+        "Name" : "NewNodePopup",
+
+        "Title" : "Select a Node - Celestial Forge",
+
+        "Children" : [
+            
+            {
+                "NodeType" : "Panel",
+                "Name" : "Body",
+                "BackgroundColor" : [15, 0, 51],
+
+                "Children" : [
+
+                    {
+                        "NodeType" : "Panel",
+                        "Name" : "MainContainer",
+                        "BackgroundColor" : [80, 58, 101],
+                        "CornerRadius" : [40, 40, 40, 40],
+                        "padding" : 20,
+                        "margin" : 20,
+                        "sizePixels" : [0, -64],
+
+                        "Children" : [
+                            
+                            {
+                                "NodeType" : "Panel",
+                                "Name" : "TreeContanier",
+
+                                "BackgroundColor" : [60, 42, 77],
+                                "StrokeColor" : [224, 240, 234],
+                                "StrokeSize" : 2,
+                                "CornerRadius" : [40, 40, 40, 40],
+                                "padding" : 20,
+
+                                "Children" : [
+
+                                    {
+                                        "NodeType" : "TreeGraph",
+                                        "Name" : "NodesList"
+                                    }
+                                
+                                ]
+
+                            }
+
+                        ]
+                    },
+
+                    {
+                        "NodeType" : "NodeUI",
+                        "Name" : "Options",
+                        "sizePercent" : [1, 0],
+                        "sizePixels" : [0, 84],
+                        "anchor" : 6,
+
+                        "Children" : [
+
+                            {
+                                "NodeType" : "Button",
+                                "Name" : "Cancel",
+                                "sizePercent" : [0,0],
+                                "sizePixels" : [200, 48],
+                                "positionPixels" : [-100, 0],
+                                "positionPercent" : [0.25, 0],
+                                "anchor" : 3 
+                            },
+
+                            {
+                                "NodeType" : "Button",
+                                "Name" : "Accept",
+                                "sizePercent" : [0,0],
+                                "sizePixels" : [200, 48],
+                                "positionPixels" : [100, 0],
+                                "positionPercent" : [-0.25, 0],
+                                "anchor" : 5
+                            }
+
+                        ]
+                    }
+
+                ]
+            }
+
+        ]
+    },
+
+    "Resources" : [
+        {
+            "ResourceType" : "Font",
+            "Path" : "Assets/Fonts/calibri.ttf",
+            "Size" : 18
+        }
+    ]
+
+}

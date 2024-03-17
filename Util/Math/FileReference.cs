@@ -56,9 +56,13 @@ public struct FileReference
         return base.GetHashCode();
     }
 
+    public static explicit operator FileReference(string path)
+        => new(path);
+    public static explicit operator string(FileReference fileRef)
+        => fileRef.RelativePath;
+
     public override readonly string ToString()
     {
         return string.Format("path(\"{0}\")", RelativePath);
     }
-
 }

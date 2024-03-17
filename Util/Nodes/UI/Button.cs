@@ -64,42 +64,227 @@ public class Button : NodeUI
     // Styles
     #region default
 
-    [Inspect] public Color defaultBackgroundColor = new(100, 100, 100, 0.9f);
-    [Inspect] public Color defaultStrokeColor = new(0, 0, 0, 0.9f);
-    [Inspect] public uint defaultStrokeSize = 0;
-    [Inspect] public Vector4<uint> defaultCornerRadius = new(0,0,0,0);
+    private Color _defaultBackgroundColor = new(100, 100, 100, 0.9f);
+    private Color _defaultStrokeColor = new(0, 0, 0, 0.9f);
+    private uint _defaultStrokeSize = 0;
+    private Vector4<uint> _defaultCornerRadius = new(0,0,0,0);
+
+    [Inspect] public Color DefaultBackgroundColor
+    {
+        get => _defaultBackgroundColor;
+        set
+        {
+            _defaultBackgroundColor = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public Color DefaultStrokeColor
+    {
+        get => _defaultStrokeColor;
+        set
+        {
+            _defaultStrokeColor = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public uint DefaultStrokeSize
+    {
+        get => _defaultStrokeSize;
+        set
+        {
+            _defaultStrokeSize = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public Vector4<uint> DefaultCornerRadius
+    {
+        get => _defaultCornerRadius;
+        set
+        {
+            _defaultCornerRadius = value;
+            OnStyleChange();
+        }
+    }
 
     #endregion
     #region hover
 
-    [Inspect] public Color? hoverBackgroundColor = new(140, 140, 140, 0.9f);
-    [Inspect] public Color? hoverStrokeColor = null;
-    [Inspect] public uint? hoverStrokeSize = null;
-    [Inspect] public Vector4<uint>? hoverCornerRadius = null;
+    private Color? _hoverBackgroundColor = new(140, 140, 140, 0.9f);
+    private Color? _hoverStrokeColor = null;
+    private uint? _hoverStrokeSize = null;
+    private Vector4<uint>? _hoverCornerRadius = null;
+
+    [Inspect] public Color? HoverBackgroundColor
+    {
+        get => _hoverBackgroundColor;
+        set
+        {
+            _hoverBackgroundColor = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public Color? HoverStrokeColor
+    {
+        get => _hoverStrokeColor;
+        set
+        {
+            _hoverStrokeColor = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public uint? HoverStrokeSize
+    {
+        get => _hoverStrokeSize;
+        set
+        {
+            _hoverStrokeSize = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public Vector4<uint>? HoverCornerRadius
+    {
+        get => _hoverCornerRadius;
+        set
+        {
+            _hoverCornerRadius = value;
+            OnStyleChange();
+        }
+    }
 
     #endregion
     #region active
 
-    [Inspect] public Color? activeBackgroundColor = new(80, 80, 80, 0.9f);
-    [Inspect] public Color? activeStrokeColor = null;
-    [Inspect] public uint? activeStrokeSize = null;
-    [Inspect] public Vector4<uint>? activeCornerRadius = null;
+    private Color? _activeBackgroundColor = new(80, 80, 80, 0.9f);
+    private Color? _activeStrokeColor = null;
+    private uint? _activeStrokeSize = null;
+    private Vector4<uint>? _activeCornerRadius = null;
+
+    [Inspect] public Color? ActiveBackgroundColor
+    {
+        get => _activeBackgroundColor;
+        set
+        {
+            _activeBackgroundColor = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public Color? ActiveStrokeColor
+    {
+        get => _activeStrokeColor;
+        set
+        {
+            _activeStrokeColor = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public uint? ActiveStrokeSize
+    {
+        get => _activeStrokeSize;
+        set
+        {
+            _activeStrokeSize = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public Vector4<uint>? ActiveCornerRadius
+    {
+        get => _activeCornerRadius;
+        set
+        {
+            _activeCornerRadius = value;
+            OnStyleChange();
+        }
+    }
 
     #endregion
     #region selected
 
-    [Inspect] public Color? selectedBackgroundColor = new(20, 20, 190, 0.9f);
-    [Inspect] public Color? selectedStrokeColor = null;
-    [Inspect] public uint? selectedStrokeSize = null;
-    [Inspect] public Vector4<uint>? selectedCornerRadius = null;
+    private Color? _selectedBackgroundColor = new(20, 20, 190, 0.9f);
+    private Color? _selectedStrokeColor = null;
+    private uint? _selectedStrokeSize = null;
+    private Vector4<uint>? _selectedCornerRadius = null;
+
+    [Inspect] public Color? SelectedBackgroundColor
+    {
+        get => _selectedBackgroundColor;
+        set
+        {
+            _selectedBackgroundColor = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public Color? SelectedStrokeColor
+    {
+        get => _selectedStrokeColor;
+        set
+        {
+            _selectedStrokeColor = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public uint? SelectedStrokeSize
+    {
+        get => _selectedStrokeSize;
+        set
+        {
+            _selectedStrokeSize = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public Vector4<uint>? SelectedCornerRadius
+    {
+        get => _selectedCornerRadius;
+        set
+        {
+            _selectedCornerRadius = value;
+            OnStyleChange();
+        }
+    }
 
     #endregion
     #region disabled
 
-    [Inspect] public Color? disabledBackgroundColor = new(20, 20, 20, 0.5f);
-    [Inspect] public Color? disabledStrokeColor = null;
-    [Inspect] public uint? disabledStrokeSize = null;
-    [Inspect] public Vector4<uint>? disabledCornerRadius = null;
+    private Color? _disabledBackgroundColor = new(20, 20, 20, 0.5f);
+    private Color? _disabledStrokeColor = null;
+    private uint? _disabledStrokeSize = null;
+    private Vector4<uint>? _disabledCornerRadius = null;
+
+    [Inspect] public Color? DisabledBackgroundColor
+    {
+        get => _disabledBackgroundColor;
+        set
+        {
+            _disabledBackgroundColor = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public Color? DisabledStrokeColor
+    {
+        get => _disabledStrokeColor;
+        set
+        {
+            _disabledStrokeColor = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public uint? DisabledStrokeSize
+    {
+        get => _disabledStrokeSize;
+        set
+        {
+            _disabledStrokeSize = value;
+            OnStyleChange();
+        }
+    }
+    [Inspect] public Vector4<uint>? DisabledCornerRadius
+    {
+        get => _disabledCornerRadius;
+        set
+        {
+            _disabledCornerRadius = value;
+            OnStyleChange();
+        }
+    }
 
     #endregion
 
@@ -225,43 +410,44 @@ public class Button : NodeUI
         }
     }
 
+    protected void OnStyleChange() => OnStateChange(_state);
     protected virtual void OnStateChange(ButtonState state)
     {
         switch (state)
         {
             case ButtonState.Hover:
-                _bgColor      = hoverBackgroundColor ?? defaultBackgroundColor;
-                _strokeColor  = hoverStrokeColor ?? defaultStrokeColor;
-                _strokeSize   = hoverStrokeSize ?? defaultStrokeSize;
-                _cornerRadius = hoverCornerRadius ?? defaultCornerRadius;
+                _bgColor      = _hoverBackgroundColor ?? _defaultBackgroundColor;
+                _strokeColor  = _hoverStrokeColor ?? _defaultStrokeColor;
+                _strokeSize   = _hoverStrokeSize ?? _defaultStrokeSize;
+                _cornerRadius = _hoverCornerRadius ?? _defaultCornerRadius;
                 break;
 
             case ButtonState.Active:
-                _bgColor      = activeBackgroundColor ?? defaultBackgroundColor;
-                _strokeColor  = activeStrokeColor ?? defaultStrokeColor;
-                _strokeSize   = activeStrokeSize ?? defaultStrokeSize;
-                _cornerRadius = activeCornerRadius ?? defaultCornerRadius;
+                _bgColor      = _activeBackgroundColor ?? _defaultBackgroundColor;
+                _strokeColor  = _activeStrokeColor ?? _defaultStrokeColor;
+                _strokeSize   = _activeStrokeSize ?? _defaultStrokeSize;
+                _cornerRadius = _activeCornerRadius ?? _defaultCornerRadius;
                 break;
             
             case ButtonState.Selected:
-                _bgColor      = selectedBackgroundColor ?? defaultBackgroundColor;
-                _strokeColor  = selectedStrokeColor ?? defaultStrokeColor;
-                _strokeSize   = selectedStrokeSize ?? defaultStrokeSize;
-                _cornerRadius = selectedCornerRadius ?? defaultCornerRadius;
+                _bgColor      = _selectedBackgroundColor ?? _defaultBackgroundColor;
+                _strokeColor  = _selectedStrokeColor ?? _defaultStrokeColor;
+                _strokeSize   = _selectedStrokeSize ?? _defaultStrokeSize;
+                _cornerRadius = _selectedCornerRadius ?? _defaultCornerRadius;
                 break;
 
             case ButtonState.Disabled:
-                _bgColor      = disabledBackgroundColor ?? defaultBackgroundColor;
-                _strokeColor  = disabledStrokeColor ?? defaultStrokeColor;
-                _strokeSize   = disabledStrokeSize ?? defaultStrokeSize;
-                _cornerRadius = disabledCornerRadius ?? defaultCornerRadius;
+                _bgColor      = _disabledBackgroundColor ?? _defaultBackgroundColor;
+                _strokeColor  = _disabledStrokeColor ?? _defaultStrokeColor;
+                _strokeSize   = _disabledStrokeSize ?? _defaultStrokeSize;
+                _cornerRadius = _disabledCornerRadius ?? _defaultCornerRadius;
                 break;
             
             default:
-                _bgColor      = defaultBackgroundColor;
-                _strokeColor  = defaultStrokeColor;
-                _strokeSize   = defaultStrokeSize;
-                _cornerRadius = defaultCornerRadius;
+                _bgColor      = _defaultBackgroundColor;
+                _strokeColor  = _defaultStrokeColor;
+                _strokeSize   = _defaultStrokeSize;
+                _cornerRadius = _defaultCornerRadius;
                 break;
         }
 

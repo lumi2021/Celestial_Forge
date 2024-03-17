@@ -1,8 +1,10 @@
 using System.Reflection;
 using GameEngine;
+using GameEngine.Core;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
+using GameEngineEditor.Editor.Popups;
 using static GameEngine.Util.Nodes.TreeGraph;
 
 namespace GameEngineEditor.Editor;
@@ -21,6 +23,8 @@ public class NodeMananger
     public TreeGraphItem? selectedNodeTGI = null;
     public Node? selectedNode = null;
 
+    private NewNodePopup newNodePopup = new();
+
     public Node? CreateNodeMananger()
     {
         var nodeMananger = PackagedScene.Load(NodeManangerComponentPath)!.Instantiate();
@@ -30,6 +34,8 @@ public class NodeMananger
         var newNodeBtn = nodeMananger.GetChild("Controls/NewNodeBtn") as Button;
 
         newNodeBtn!.OnPressed.Connect((_, _) => CreateNewNodeRequest());
+
+        newNodePopup.returnedNodeEvent = CreateNewNodeResponse;
 
         return nodeMananger;
     }
@@ -93,7 +99,7 @@ public class NodeMananger
     {
         if (selectedNode != null && selectedNodeTGI != null)
         {
-
+            /*
             var nNode = new Panel();
             nNode.name = nNode.GetType().Name;
 
@@ -112,6 +118,40 @@ public class NodeMananger
             a!.OnClick.Connect(OnNodeClicked);
 
             _nodesList.UpdateList();
+            */
+
+            var popup = newNodePopup.RequestNewNode();
+
+            if (popup != null)
+                Engine.root.AddAsChild(popup);
+
+        }
+    }
+
+    private void CreateNewNodeResponse(Type? node)
+    {
+        if (selectedNode != null && selectedNodeTGI != null && node != null)
+        {
+
+            var nNode = (Node)Activator.CreateInstance(node)!;
+            nNode.name = nNode.GetType().Name;
+
+            selectedNode.AddAsChild(nNode);
+
+            var a = _nodesList.AddItem(selectedNodeTGI.Path, nNode.name, null);
+
+            var nTexture = new SvgTexture() { Filter = false };
+            IconAttribute nodeIconAtrib = (IconAttribute)nNode.GetType()
+            .GetCustomAttribute(typeof(IconAttribute))!;
+            nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
+            a!.Icon = nTexture;
+
+            a!.SetData("NodeRef", nNode);
+
+            a!.OnClick.Connect(OnNodeClicked);
+
+            _nodesList.UpdateList();
+
         }
     }
 
