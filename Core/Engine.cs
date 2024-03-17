@@ -86,7 +86,9 @@ public class Engine
                 catch (Exception ex)
                 {
                     Console.WriteLine("Something goes wrong!");
-                    Console.WriteLine("Exeption:\n{0}", ex);
+                    Console.WriteLine($"{ex.GetType()}:");
+                    Console.WriteLine($"\"{ex.Message}\"");
+                    Console.WriteLine($"Stack Trace: \n{ex.StackTrace}");
                     Console.Beep();
                 }
 
