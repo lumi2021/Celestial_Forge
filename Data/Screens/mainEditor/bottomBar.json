@@ -1,223 +1,212 @@
 {
-    "NodeTree" : {
+  "NodeTree": {
+    "NodeType": "Panel",
+    "Name": "BottomBar",
 
-        "NodeType" : "Panel",
-        "Name" : "BottomBar",
+    "BackgroundColor": [60, 42, 77],
+    "CornerRadius": [20, 20, 20, 20],
 
-        "BackgroundColor" : [60, 42, 77],
-        "CornerRadius" : [20, 20, 20, 20],
+    "sizePercent": [1, 0],
+    "sizePixels": [0, 48],
+    "anchor": 7,
 
-        "sizePercent" : [1, 0],
-        "sizePixels" : [0, 48],
-        "anchor" : 7,
+    "Children": [
+      {
+        "NodeType": "NodeUI",
+        "Name": "BottomBarWindow",
+        "sizePixels": [-16, -64],
+        "positionPixels": [8, 8],
 
-        "Children" :
-        [
-            {
-                "NodeType": "NodeUI",
-                "Name": "BottomBarWindow",
-                "sizePixels": [ -16, -64 ],
-                "positionPixels": [ 8, 8 ],
+        "Children": [
+          {
+            "NodeType": "NodeUI",
+            "Name": "ConsoleTab",
+            "ClipChildren": true,
+
+            "Children": [
+              {
+                "NodeType": "TextField",
+                "Name": "Title",
+                "positionPixels": [0, 8],
+                "Color": [255, 255, 255],
+                "Text": "Output"
+              },
+              {
+                "NodeType": "Panel",
+                "Name": "Console",
+
+                "sizePixels": [0, -32],
+                "positionPixels": [0, 32],
+
+                "BackgroundColor": [80, 58, 101],
 
                 "Children": [
-                    {
-                        "NodeType": "NodeUI",
-                        "Name" : "ConsoleTab",
-                        "ClipChildren" : true,
-
-                        "Children": [
-
-                            {
-                                "NodeType": "TextField",
-                                "Name": "Title",
-                                "positionPixels": [ 0, 8 ],
-                                "Color": [ 255, 255, 255 ],
-                                "Text":  "Output"
-                            },
-                            {
-                                "NodeType": "Panel",
-                                "Name": "Console",
-
-                                "sizePixels": [ 0, -32 ],
-                                "positionPixels" : [0, 32],
-            
-                                "BackgroundColor": [ 80, 58, 101 ],
-            
-                                "Children": [
-                                    {
-                                    "NodeType": "NodeUI",
-                                    "Name": "ConsoleLog",
-                                    "ClipChildren": true
-                                    }
-                                ]
-                            }
-
-                        ]
-                    },
-
-                    {
-                        "NodeType": "NodeUI",
-                        "Name" : "ErrorsTab",
-                        "ClipChildren" : true,
-                        "Visible" : false,
-
-                        "Children": [
-
-                            {
-                                "NodeType": "TextField",
-                                "Name": "Title",
-                                "positionPixels": [ 0, 8 ],
-                                "Color": [ 255, 255, 255 ],
-                                "Text":  "Errors"
-                            },
-                            {
-                                "NodeType": "Panel",
-                                "Name": "Errors",
-
-                                "sizePixels": [ 0, -32 ],
-                                "positionPixels" : [0, 32],
-            
-                                "BackgroundColor": [ 80, 58, 101 ],
-            
-                                "Children": [
-                                    {
-                                    "NodeType": "NodeUI",
-                                    "Name": "ErrorsLog",
-                                    "ClipChildren": true
-                                    }
-                                ]
-                            }
-
-                        ]
-                    },
-
-                    {
-                        "NodeType": "NodeUI",
-                        "Name" : "MonitorsTab",
-                        "ClipChildren" : true,
-                        "Visible" : false,
-
-                        "Children": [
-
-                            {
-                                "NodeType": "TextField",
-                                "Name": "Title",
-                                "positionPixels": [ 0, 8 ],
-                                "Color": [ 255, 255, 255 ],
-                                "Text":  "Monitors"
-                            },
-                            {
-                                "NodeType": "Panel",
-                                "Name": "Monitors",
-
-                                "sizePixels": [ 0, -32 ],
-                                "positionPixels" : [0, 32],
-            
-                                "BackgroundColor": [ 80, 58, 101 ]
-                            }
-
-                        ]
-                    }
+                  {
+                    "NodeType": "NodeUI",
+                    "Name": "ConsoleLog",
+                    "ClipChildren": true
+                  }
                 ]
-            },
+              }
+            ]
+          },
 
-            {
-                "NodeType": "NodeUI",
-                "Name": "Tabs",
+          {
+            "NodeType": "NodeUI",
+            "Name": "ErrorsTab",
+            "ClipChildren": true,
+            "Visible": false,
 
-                "sizePercent":  [0, 0],
-                "sizePixels": [ 320, 48 ],
-                "positionPixels": [ -8, 0],
-                "anchor":  8,
+            "Children": [
+              {
+                "NodeType": "TextField",
+                "Name": "Title",
+                "positionPixels": [0, 8],
+                "Color": [255, 255, 255],
+                "Text": "Errors"
+              },
+              {
+                "NodeType": "Panel",
+                "Name": "Errors",
 
-                "Children":
-                [
-                    {
-                        "NodeType": "Button",
-                        "Name": "OutputBtn",
+                "sizePixels": [0, -32],
+                "positionPixels": [0, 32],
 
-                        "DefaultBackgroundColor" : [0,0,0,0],
-                        "HoverBackgroundColor" : null,
-                        "ActiveBackgroundColor" : null,
+                "BackgroundColor": [80, 58, 101],
 
-                        "sizePercent" :  [0, 0],
-                        "sizePixels": [ 100,32 ],
-                        "anchor" :  3,
-                        "Children": [
-                            {
-                                "NodeType": "TextField",
-                                "Name": "Label",
-                                "Text": "Output",
-                                "mouseFilter": 2,
-                                "Font": 0,
-                                "horizontalAligin" : 1,
-                                "verticalAligin" : 1
-                            }
-                        ]
-                    },
-                    {
-                        "NodeType": "Button",
-                        "Name": "ErrorsBtn",
-
-                        "DefaultBackgroundColor" : [0,0,0,0],
-                        "HoverBackgroundColor" : null,
-                        "ActiveBackgroundColor" : null,
-
-                        "sizePercent" :  [0, 0],
-                        "sizePixels": [ 100,32 ],
-                        "anchor": 4,
-                        "Children": [
-                            {
-                                "NodeType": "TextField",
-                                "Name": "Label",
-                                "Text": "Errors",
-                                "mouseFilter": 2,
-                                "Font": 0,
-                                "horizontalAligin" : 1,
-                                "verticalAligin" : 1
-                            }
-                        ]
-                    },
-                    {
-                        "NodeType": "Button",
-                        "Name": "MonitorsBtn",
-
-                        "DefaultBackgroundColor" : [0,0,0,0],
-                        "HoverBackgroundColor" : null,
-                        "ActiveBackgroundColor" : null,
-
-                        "sizePercent": [ 0, 0 ],
-                        "sizePixels": [ 100, 32 ],
-                        "anchor": 5,
-                        "Children": [
-                            {
-                                "NodeType": "TextField",
-                                "Name": "Label",
-                                "Text": "Monitors",
-                                "mouseFilter": 2,
-                                "Font": 0,
-                                "horizontalAligin" : 1,
-                                "verticalAligin" : 1
-                            }
-                        ]
-                    }
+                "Children": [
+                  {
+                    "NodeType": "NodeUI",
+                    "Name": "ErrorsLog",
+                    "ClipChildren": true
+                  }
                 ]
-            }
+              }
+            ]
+          },
 
+          {
+            "NodeType": "NodeUI",
+            "Name": "MonitorsTab",
+            "ClipChildren": true,
+            "Visible": false,
+
+            "Children": [
+              {
+                "NodeType": "TextField",
+                "Name": "Title",
+                "positionPixels": [0, 8],
+                "Color": [255, 255, 255],
+                "Text": "Monitors"
+              },
+              {
+                "NodeType": "Panel",
+                "Name": "Monitors",
+
+                "sizePixels": [0, -32],
+                "positionPixels": [0, 32],
+
+                "BackgroundColor": [80, 58, 101]
+              }
+            ]
+          }
         ]
-    },
+      },
 
-    "Resources" : [
-        {
-            "ResourceType" : "Font",
-            "Path" : "Assets/Fonts/calibri.ttf",
-            "Size" : 18
-        },
-        {
-            "ResourceType" : "Font",
-            "Path" : "Assets/Fonts/consola.ttf",
-            "Size" : 12
-        }
+      {
+        "NodeType": "NodeUI",
+        "Name": "Tabs",
+
+        "sizePercent": [0, 0],
+        "sizePixels": [320, 48],
+        "positionPixels": [-8, 0],
+        "anchor": 8,
+
+        "Children": [
+          {
+            "NodeType": "Button",
+            "Name": "OutputBtn",
+
+            "DefaultBackgroundColor": [0, 0, 0, 0],
+            "HoverBackgroundColor": null,
+            "ActiveBackgroundColor": null,
+
+            "sizePercent": [0, 0],
+            "sizePixels": [100, 32],
+            "anchor": 3,
+            "Children": [
+              {
+                "NodeType": "TextField",
+                "Name": "Label",
+                "Text": "Output",
+                "mouseFilter": 2,
+                "Font": 0,
+                "horizontalAligin": 1,
+                "verticalAligin": 1
+              }
+            ]
+          },
+          {
+            "NodeType": "Button",
+            "Name": "ErrorsBtn",
+
+            "DefaultBackgroundColor": [0, 0, 0, 0],
+            "HoverBackgroundColor": null,
+            "ActiveBackgroundColor": null,
+
+            "sizePercent": [0, 0],
+            "sizePixels": [100, 32],
+            "anchor": 4,
+            "Children": [
+              {
+                "NodeType": "TextField",
+                "Name": "Label",
+                "Text": "Errors",
+                "mouseFilter": 2,
+                "Font": 0,
+                "horizontalAligin": 1,
+                "verticalAligin": 1
+              }
+            ]
+          },
+          {
+            "NodeType": "Button",
+            "Name": "MonitorsBtn",
+
+            "DefaultBackgroundColor": [0, 0, 0, 0],
+            "HoverBackgroundColor": null,
+            "ActiveBackgroundColor": null,
+
+            "sizePercent": [0, 0],
+            "sizePixels": [100, 32],
+            "anchor": 5,
+            "Children": [
+              {
+                "NodeType": "TextField",
+                "Name": "Label",
+                "Text": "Monitors",
+                "mouseFilter": 2,
+                "Font": 0,
+                "horizontalAligin": 1,
+                "verticalAligin": 1
+              }
+            ]
+          }
+        ]
+      }
     ]
+  },
 
+  "Resources": [
+    {
+      "ResourceType": "Font",
+      "Path": "Assets/Fonts/calibri.ttf",
+      "Size": 18
+    },
+    {
+      "ResourceType": "Font",
+      "Path": "Assets/Fonts/consola.ttf",
+      "Size": 12
+    }
+  ]
 }

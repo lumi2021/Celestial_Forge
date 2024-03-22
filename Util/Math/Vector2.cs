@@ -76,6 +76,7 @@ public partial struct Vector2<T> where T : struct
 #region operators
 public partial struct Vector2<T> where T : struct
 {
+
     public static Vector2<T> operator - (Vector2<T> a)
     {
         return new (

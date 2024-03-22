@@ -132,6 +132,7 @@ public class DragHandler : NodeUI
                 if (nodeA != null)
                 {
                     nodeA.sizePixels.X += (int) d;
+                    nodeA.RequestUpdateAllChildrens();
                 }
                 if (nodeB != null)
                 {
@@ -141,6 +142,7 @@ public class DragHandler : NodeUI
                         nodeB.positionPixels.X += (int) d;
                     
                     nodeB.sizePixels.X -= (int) d;
+                    nodeB.RequestUpdateAllChildrens();
                 }
             }
             if (dragAxis != Axis.XAxis)
@@ -177,6 +179,7 @@ public class DragHandler : NodeUI
                 if (nodeA != null)
                 {
                     nodeA.sizePixels.Y += (int) d;
+                    nodeA.RequestUpdateAllChildrens();
                 }
                 if (nodeB != null)
                 {
@@ -186,6 +189,7 @@ public class DragHandler : NodeUI
                         nodeB.positionPixels.Y += (int) d;
                     
                     nodeB.sizePixels.Y -= (int) d;
+                    nodeB.RequestUpdateAllChildrens();
                 }
             }
         }

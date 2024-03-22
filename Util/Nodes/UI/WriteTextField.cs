@@ -32,13 +32,50 @@ public class WriteTextField : TextField
         }
     }
 
+    public bool CaretActive => Focused;
+
+    public Vector2<float> CaretGlobalPosition
+    {
+        get
+        {
+            int caretPosX = 0;
+            for (int i = 0; i < _caretCol; i++)
+                caretPosX += (int)charsList[_caretLine][i].Advance;
+
+            var caretPosY = (int)_caretLine * Font.lineheight;
+
+            return Position + new Vector2<float>(caretPosX, caretPosY);
+        }
+    }
+
     private uint _caretLine = 0;
     private uint _caretCol = 0;
+
+    public uint CaretLine
+    {
+        get => _caretLine;
+        set
+        {
+            _caretLine = value;
+            CaretMoved();
+        }
+    }
+    public uint CaretCol
+    {
+        get => _caretCol;
+        set
+        {
+            _caretCol = value;
+            CaretMoved();
+        }
+    }
+
     private uint _caretLastCol = 0;
 
     private readonly Panel caret = new();
 
     public readonly Signal OnTextEdited = new();
+    public readonly Signal OnCaretMoved = new();
 
     protected override void Init_()
     {
@@ -52,17 +89,6 @@ public class WriteTextField : TextField
         caret.Visible = Focused;
     }
 
-    protected override void Process(double deltaT)
-    {
-        int caretPosX = 0;
-        for (int i = 0; i < _caretCol; i++)
-            caretPosX += (int)charsList[_caretLine][i].Advance;
-        
-        caret.positionPixels.X = caretPosX;
-        caret.positionPixels.Y = (int)_caretLine * Font.lineheight;
-        caret.BackgroundColor = Color;
-    }
-
     protected override void OnFontUpdate()
     {
         base.OnFontUpdate();
@@ -73,13 +99,26 @@ public class WriteTextField : TextField
         base.TextEdited();
         if (_textLines.Length <= _caretLine)
         {
-            _caretLine = (uint) _textLines.Length - 1;
-            _caretCol = (uint) _textLines[_caretLine].Length;
+            CaretLine = (uint) _textLines.Length - 1;
+            CaretCol = (uint) _textLines[_caretLine].Length;
         }
         else if (_textLines[_caretLine].Length < _caretCol)
-            _caretCol = (uint) _textLines[_caretLine].Length;
+            CaretCol = (uint) _textLines[_caretLine].Length;
 
         OnTextEdited.Emit(this, Text);
+    }
+
+    protected virtual void CaretMoved()
+    {
+        int caretPosX = 0;
+        for (int i = 0; i < _caretCol; i++)
+            caretPosX += (int)charsList[_caretLine][i].Advance;
+        
+        caret.positionPixels.X = caretPosX;
+        caret.positionPixels.Y = (int)_caretLine * Font.lineheight;
+        caret.BackgroundColor = Color;
+
+        OnCaretMoved.Emit(this, _caretLine, _caretCol);
     }
 
     protected override void OnUIInputEvent(InputEvent e)
@@ -91,49 +130,54 @@ public class WriteTextField : TextField
             if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == InputAction.Press)
             if (new Rect(Position, Size).Intersects(@event.position))
             {
-                
-                onClick.Emit(this);
-                if (mouseFilter == MouseFilter.Block)
+                OnClick.Emit(this);
+
+                if (mouseFilter != MouseFilter.Ignore)
+    
+                Viewport?.SupressInputEvent();
+                Focus();
+
+                Vector2<int> relativeMousePos = @event.position - Position;
+
+                // put the carret on the right position
+                _caretLine = (uint) (relativeMousePos.Y / Font.lineheight);
+
+                if (_caretLine > _textLines.Length-1)
                 {
-                    Viewport?.SupressInputEvent();
-                    Focus();
-
-                    Vector2<int> relativeMousePos = @event.position - Position;
-
-                    // put the carret on the right position
-                    _caretLine = (uint) (relativeMousePos.Y / Font.lineheight);
-
-                    if (_caretLine > _textLines.Length-1)
-                    {
-                        _caretLine = (uint) _textLines.Length-1;
-                        _caretCol = (uint) _textLines[^1].Length;
-                    }
-                    else
-                    {
-                        int advance = 0;
-                        int index = 0;
-                        foreach (var c in charsList[_caretLine])
-                        {
-                            if (advance + c.Advance > relativeMousePos.X) break;
-                            advance += (int) c.Advance;
-                            index++;
-                        }
-                        
-                        if (charsList[_caretLine].Length < index-1)
-                        {
-                            double d1 = Math.Abs(relativeMousePos.X - advance);
-                            double d2 = Math.Abs(relativeMousePos.X
-                            - (advance + charsList[_caretLine][index+1].Advance));
-                            if (d1 > d2) index++;
-                        }
-                        
-                        _caretCol = (uint) index;
-                    }
-                
-                    _caretLastCol = _caretCol;
+                    _caretLine = (uint) _textLines.Length-1;
+                    _caretCol = (uint) _textLines[^1].Length;
                 }
+                else
+                {
+                    int advance = 0;
+                    int index = 0;
+
+                    foreach (var c in charsList[_caretLine])
+                    {
+                        if (advance + c.Advance > relativeMousePos.X) break;
+                        advance += (int) c.Advance;
+                        index++;
+                    }
+                    
+                    /*
+                    if (charsList[_caretLine].Length < index-1)
+                    {
+                        double d1 = Math.Abs(relativeMousePos.X - advance);
+                        double d2 = Math.Abs(relativeMousePos.X
+                        - (advance + charsList[_caretLine][index+1].Advance));
+                        if (d1 > d2) index++;
+                    }
+                    */
+                    
+                    _caretCol = (uint) index;
+                }
+                CaretMoved();
+            
+                _caretLastCol = _caretCol;
+
             }
-        
+            else if (Focused) Unfocus();
+
             //if (e.Is<MouseMoveInputEvent>(out var mMoveEvent))
             //{
             //    if (new Rect(Position, Size).Intersects(mMoveEvent.position + Viewport!.Camera2D.position))
@@ -146,8 +190,6 @@ public class WriteTextField : TextField
     }
     protected override void OnFocusedUIInputEvent(InputEvent e)
     {
-        base.OnFocusedUIInputEvent(e);
-
         if (e.Is<KeyboardKeyInputEvent>(out var @event) && @event.action != InputAction.Release)
         {
             if (!MultiLine && @event.key == Keys.Enter)
@@ -155,6 +197,7 @@ public class WriteTextField : TextField
                 AppendBeforeCursor("\n");
                 _caretLine++;
                 _caretCol = 0;
+                CaretMoved();
             }
 
             else if (@event.key == Keys.Backspace)
@@ -170,11 +213,11 @@ public class WriteTextField : TextField
             else if (@event.key == Keys.Left)
             {
                 if (_caretCol > 0)
-                    _caretCol--;
+                    CaretCol--;
                 else if (_caretLine > 0)
                 {
-                    _caretLine--;
-                    _caretCol = (uint) _textLines[_caretLine].Length;
+                    CaretLine--;
+                    CaretCol = (uint) _textLines[_caretLine].Length;
                 }
 
                 _caretLastCol = _caretCol;
@@ -182,12 +225,12 @@ public class WriteTextField : TextField
             else if (@event.key == Keys.Right)
             {
                 if (_caretCol < _textLines[_caretLine].Length)
-                    _caretCol++;
+                    CaretCol++;
                 
                 else if (_caretLine < _textLines.Length-1)
                 {
-                    _caretLine++;
-                    _caretCol = 0;
+                    CaretLine++;
+                    CaretCol = 0;
                 }
 
                 _caretLastCol = _caretCol;
@@ -196,16 +239,16 @@ public class WriteTextField : TextField
             {
                 if (_caretLine > 0)
                 {
-                    _caretLine--;
-                    _caretCol = Math.Min(_caretLastCol, (uint) _textLines[_caretLine].Length);
+                    CaretLine--;
+                    CaretCol = Math.Min(_caretLastCol, (uint) _textLines[_caretLine].Length);
                 }
             }
             else if (@event.key == Keys.Down)
             {
                 if (_caretLine < _textLines.Length-1)
                 {
-                    _caretLine++;
-                    _caretCol = Math.Min(_caretLastCol, (uint) _textLines[_caretLine].Length);
+                    CaretLine++;
+                    CaretCol = Math.Min(_caretLastCol, (uint) _textLines[_caretLine].Length);
                 }
             }
         }
@@ -230,7 +273,8 @@ public class WriteTextField : TextField
         line[..(int)_caretCol] + s + line[(int)_caretCol..];
         Text = string.Join('\n', _textLines);
 
-        _caretCol += (uint) str.Length;
+        _caretCol += (uint) str.Replace("\n", "").Length;
+        CaretMoved();
     }
     protected void RemoveBeforeCursor(uint length)
     {
@@ -283,6 +327,7 @@ public class WriteTextField : TextField
                 }
 
             }
+            CaretMoved();
         }
 
         Text = string.Join('\n', _textLines);

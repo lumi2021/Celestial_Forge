@@ -2,6 +2,7 @@ using System.Diagnostics;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngineEditor.Editor;
+using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
@@ -11,12 +12,12 @@ namespace GameEngine.Core;
 public class Engine
 {
 
-    public static IWindow window = null!;
     public static GL gl = null!;
 
     public static ProjectSettings projectSettings = new();
 
-    public static NodeRoot root = new();
+    private static readonly NodeRoot _root = new();
+    public static NodeRoot NodeRoot => _root;
 
     #region gl info
 
@@ -28,8 +29,7 @@ public class Engine
     {
         /* CREATE MAIN WINDOW AND GL CONTEXT */
         var mainWin = new Util.Nodes.Window();
-        window = mainWin.window;
-        root.AddAsChild(mainWin);
+        _root.AddAsChild(mainWin);
 
         // get GL info //
         gl_MaxTextureUnits = gl.GetInteger(GLEnum.MaxTextureImageUnits);
@@ -45,14 +45,15 @@ public class Engine
         //CascadingStyleSheet.Load("Data/Styles/Editor.css");
 
         /* START EDITOR */
-        _ = new EditorMain(projectSettings, mainWin);
+        Editor.StartEditor(projectSettings, mainWin);
 
         /* START RUN */
         Run();
         
         /* END PROGRAM */
-        root.Free();
+        _root.Free();
         gl.Dispose();
+        Glfw.GetApi().Dispose();
     }
 
     private void Run()
@@ -67,6 +68,7 @@ public class Engine
 
         while (WindowService.mainWindow != null && !WindowService.mainWindow.IsClosing)
         {
+
             foreach (var win in WindowService.windows.ToArray())
             if (win.IsInitialized)
             {
@@ -85,8 +87,16 @@ public class Engine
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Something goes wrong!");
-                    Console.WriteLine("Exeption:\n{0}", ex);
+                    var oldConsoleCol = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+
+                    Console.WriteLine("\nSomething goes wrong!");
+
+                    Console.ForegroundColor = oldConsoleCol;
+
+                    Console.WriteLine($"{ex.GetType()}:");
+                    Console.WriteLine($"\"{ex.Message}\"");
+                    Console.WriteLine($"Stack Trace: \n{ex.StackTrace}");
                     Console.Beep();
                 }
 
@@ -110,10 +120,14 @@ public class Engine
             if (stopwatch.Elapsed.TotalSeconds >= 1)
             {
                 stopwatch.Restart();
-                Console.Title = $"fps: {fpsHistory.ToArray().Average() : 0.00}";
+
+                var fpsValue = fpsHistory.ToArray().Average();
+                var memValue = Process.GetCurrentProcess().WorkingSet64 / (1024.0 * 1024.0);
+
+                Console.Title = $"fps: {fpsValue : 0.00}, {memValue : 0.00} Mb";
                 fpsHistory.Clear();
             }
+
         }
     }
-
 }

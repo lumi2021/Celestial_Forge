@@ -14,18 +14,73 @@ using GameEngine;
 
 namespace GameEngineEditor.Editor;
 
-public class EditorMain
+public static class Editor
 {
 
-    private ProjectSettings projectSettings;
-    private readonly Window mainWindow;
+    private static ProjectSettings _projectSettings = null!;
+    public static ProjectSettings ProjectSettings => _projectSettings;
 
+    private static  List<EditorPlugin> _plugins = [];
+    private static Window _mainWindow = null!;
+
+    /* DATA */
+    private static List<RegistredType> _registredTypes = [new(typeof(object), null)];
+    public static RegistredType[] RegistredTypes => [.. _registredTypes];
+
+    /* COMPONENTS */
+    private static EditorUI _uiComponent = null!;
+
+    public static void StartEditor(ProjectSettings settings, Window mainWin)
+    {
+        _projectSettings = settings;
+        _mainWindow = mainWin;
+
+        StartComponents();
+
+        _plugins.Add(new BaseData());
+        StartPlugins();
+    }
+
+    private static void StartComponents()
+    {
+        _uiComponent = new(_mainWindow);
+        _uiComponent.Create();
+    }
+    
+    private static void StartPlugins()
+    {
+        foreach (var i in _plugins)
+            if (i.Start()) i.active = true;
+    }
+
+    public static void RequestRegisterType(Type type, Type? extends)
+    {
+        if (!_registredTypes.Any(e => e.type == type) && _registredTypes.Any(e => e.type == extends))
+            _registredTypes.Add(new(type, extends));
+        
+        else throw new Exception($"Type {type.Name} is already registred!");
+    }
+
+    public struct RegistredType(Type type, Type? extends)
+    {
+        public readonly Type type = type;
+        public readonly Type? extends = extends;
+    }
+
+}
+
+class EditorUI (Window mWin)
+{
     /* IMPORTANT NODES */
+    private readonly Window mainWindow = mWin;
+
     private Node? editorRoot;
     private TreeGraph? filesList;
     private Panel? sceneViewport;
     private Panel? textEditor;
+
     private NodeUI? console;
+    private NodeUI? errors;
 
     private NodeMananger? nodeMananger = null;
 
@@ -36,16 +91,9 @@ public class EditorMain
 
     private FileReference? fileBeingEdited = null;
 
-    public EditorMain(ProjectSettings settings, Window mainWin)
+    public void Create()
     {
-        projectSettings = settings;
-        mainWindow = mainWin;
-
-        CreateEditor();
-    }
-
-    private void CreateEditor()
-    {
+        
         /* CONFIGURATE WINDOW */
         mainWindow.State = WindowState.Maximized;
         mainWindow.Title = "Celestial Forge";
@@ -79,7 +127,7 @@ public class EditorMain
         sceneEnviropment = new()
         {
             useContainerSize = true,
-            ContainerSize = (Vector2<uint>)projectSettings.canvasDefaultSize,
+            ContainerSize = (Vector2<uint>)Editor.ProjectSettings.canvasDefaultSize,
             backgroundColor = new(50, 50, 100)
         };
 
@@ -215,7 +263,9 @@ public class EditorMain
         
         // console
         console = bottomBar!.GetChild("BottomBarWindow/ConsoleTab/Console/ConsoleLog") as NodeUI;
+        errors = bottomBar!.GetChild("BottomBarWindow/ErrorsTab/Errors/ErrorsLog") as NodeUI;
         Debug.OnLogEvent += OnLog;
+        Debug.OnErrorEvent += OnError;
 
         #endregion
 
@@ -224,7 +274,6 @@ public class EditorMain
         runButton?.OnPressed.Connect(RunButtonPressed);
 
     }
-
 
     private void ChangeMainView(int to)
     {
@@ -253,12 +302,12 @@ public class EditorMain
     private void RunGame()
     {
         var gameWindow = new Window() {
-            Size = (Vector2<uint>) projectSettings.canvasDefaultSize
+            Size = (Vector2<uint>) Editor.ProjectSettings.canvasDefaultSize
         };
 
         mainWindow.AddAsChild(gameWindow);
 
-        var gameScene = PackagedScene.Load(projectSettings.entryScene)!.Instantiate();
+        var gameScene = PackagedScene.Load(Editor.ProjectSettings.entryScene)!.Instantiate();
         gameWindow.AddAsChild(gameScene);
     }
 
@@ -371,6 +420,17 @@ public class EditorMain
         console!.AddAsChild(CreateLogItem(log));
         var p = 0;
         foreach (var i in console.children)
+        if (i is NodeUI node)
+        {
+            node.positionPixels.Y = p;
+            p += node.sizePixels.Y;
+        }
+    }
+    private void OnError(LogInfo err)
+    {
+        errors!.AddAsChild(CreateLogItem(err));
+        var p = 0;
+        foreach (var i in errors.children)
         if (i is NodeUI node)
         {
             node.positionPixels.Y = p;
@@ -507,7 +567,7 @@ public class EditorMain
                 name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_value_label"
             };
 
-            fieldContainer.onClick.Connect((object? from, dynamic[]? args) =>
+            fieldContainer.OnClick.Connect((object? from, dynamic[]? args) =>
             {
                 bool value = !(bool) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
                 checkbox.value = value;
@@ -624,7 +684,8 @@ public class EditorMain
         var nLog = new Panel
         {
             sizePercent = new(1, 0),
-            sizePixels = new(0, 40)
+            sizePixels = new(0, 40),
+            BackgroundColor = new(0, 0, 0, 0)
         };
         var message = new TextField
         {

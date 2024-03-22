@@ -44,8 +44,8 @@ public class Select : NodeUI
         AddAsGhostChild(OptionsContainer);
         UpdateValue();
 
-        Container.onFocus.Connect((object? _, dynamic[]? _) => ToggleOptionsList());
-        Container.onUnfocus.Connect((object? _, dynamic[]? _) => CloseOptionsList());
+        Container.OnFocus.Connect((object? _, dynamic[]? _) => ToggleOptionsList());
+        Container.OnUnfocus.Connect((object? _, dynamic[]? _) => CloseOptionsList());
     }
 
     private void ToggleOptionsList()

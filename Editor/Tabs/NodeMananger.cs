@@ -99,31 +99,10 @@ public class NodeMananger
     {
         if (selectedNode != null && selectedNodeTGI != null)
         {
-            /*
-            var nNode = new Panel();
-            nNode.name = nNode.GetType().Name;
-
-            selectedNode.AddAsChild(nNode);
-
-            var a = _nodesList.AddItem(selectedNodeTGI.Path, nNode.name, null);
-
-            var nTexture = new SvgTexture() { Filter = false };
-            IconAttribute nodeIconAtrib = (IconAttribute)nNode.GetType()
-            .GetCustomAttribute(typeof(IconAttribute))!;
-            nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
-            a!.Icon = nTexture;
-
-            a!.SetData("NodeRef", nNode);
-
-            a!.OnClick.Connect(OnNodeClicked);
-
-            _nodesList.UpdateList();
-            */
-
             var popup = newNodePopup.RequestNewNode();
 
             if (popup != null)
-                Engine.root.AddAsChild(popup);
+                Engine.NodeRoot.AddAsChild(popup);
 
         }
     }

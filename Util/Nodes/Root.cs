@@ -1,3 +1,3 @@
 namespace GameEngine.Util.Nodes;
 
-public class NodeRoot : Node {}
+public sealed class NodeRoot : Node {}

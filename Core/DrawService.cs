@@ -10,7 +10,8 @@ public static class DrawService
 {
     public enum BufferUsage { Static, Dynamic, Stream };
 
-    private static Dictionary<uint, ResourceDrawData> ResourceData = new();
+    private static Dictionary<uint, ResourceDrawData> ResourceData = [];
+    public static int ResourceDataCount => ResourceData.Count;
 
     #region Gl Binded data
     public static int GlBinded_ShaderProgram = -1;

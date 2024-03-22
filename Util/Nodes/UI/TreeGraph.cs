@@ -76,6 +76,8 @@ public class TreeGraph : NodeUI
                 for (int i = current.children.Count - 1; i >= 0; i--)
                     toUpdate.Insert(0,  current.children[i]);
         }
+
+        RequestUpdateAllChildrens();
     }
 
     public void ClearGraph()
@@ -221,7 +223,7 @@ public class TreeGraph : NodeUI
 
             container.ButtonGroup = graph._buttonGroup;
 
-            container.onClick.Connect((a,b) => OnClick.Emit(this));
+            container.OnClick.Connect((a,b) => OnClick.Emit(this));
         }
 
         public TreeGraphItem? GetChild(string[] path)

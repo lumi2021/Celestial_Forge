@@ -46,7 +46,11 @@ public class PackagedScene : Resource
         foreach (var i in resources)
             resRepository.Add( i.CreateResourceInstance() );
 
-        return root.CreateNodeInstance( [.. resRepository] );
+        var res = root.CreateNodeInstance( [.. resRepository] );
+
+        GC.Collect();
+
+        return res;
     }
 
     struct PackagedNode

@@ -373,7 +373,7 @@ public abstract class Material : Resource
     }
     #endregion
 
-    private string GetName(Type t)
+    private static string GetName(Type t)
     {
         if (t.IsGenericType)
             return t.GetGenericTypeDefinition().Name + "<" + string.Join(", ", t.GetGenericArguments().Select(t => t.Name)) + ">";
