@@ -59,7 +59,7 @@ public class Window : Viewport
 
     protected override void Init_()
     {
-        window = WindowService.CreateNewWindow( OnLoad );
+        window = WindowService.CreateNewWindow(OnLoad);
         _title = window.Title;
 
         window.Closing += OnClose;

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using System.Reflection;
+using YamlDotNet.Core.Tokens;
 using static GameEngine.Util.Resources.Script;
 
 namespace GameEngine.Util.Resources;
@@ -79,11 +80,13 @@ public class CSharpCompiler : Resource, IScriptCompiler
             if (token.Kind().ToString().EndsWith("Keyword"))
                 spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(255, 0, 0)));
 
+            /*
             else if (token.IsKind(SyntaxKind.IdentifierToken))
             {
                 if(token.GetNextToken().IsKind(SyntaxKind.OpenParenToken))
                     spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(0, 255, 0)));
             }
+            */
 
             else if (
                 token.IsKind(SyntaxKind.StringLiteralToken) ||
@@ -103,28 +106,20 @@ public class CSharpCompiler : Resource, IScriptCompiler
         var semanticModel = compilation.GetSemanticModel(syntaxTree);
         root = (CompilationUnitSyntax) syntaxTree.GetRoot();
 
-        /*
-        var identfiers = root.DescendantNodes();
-        foreach (var identfier in identfiers)
+        var identfiers = root.DescendantNodes().OfType<IdentifierNameSyntax>()
+            .Where(i => semanticModel.GetSymbolInfo(i).Symbol is ITypeSymbol)
+            .Distinct();
+
+        foreach (var id in identfiers)
         {
-            var mSymbol = semanticModel.GetDeclaredSymbol(identfier);
-            if (mSymbol != null)
-                Console.WriteLine($"\"{identfier}\"\n({identfier.Kind()}, {mSymbol.Kind})\n");
-            
-            {
-                int jumpLen = 0;
-                var toJump = jumps.Where(j => j.position < identfier.FullSpan.Start);
-                foreach (var i in toJump) jumpLen += i.length;
+            if (jumps.Any(j => j.position <= id.SpanStart && j.position + j.length >= id.FullSpan.End)) continue;
 
-                spans.Add(new(
-                    identfier.FullSpan.Start - jumpLen,
-                    identfier.FullSpan.End - jumpLen,
-                    new(0, 255, 0)
-                ));
-            }
+            var jumpsToDo = jumps.Where(j => j.position <= id.SpanStart);
+            int jumplen = 0;
+            foreach (var jump in jumpsToDo) jumplen += jump.length;
+
+            spans.Add(new(id.FullSpan.Start - jumplen, id.FullSpan.End - jumplen, new(100, 100, 255)));
         }
-        */
-
         return [.. spans];
     }
 
