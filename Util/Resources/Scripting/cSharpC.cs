@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using System.Reflection;
+using static GameEngine.Util.Resources.Script;
 
 namespace GameEngine.Util.Resources;
 
@@ -15,7 +16,7 @@ public class CSharpCompiler : Resource, IScriptCompiler
     {
 
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(script.Code, null, script.path.GlobalPath);
-        syntaxTree = PreprocessSyntaxTree(syntaxTree);
+        syntaxTree = PreprocessSyntaxTree(syntaxTree, out _);
         
         return CompileAndGetAsm([syntaxTree], out _);
 
@@ -28,7 +29,7 @@ public class CSharpCompiler : Resource, IScriptCompiler
         foreach (var script in scripts)
         {
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(script.Code, null, script.path.GlobalPath);
-            syntaxTree = PreprocessSyntaxTree(syntaxTree);
+            syntaxTree = PreprocessSyntaxTree(syntaxTree, out _);
             scriptsAndTrees.Add( (script, syntaxTree) );
         }
 
@@ -95,19 +96,51 @@ public class CSharpCompiler : Resource, IScriptCompiler
             
         }
 
+        // compile //
+        syntaxTree = PreprocessSyntaxTree(syntaxTree, out var jumps);
+        var compilation = Compile([syntaxTree]);
+
+        var semanticModel = compilation.GetSemanticModel(syntaxTree);
+        root = (CompilationUnitSyntax) syntaxTree.GetRoot();
+
+        /*
+        var identfiers = root.DescendantNodes();
+        foreach (var identfier in identfiers)
+        {
+            var mSymbol = semanticModel.GetDeclaredSymbol(identfier);
+            if (mSymbol != null)
+                Console.WriteLine($"\"{identfier}\"\n({identfier.Kind()}, {mSymbol.Kind})\n");
+            
+            {
+                int jumpLen = 0;
+                var toJump = jumps.Where(j => j.position < identfier.FullSpan.Start);
+                foreach (var i in toJump) jumpLen += i.length;
+
+                spans.Add(new(
+                    identfier.FullSpan.Start - jumpLen,
+                    identfier.FullSpan.End - jumpLen,
+                    new(0, 255, 0)
+                ));
+            }
+        }
+        */
+
         return [.. spans];
     }
 
 
-    private static SyntaxTree PreprocessSyntaxTree(SyntaxTree syntaxTree)
+    private static SyntaxTree PreprocessSyntaxTree(SyntaxTree syntaxTree, out CodeJump[] jumps)
     {
+        List<CodeJump> codeJumps = [];
 
         SyntaxTree tree = syntaxTree;
         var root = (CompilationUnitSyntax) tree.GetRoot();
 
         #region add omitable using namespaces
 
-        var usingDirectives = root.DescendantNodes().OfType<UsingDirectiveSyntax>();
+        var usingDirectives = root.DescendantNodes().OfType<UsingDirectiveSyntax>().ToArray();
+        int lastUsingIndex = usingDirectives.Length > 0 ? usingDirectives[^1].FullSpan.End : 0;
+        int newUsingsLength = 0;
 
         var autoUsing = new KeyValuePair<string, string>[] {
             new("", "System"),
@@ -149,33 +182,26 @@ public class CSharpCompiler : Resource, IScriptCompiler
             
 
             usingTokens.Add(usingDir);
+            newUsingsLength += usingDir.FullSpan.End - usingDir.FullSpan.Start;
         }
 
         root = root.AddUsings([.. usingTokens]);
+        codeJumps.Add(new(lastUsingIndex, newUsingsLength));
 
         #endregion
 
         tree = tree.WithRootAndOptions(root, tree.Options);
 
+        jumps = [.. codeJumps];
+
         return tree;
 
     }
 
-    private static Assembly? CompileAndGetAsm(SyntaxTree[] trees, out Compilation comp)
+    private static Assembly? CompileAndGetAsm(SyntaxTree[] trees, out CSharpCompilation comp)
     {
 
-        string assemblyName = "DynamicAss.dll";
-        List<MetadataReference> assembliesRefs = [];
-
-        assembliesRefs.AddRange(Basic.Reference.Assemblies.Net80.References.All);
-        assembliesRefs.Add(MetadataReference.CreateFromFile(typeof(Program).Assembly.Location));
-
-        var compilation = CSharpCompilation.Create(
-            assemblyName,
-            syntaxTrees: trees,
-            references: assembliesRefs,
-            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-        );
+        var compilation = Compile(trees);
 
         comp = compilation;
 
@@ -200,7 +226,21 @@ public class CSharpCompiler : Resource, IScriptCompiler
 
         return null;
     }
+    private static CSharpCompilation Compile(SyntaxTree[] trees)
+    {
+        string assemblyName = "DynamicAss.dll";
+        List<MetadataReference> assembliesRefs = [];
 
+        assembliesRefs.AddRange(Basic.Reference.Assemblies.Net80.References.All);
+        assembliesRefs.Add(MetadataReference.CreateFromFile(typeof(Program).Assembly.Location));
+
+        return CSharpCompilation.Create(
+            assemblyName,
+            syntaxTrees: trees,
+            references: assembliesRefs,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        );
+    }
 
 
     private enum MySyntaxKind
@@ -209,3 +249,4 @@ public class CSharpCompiler : Resource, IScriptCompiler
     }
 
 }
+

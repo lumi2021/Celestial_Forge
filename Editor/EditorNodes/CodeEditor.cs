@@ -1,5 +1,6 @@
 using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
+using GameEngine.Util.Values;
 using static GameEngine.Util.Nodes.TextField;
 
 namespace GameEngineEditor.EditorNodes;
@@ -41,6 +42,16 @@ internal class CodeEditor : NodeUI
         ForceTextSize = true
     };
 
+    private Panel _intelisense = new()
+    {
+        Visible = false,
+        sizePercent = new(),
+        sizePixels = new(250, 200),
+        BackgroundColor = new(0,0,0),
+        StrokeColor = new(255,255,255),
+        StrokeSize = 1
+    };
+
     private Font _font = new("./Assets/Fonts/consola.ttf", 12);
 
     private uint _lastLineCount = 0;
@@ -54,8 +65,13 @@ internal class CodeEditor : NodeUI
 
         AddAsGhostChild(_lineCount);
         AddAsGhostChild(_textField);
+        AddAsGhostChild(_intelisense);
 
         _textField.OnTextEdited.Connect((_, args) => OnTextUpdate(args![0]));
+
+        _textField.OnFocus.Connect((_,_) => OnTextFieldFocusChanged(true));
+        _textField.OnUnfocus.Connect((_,_) => OnTextFieldFocusChanged(false));
+        _textField.OnCaretMoved.Connect((_,_) => OnCaretMoved());
 
         OnTextUpdate(Text);
     }
@@ -77,6 +93,18 @@ internal class CodeEditor : NodeUI
         }
     
         _textField.sizePixels.X = (int) -_lineCount.Size.X - 10;
+        _textField.RequestUpdateAllChildrens();
+    }
+
+    private void OnTextFieldFocusChanged(bool focused)
+        => _intelisense.Visible = false;//focused;
+    private void OnCaretMoved()
+    {
+
+        var offset = new Vector2<int>(30, 0);
+        _intelisense.positionPixels = (Vector2<int>)_textField.CaretGlobalPosition - Position + offset;
+        _intelisense.RequestUpdateAllChildrens();
+
     }
 
 }

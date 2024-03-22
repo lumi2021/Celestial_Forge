@@ -95,6 +95,7 @@ public static class ResourceHeap
     }
     public static void CallProcess()
     {
+
         Collect();
     }
 

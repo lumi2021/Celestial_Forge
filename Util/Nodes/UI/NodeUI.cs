@@ -2,16 +2,15 @@ using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
-using static GameEngine.Util.Nodes.Window.InputHandler;
 
 namespace GameEngine.Util.Nodes;
 
 public class NodeUI : Node, ICanvasItem, IClipChildren
 {
     /* SIGNALS */
-    public readonly Signal onClick = new();
-    public readonly Signal onFocus = new();
-    public readonly Signal onUnfocus = new();
+    public readonly Signal OnClick = new();
+    public readonly Signal OnFocus = new();
+    public readonly Signal OnUnfocus = new();
 
     public enum ANCHOR {
         TOP_LEFT,
@@ -30,33 +29,53 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
     [Inspect] public uint padding = 0;
     [Inspect] public uint margin = 0;
 
-    //Get parent size
-    private Vector2<float> ParentSize {
+    // Parent size and position
+    private Vector2<float>? _pPos = null;
+    private Vector2<float>? _pSize = null;
+
+    private Vector2<float> ParentPosition {
+
         get {
-            Vector2<float> pSize;
-            
-            if (parent != null && parent is NodeUI @p)
-                pSize = @p.Size - new Vector2<float>(@p.padding*2, @p.padding*2);
-
-            else if (Viewport != null)
-                pSize = new Vector2<float>(Viewport!.ContainerSize.X, Viewport!.ContainerSize.Y+1);
+            if (_pPos == null)
+            {
+                Vector2<float> pPos = new();
                 
-            else pSize = new();
+                if (parent != null && parent is NodeUI @p)
+                    pPos = @p.Position + new Vector2<float>(@p.padding, @p.padding);
 
-            return pSize;
+                _pPos = pPos;
+            }
+            return _pPos.Value;
         }
+
+    }
+    private Vector2<float> ParentSize {
+
+        get {
+            if (_pSize == null)
+            {
+                Vector2<float> pSize;
+                
+                if (parent != null && parent is NodeUI @p)
+                    pSize = @p.Size - (new Vector2<float>(@p.padding, @p.padding) * 2);
+
+                else if (Viewport != null)
+                    pSize = new Vector2<float>(Viewport!.ContainerSize.X, Viewport!.ContainerSize.Y);
+                    
+                else pSize = new();
+
+                _pSize = pSize;
+            }
+            return _pSize.Value;
+        }
+
     }
 
-    //Position
+    // Position
     [Inspect] public Vector2<int> positionPixels = new(0,0);
     [Inspect] public Vector2<float> positionPercent = new(0,0);
     public virtual Vector2<float> Position {
         get {
-            Vector2<float> parentPos = new(0, -1);
-
-            if (parent != null && parent is NodeUI p)
-                parentPos = p.Position + new Vector2<int>((int)p.padding, (int)p.padding);
-
             Vector2<float> finalPosition = new();
 
             // anchor X
@@ -79,7 +98,6 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
                     finalPosition.X = ParentSize.X - Size.X;
                     break;
             }
-            
             // anchor Y
             switch (anchor)
             {
@@ -101,18 +119,18 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
                     break;
             }
 
-            var marginVec2 = new Vector2<int>((int)margin, (int)margin);
-
-            return finalPosition + (ParentSize * positionPercent) + parentPos + positionPixels + marginVec2;
+            var marginVec2 = new Vector2<float>(margin, margin);
+            return finalPosition + (ParentSize * positionPercent) + ParentPosition + positionPixels + marginVec2;
         }
     }
     
-    //Size
+    // Size
     [Inspect] public Vector2<int> sizePixels = new(0,0);
     [Inspect] public Vector2<float> sizePercent = new(1,1);
     public virtual Vector2<float> Size {
         get {
-            var a = ParentSize * sizePercent + sizePixels - new Vector2<int>((int)margin, (int)margin) * 2;
+            var marginVec2 = new Vector2<float>(margin, margin);
+            var a = ParentSize * sizePercent + sizePixels - marginVec2 * 2;
             return new(MathF.Max(0f, a.X), MathF.Max(0f, a.Y));
         }
     }
@@ -194,15 +212,18 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
 
     public void Focus()
     {
-        Viewport!.FocusedUiNode = this;
-        onFocus.Emit();
+        if (Viewport != null && Viewport.FocusedUiNode != this)
+        {
+            Viewport!.FocusedUiNode = this;
+            OnFocus.Emit();
+        }
     }
     public void Unfocus()
     {
         if (Viewport != null && Viewport.FocusedUiNode == this)
         {
             Viewport!.FocusedUiNode = null;
-            onUnfocus.Emit();
+            OnUnfocus.Emit();
         }
     }
 
@@ -210,19 +231,7 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
     public void RunFocusedUIInputEvent(InputEvent e) => OnFocusedUIInputEvent(e);
     public void RunFocusChanged(bool focused) => OnFocusChanged(focused);
 
-    protected virtual void OnFocusedUIInputEvent(InputEvent e)
-    {
-        if (e.Is<MouseInputEvent>())
-        {
-            if (mouseFilter == MouseFilter.Ignore) return;
-
-            if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == Silk.NET.GLFW.InputAction.Press)
-            if (!new Rect(Position, Size).Intersects(@event.position))
-            {
-                Unfocus();
-            }
-        }
-    }
+    protected virtual void OnFocusedUIInputEvent(InputEvent e) {}
     protected virtual void OnUIInputEvent(InputEvent e)
     {
         if (e.Is<MouseInputEvent>())
@@ -232,12 +241,16 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
             if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == Silk.NET.GLFW.InputAction.Press)
             if (new Rect(Position, Size).Intersects(@event.position + Viewport!.Camera2D.position))
             {
-                onClick.Emit(this);
+                OnClick.Emit(this);
                 if (mouseFilter == MouseFilter.Block)
                 {
                     Viewport?.SupressInputEvent();
                     Focus();
                 }
+            }
+            else if (Focused)
+            {
+                Unfocus();
             }
         }
     }
@@ -250,5 +263,16 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
 
     public void Hide() => Visible = false;
     public void Show() => Visible = true;
+
+    protected override void OnTreeParentChanged()
+    {
+
+        _pSize = null;
+        _pPos = null;
+
+        RequestUpdateAllChildrens();
+
+        base.OnTreeParentChanged();
+    }
 
 }

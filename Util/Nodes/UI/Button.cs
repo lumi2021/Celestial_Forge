@@ -353,7 +353,7 @@ public class Button : NodeUI
                     if (@bEvent.action == Silk.NET.GLFW.InputAction.Press)
                     {
                         State = ButtonState.Active;
-                        onClick.Emit(this);
+                        OnClick.Emit(this);
                     }
 
                     if (

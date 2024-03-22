@@ -3,18 +3,13 @@ using GameEngine.Core;
 
 namespace GameEngine.Util;
 
-public struct FileReference
+public struct FileReference(string path)
 {
-    private string _globalPath;
+    private string _globalPath = FileService.GetGlobalPath(path);
 
     public readonly string GlobalPath => _globalPath;
     public readonly string RelativePath => FileService.GetProjRelativePath(_globalPath);
     public readonly bool HaveRelativePath => FileService.HaveRelativePath(_globalPath);
-
-    public FileReference(string path)
-    {
-        _globalPath = FileService.GetGlobalPath(path);
-    }
 
     /* CHECK */
     public readonly bool Exists => File.Exists(_globalPath);
@@ -35,26 +30,22 @@ public struct FileReference
         FileService.WriteFile(_globalPath, content);
     }
 
-    public override readonly bool Equals([NotNullWhen(true)] object? obj)
-    {
-        if (obj is FileReference fileRef)
-            return fileRef.GlobalPath == GlobalPath;
-
-        return base.Equals(obj);
-    }
-
     public static bool operator ==(FileReference left, FileReference right)
     {
         return left.Equals(right);
     }
     public static bool operator !=(FileReference left, FileReference right)
     {
-        return !(left == right);
+        return !left.Equals(right);
     }
-    public override readonly int GetHashCode()
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
-        return base.GetHashCode();
+        if (obj is FileReference fileRef)
+            return fileRef.GlobalPath == GlobalPath;
+
+        return false;
     }
+    public override readonly int GetHashCode() => base.GetHashCode();
 
     public static explicit operator FileReference(string path)
         => new(path);

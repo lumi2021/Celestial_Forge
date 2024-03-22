@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace GameEngine.Util.Values;
 
 public struct Color
@@ -108,6 +110,18 @@ public struct Color
         return new Color(a.R / b.R, a.G / b.G, a.B / b.B, a.A / b.A);
     }
 
+    public static bool operator ==(Color a, object? b) => a.Equals(b);
+    public static bool operator !=(Color a, object? b) => !a.Equals(b);
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        if (obj is Color c)
+            return R == c.R && G == c.G && B == c.B && A == c.A;
+
+        else return false;
+    }
+    public override readonly int GetHashCode() => base.GetHashCode();
+
     public override readonly string ToString()
     {
         return string.Format("Col(R {0}, G {1}, B {2}, A {3})", red, green, blue, alpha);
@@ -115,7 +129,7 @@ public struct Color
 
     public float[] ToArray()
     {
-        return new float[] {NormalR, NormalG, NormalB, A};
+        return [NormalR, NormalG, NormalB, A];
     }
 
 }

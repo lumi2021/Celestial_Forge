@@ -9,26 +9,32 @@ namespace GameEngine.Util.Nodes;
 [Icon("./Assets/icons/Nodes/Node.svg")]
 public class Node
 {
+
     /* System variables */
     public bool Freeled { get; private set; }
     private bool _gcCalled = false;
     private bool _isReady = false;
     public readonly uint NID = 0;
 
-    /* Script & load variables */
+    /* Tree-referent variables */
+    private bool _isOnTree = false;
+    private Viewport? _parentViewport = null;
+    private InputHandler? _parentInputHandler = null;
+
+    /* Script & loading variables */
     private Dictionary<string, object?> _fieldsToLoadWhenReady = [];
 
     public Node? parent;
-    public bool isGhostChildren = false;
+    private bool _isGhostChildren = false;
 
     public List<Node> children = [];
-    protected List<Node> ghostChildren = [];
+    protected List<WeakReference<Node>> ghostChildren = [];
     
-    public Node[] GetAllChildren => [.. ghostChildren, .. children];
+    public Node[] GetAllChildren
+        => [.. ghostChildren.Select(e => {e.TryGetTarget(out var n); return n;}), .. children];
 
     public string name = "";
 
-    private Viewport? _parentViewport;
     protected Viewport? Viewport
     {
         get {
@@ -45,12 +51,26 @@ public class Node
     protected InputHandler Input
     {
         get {
-            if (Viewport is Window win)
-                return win.input;
-            else return Viewport!.Input;
+            if (_parentInputHandler == null)
+            {
+                if (Viewport is Window win)
+                    _parentInputHandler = win.input;
+
+                else if (Viewport != null)
+                    _parentInputHandler = Viewport!.Input;
+                
+                _parentInputHandler ??= new();
+            }
+            return _parentInputHandler;
         }
     }
 
+    /* SIGNALS */
+    public readonly Signal OnTreeEntered = new();
+    public readonly Signal OnTreeExited = new();
+    public readonly Signal OnTreeMoved = new();
+    public readonly Signal OnChildChanged = new();
+    public readonly Signal OnParentChanged = new();
 
     public Node()
     {
@@ -138,7 +158,7 @@ public class Node
         node.parent?.children.Remove(node);
 
         node.parent = this;
-        node.isGhostChildren = false;
+        node._isGhostChildren = false;
 
         //verify if name isn't empty
         if (node.name == "")
@@ -156,32 +176,30 @@ public class Node
             count++;
         }
 
+        node.AddedAsChild(this);
+
+        node.NotifyChangeAllChildrens();
+        NotifyChangeAllParents();
+
         children.Add(node);
     }
     protected void AddAsGhostChild(Node node)
     {
         // Remove the node from the old parent if it as one
-        node.parent?.children.Remove(node);
-
-        node.parent = this;
-        node.isGhostChildren = true;
-
-        if (node.name == "")
-        node.name = node.GetType().Name + "_" + node.GetHashCode();
-
-        // Verify if theres no other child with the same name
-        var count = 0;
-        while (true)
+        if (!node._isGhostChildren)
+            node.parent?.children.Remove(node);
+        
+        else if (parent != null)
         {
-            if (ghostChildren.Find(e => e.name == node.name + (count>0?("_" + count):"")) == null)
-            {
-                if (count>0) node.name += "_" + count; 
-                break;
-            }
-            count++;
+            var idx = parent.ghostChildren.FindIndex(e =>
+            {e.TryGetTarget(out var n); return n == this;});
+            node.parent?.ghostChildren.RemoveAt(idx);
         }
 
-        ghostChildren.Add(node);
+        node.parent = this;
+        node._isGhostChildren = true;
+
+        ghostChildren.Add(new(node));
     }
    
     public Node? GetChild(string path)
@@ -201,24 +219,7 @@ public class Node
         return children.Find(e => e.name == path[0]);
     }
 
-    protected Node? GetGhostChild(string path)
-    { return GetGhostChild(path.Split('/')); }
-    protected Node? GetGhostChild(string[] path)
-    {
-        if (path.Length > 1)
-        {
-            var a = ghostChildren.Find(e => e.name == path[0]);
-            return a?.GetChild( path.Skip(1).ToArray() );
-        }
-        return ghostChildren.Find(e => e.name == path[0]);
-    }
-
-    public bool IsOnRoot()
-    {
-        if (GetType() == typeof(NodeRoot)) return true;
-        if (parent != null) return parent.IsOnRoot();
-        return false;
-    }
+    public bool IsOnRoot() => _isOnTree;
 
     public virtual void Free()
     {
@@ -226,12 +227,25 @@ public class Node
         {
             Freeled = true;
 
+            OnTreeExited.Emit(this);
+            _isOnTree = false;
+
             ResourcesService.FreeNode(NID);
             foreach (var i in GetAllChildren.ToArray())
                 i.Free();
 
-            if (!isGhostChildren) parent?.children.Remove(this);
-            else parent?.ghostChildren.Remove(this);
+            if (parent != null)
+            {
+                if (!_isGhostChildren)
+                    parent.children.Remove(this);
+
+                else
+                {
+                    var idx = parent.ghostChildren.FindIndex(e =>
+                    {e.TryGetTarget(out var n); return n == this;});
+                    parent?.ghostChildren.RemoveAt(idx);
+                }
+            }
 
             parent = null;
 
@@ -251,7 +265,8 @@ public class Node
     {
         while (ghostChildren.Count > 0)
         {
-            ghostChildren[0].Free();
+            if (ghostChildren[0].TryGetTarget(out var n))
+                n.Free();
         }
     }
 
@@ -259,6 +274,44 @@ public class Node
     {
         _fieldsToLoadWhenReady.Add(field, value);
     }
+
+    #region tree and tree-chain related methods
+
+    public void RequestUpdateAllChildrens() => NotifyChangeAllChildrens();
+    public void RequestUpdateAllParents() => NotifyChangeAllParents();
+
+    protected virtual void OnTreeParentChanged()
+    {
+        _parentViewport = null;
+        _parentInputHandler = null;
+    }
+
+    private void NotifyChangeAllParents()
+    {
+
+        OnChildChanged.Emit();
+        parent?.NotifyChangeAllChildrens();
+
+    }
+    private void NotifyChangeAllChildrens()
+    {
+
+        OnParentChanged.Emit();
+
+        foreach (var c in GetAllChildren)
+        {
+            c.OnTreeParentChanged();
+            c.NotifyChangeAllChildrens();
+        }
+        
+    }
+
+    private void AddedAsChild(Node newParent)
+    {
+        _isOnTree = newParent is NodeRoot || newParent.IsOnRoot();
+    }
+
+    #endregion
 
     ~Node()
     {
@@ -268,4 +321,5 @@ public class Node
         Console.WriteLine("Node {0} of base {1} is being freeled from GC!" +
         "(Did you forgot to call manually Free()?)", name, GetType().Name);
     }
+
 }

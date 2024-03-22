@@ -218,7 +218,8 @@ public class Window : Viewport
         private delegate void InputEventHandler(InputEvent e);
         private event InputEventHandler? InputEventSender;
 
-        private Glfw GLFW = GlfwProvider.GLFW.Value;
+        private IWindow? _window = null;
+        private readonly Glfw GLFW = GlfwProvider.GLFW.Value;
 
         #region key lists
         private readonly List<Keys> keysPressed = [];
@@ -241,6 +242,8 @@ public class Window : Viewport
 
         public void Start(IWindow win, Action<InputEvent> OnEvent)
         {
+            _window = win;
+
             GLFW.SetKeyCallback((WindowHandle*) win.Handle, KeyCallback);
             GLFW.SetCharCallback((WindowHandle*) win.Handle, CharCallback);
             GLFW.SetCursorPosCallback((WindowHandle*) win.Handle, CursorPosCallback);
@@ -292,7 +295,7 @@ public class Window : Viewport
         public unsafe void SetCursorShape(CursorShape shape)
         {
             var cursor = GlfwProvider.GLFW.Value.CreateStandardCursor(shape);
-            GlfwProvider.GLFW.Value.SetCursor((WindowHandle*)Engine.window.Handle, cursor);
+            GlfwProvider.GLFW.Value.SetCursor((WindowHandle*)_window!.Handle, cursor);
         }
 
         public void CallQueuedInputs()

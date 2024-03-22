@@ -80,6 +80,7 @@ public class ScrollBar : NodeUI
                 _scrollButton.positionPixels.Y += (int) d;
                 target!.positionPixels.Y = (int) ((-_scrollButton.Position.Y + Container!.Position.Y)
                 * (TSize.Y / Container.Size.Y));
+                target!.RequestUpdateAllChildrens();
             }
             
             if (new Rect(_scrollButton.Position, _scrollButton.Size).Intersects(@moveEvent.position))
