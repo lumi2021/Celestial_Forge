@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using GameEngine.Util;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngineEditor.Editor;
@@ -38,9 +39,12 @@ public class Engine
         projectSettings.projectLoaded = true;
         //projectSettings.projectPath = @"C:/Users/Leonardo/Desktop/pessoal/game engine test project/";
         projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
+
         projectSettings.entryScene = @"res://testScene.sce";
 
         projectSettings.canvasDefaultSize = new(800, 600);
+
+        Console.WriteLine(ProjectSettings.Serialize(projectSettings));
 
         //CascadingStyleSheet.Load("Data/Styles/Editor.css");
 

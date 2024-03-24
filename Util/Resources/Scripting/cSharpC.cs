@@ -80,13 +80,11 @@ public class CSharpCompiler : Resource, IScriptCompiler
             if (token.Kind().ToString().EndsWith("Keyword"))
                 spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(255, 0, 0)));
 
-            /*
             else if (token.IsKind(SyntaxKind.IdentifierToken))
             {
                 if(token.GetNextToken().IsKind(SyntaxKind.OpenParenToken))
                     spans.Add(new(token.FullSpan.Start, token.FullSpan.End, new(0, 255, 0)));
             }
-            */
 
             else if (
                 token.IsKind(SyntaxKind.StringLiteralToken) ||
@@ -99,6 +97,7 @@ public class CSharpCompiler : Resource, IScriptCompiler
             
         }
 
+        /*
         // compile //
         syntaxTree = PreprocessSyntaxTree(syntaxTree, out var jumps);
         var compilation = Compile([syntaxTree]);
@@ -109,7 +108,7 @@ public class CSharpCompiler : Resource, IScriptCompiler
         var identfiers = root.DescendantNodes().OfType<IdentifierNameSyntax>()
             .Where(i => semanticModel.GetSymbolInfo(i).Symbol is ITypeSymbol)
             .Distinct();
-
+        
         foreach (var id in identfiers)
         {
             if (jumps.Any(j => j.position <= id.SpanStart && j.position + j.length >= id.FullSpan.End)) continue;
@@ -120,9 +119,106 @@ public class CSharpCompiler : Resource, IScriptCompiler
 
             spans.Add(new(id.FullSpan.Start - jumplen, id.FullSpan.End - jumplen, new(100, 100, 255)));
         }
+        */
+        
         return [.. spans];
     }
 
+    public static string[] GetAutocompleteInPosition(string src, int position)
+    {
+
+        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(src);
+        syntaxTree = PreprocessSyntaxTree(syntaxTree, out var jumps);
+
+        var root = syntaxTree.GetCompilationUnitRoot();
+
+        var toJump = jumps.Where(j => j.position < position);
+        foreach (var jump in toJump) position += jump.length;
+
+        var token = root.FindToken(position, true);
+
+        if (!token.IsKind(SyntaxKind.IdentifierToken))
+        {
+            if (!(token.IsKind(SyntaxKind.DotToken) && token.GetPreviousToken().IsKind(SyntaxKind.IdentifierToken)))
+                return [];
+            else token = token.GetPreviousToken();
+        }
+
+        List<SyntaxToken> tokensPath = [];
+        SyntaxToken currentToken = token;
+        while (true)
+        {
+            if (currentToken.IsKind(SyntaxKind.IdentifierToken)
+            && currentToken.GetPreviousToken().IsKind(SyntaxKind.DotToken))
+            {
+                tokensPath.Add(currentToken);
+                currentToken = currentToken.GetPreviousToken().GetPreviousToken();
+
+            }
+            else break;
+        }
+
+        var compilation = Compile([syntaxTree]);
+        var semanticModel = compilation.GetSemanticModel(syntaxTree);
+        
+        var symbol = semanticModel.GetSymbolInfo(currentToken.Parent!).Symbol;
+        ITypeSymbol? baseTypeSymbol = null;
+
+        #region find symbol
+
+        if (symbol is ILocalSymbol localSymbol)
+            baseTypeSymbol = localSymbol.Type;
+
+        else if (symbol is IFieldSymbol fieldSymbol)
+            baseTypeSymbol = fieldSymbol.Type;
+
+        else if (symbol is IPropertySymbol propertySymbol)
+            baseTypeSymbol = propertySymbol.Type;
+
+        else if (symbol is ITypeSymbol typeSymbol)
+            baseTypeSymbol = typeSymbol;
+
+        #endregion
+
+        if (baseTypeSymbol == null) return [];
+
+        tokensPath.Reverse();
+        foreach (var i in tokensPath)
+        {
+            var membersList = baseTypeSymbol.GetMembers(i.Text).ToArray();
+            var member = membersList[0];
+            if (baseTypeSymbol is ITypeSymbol)
+                member = membersList.Where(e => e.IsStatic).ToArray()[0];
+
+            switch (member.Kind)
+            {
+                case SymbolKind.Method:
+                    baseTypeSymbol = (member as IMethodSymbol)!.ReturnType;
+                    break;
+                case SymbolKind.Field:
+                    baseTypeSymbol = (member as IFieldSymbol)!.Type;
+                    break;
+                case SymbolKind.Property:
+                    baseTypeSymbol = (member as IPropertySymbol)!.Type;
+                    break;
+            }
+        }
+
+        var members = baseTypeSymbol.GetMembers().ToArray();
+        
+        Console.WriteLine($"\n {baseTypeSymbol.Name} members:");
+        foreach (var i in members)
+        {
+            string isStatic = i.IsStatic ? "static " : "";
+            string isImplicit = i.IsImplicitlyDeclared ? "(implicit) " : "";
+            Console.WriteLine($"\t- {i.DeclaredAccessibility} {isStatic}{i.Name} {isImplicit}({i.GetType()});");
+        }
+
+        members = members.Where(e => e.DeclaredAccessibility == Accessibility.Public).ToArray();
+
+        return members.Select(m => m.Name).ToArray();
+
+    }
 
     private static SyntaxTree PreprocessSyntaxTree(SyntaxTree syntaxTree, out CodeJump[] jumps)
     {

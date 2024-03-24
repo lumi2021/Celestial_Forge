@@ -231,7 +231,10 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
     public void RunFocusedUIInputEvent(InputEvent e) => OnFocusedUIInputEvent(e);
     public void RunFocusChanged(bool focused) => OnFocusChanged(focused);
 
-    protected virtual void OnFocusedUIInputEvent(InputEvent e) {}
+    protected virtual void OnFocusedUIInputEvent(InputEvent e)
+    {
+        if (parent is NodeUI nui) nui.OnFocusedUIInputEvent(e);
+    }
     protected virtual void OnUIInputEvent(InputEvent e)
     {
         if (e.Is<MouseInputEvent>())
