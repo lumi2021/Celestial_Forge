@@ -1,31 +1,32 @@
-using System.Reflection;
 using GameEngine.Core;
+using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Values;
 using Silk.NET.OpenGL;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/Viewport.svg")]
 public class Viewport : Node
 {
 
     private uint viewportFramebuffer;
     protected uint viewportTexture;
 
-    public Color backgroundColor = new();
+    [Inspect] public Color backgroundColor = new();
 
-    protected Vector2<uint> _size;
-    public virtual Vector2<uint> Size
+    protected Vector2<uint> _viewportSize;
+    [Inspect] public virtual Vector2<uint> ViewportSize
     {
-        get { return _size; }
-        set { _size = value; }
+        get { return _viewportSize; }
+        set { _viewportSize = value; }
     }
 
     public bool useContainerSize = false;
     protected Vector2<uint> _containerSize;
-    public virtual Vector2<uint> ContainerSize
+    [Inspect] public virtual Vector2<uint> ContainerSize
     {
-        get { return useContainerSize ? _containerSize : _size; }
+        get { return useContainerSize ? _containerSize : _viewportSize; }
         set { _containerSize = value; }
     }
 
@@ -164,7 +165,7 @@ public class Viewport : Node
         if (_textureSize != newSize)
         {
             _textureSize = newSize;
-            Size = newSize;
+            _viewportSize = newSize;
             Engine.gl.BindTexture(TextureTarget.Texture2D, viewportTexture);
 
             fixed (byte* buffer = new byte[newSize.X * newSize.Y * 4])
@@ -176,6 +177,8 @@ public class Viewport : Node
             );
 
             Engine.gl.BindTexture(TextureTarget.Texture2D, 0);
+
+            RequestUpdateAllChildrens();
         }
     }
 

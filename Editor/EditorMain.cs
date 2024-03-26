@@ -156,12 +156,13 @@ class EditorUI (Window mWin)
         filesList = new TreeGraph();
         filesSection!.AddAsChild(filesList);
         
-        var txtFile = new SvgTexture() { Filter = false }; txtFile.LoadFromFile("Assets/Icons/Files/textFile.svg", 20, 20);
-        var cFolder = new SvgTexture() { Filter = false }; cFolder.LoadFromFile("Assets/Icons/Files/closedFolder.svg", 20, 20);
-        var eFolder = new SvgTexture() { Filter = false }; eFolder.LoadFromFile("Assets/Icons/Files/emptyFolder.svg", 20, 20);
-        var unkFile = new SvgTexture() { Filter = false }; unkFile.LoadFromFile("Assets/Icons/Files/unknowFile.svg", 20, 20);
-        var anvilWk = new SvgTexture() { Filter = false }; anvilWk.LoadFromFile("Assets/Icons/Files/AnvilKey.svg", 20, 20);
-        var sceFile = new SvgTexture() { Filter = false }; sceFile.LoadFromFile("Assets/Icons/Files/scene.svg", 20, 20);
+        var txtFile = new SvgTexture() { Filter = false }; txtFile.LoadFromFile("Assets/Icons/Files/textFile.svg", 16, 16);
+        var cFolder = new SvgTexture() { Filter = false }; cFolder.LoadFromFile("Assets/Icons/Files/closedFolder.svg", 16, 16);
+        var eFolder = new SvgTexture() { Filter = false }; eFolder.LoadFromFile("Assets/Icons/Files/emptyFolder.svg", 16, 16);
+        var unkFile = new SvgTexture() { Filter = false }; unkFile.LoadFromFile("Assets/Icons/Files/unknowFile.svg", 16, 16);
+        var anvilWk = new SvgTexture() { Filter = false }; anvilWk.LoadFromFile("Assets/Icons/Files/AnvilKey.svg", 16, 16);
+        var csproj  = new SvgTexture() { Filter = false }; csproj.LoadFromFile("Assets/Icons/Files/csharpLogo.svg", 16, 16);
+        var sceFile = new SvgTexture() { Filter = false }; sceFile.LoadFromFile("Assets/Icons/Files/scene.svg", 16, 16);
 
         filesList.Root.Icon = cFolder;
         filesList.Root.Name = "res://";
@@ -201,6 +202,9 @@ class EditorUI (Window mWin)
             else if (i.Extension == ".forgec")
                 iconImage = anvilWk;
 
+            else if (i.Extension == ".csproj")
+                iconImage = csproj;
+
             var path = FileService.GetProjRelativePath(i.FullName);
             path = path[6..][..^i.Name.Length];
 
@@ -209,6 +213,8 @@ class EditorUI (Window mWin)
             item!.SetData("type", type);
             item!.OnClick.Connect(OnFileClicked);
         }
+        
+        filesList.Root.Collapsed = false;
         #endregion
 
         /* INSTANTIATE AND CONFIGURATE NODE MANANGER */
@@ -318,10 +324,7 @@ class EditorUI (Window mWin)
 
         var path = "res://" + item!.Path[7..];
 
-        if (item!.GetData("type", "") == "folder")
-            item.Collapsed = !item.Collapsed;
-        
-        else
+        if (item!.GetData("type", "") != "folder")
         {
             switch (item!.GetData("type", ""))
             {
@@ -332,6 +335,7 @@ class EditorUI (Window mWin)
                     OpenTextFile(path); break;
             }
         }
+
     }
     private void LoadInInspector(object node)
     {
@@ -347,16 +351,32 @@ class EditorUI (Window mWin)
         cam.Current = true;
         
         var scene = PackagedScene.Load(scenePath)!.Instantiate();
+
+        List<Node> toIterate = [scene];
+        // Iterate for all children and disable their process //
+        while (toIterate.Count > 0)
+        {
+
+            var current = toIterate.Unqueue();
+
+            current.processEnabled = false;
+            current.readyEnabled = false;
+            current.inputEnabled = false;
+
+            toIterate.AddRange(current.GetAllChildren);
+
+        }
+
         sceneEnviropment!.AddAsChild(scene);
 
         nodeMananger?.LoadSceneNodes(scene);
     
         ChangeMainView(0);
     }
+
     private void OpenTextFile(string filePath)
     {
         var textField = (textEditor!.GetChild("FileContentContainer/FileContent") as CodeEditor)!;
-
         var file = new FileReference(filePath);
 
         var content = file.ReadAllFile();
@@ -446,7 +466,8 @@ class EditorUI (Window mWin)
         var panel = new Panel()
         {
             sizePercent = new(1, 0),
-            sizePixels = new(0, 25)
+            sizePixels = new(0, 25),
+            BackgroundColor = new(0,0,0, 0.2f)
         };
         var label = new TextField()
         {
@@ -551,7 +572,6 @@ class EditorUI (Window mWin)
                 positionPixels = new(2, 0),
                 anchor = NodeUI.ANCHOR.CENTER_LEFT,
                 value = value,
-                mouseFilter = NodeUI.MouseFilter.Ignore,
                 actived_texture = texture_check,
                 unactived_texture = texture_uncheck,
                 name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_checkbox"
@@ -567,10 +587,9 @@ class EditorUI (Window mWin)
                 name = fieldInfo?.Name ?? properInfo!.Name + "_inspector_setter_value_label"
             };
 
-            fieldContainer.OnClick.Connect((object? from, dynamic[]? args) =>
+            checkbox.OnValueChange.Connect((object? from, dynamic[]? args) =>
             {
-                bool value = !(bool) (fieldInfo?.GetValue(obj) ?? properInfo!.GetValue(obj))!;
-                checkbox.value = value;
+                bool value = args![0];
                 text.Text = value ? "enabled" : "disabled";
 
                 fieldInfo?.SetValue(obj, value);

@@ -1,6 +1,6 @@
 ﻿using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
-using Silk.NET.GLFW;
+using GameEngine.Util.Enums;
 
 namespace GameEngineEditor.EditorNodes;
 

@@ -5,6 +5,7 @@ using GameEngine.Util.Resources;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/Viewport.svg")]
 public class ViewportContainer : NodeUI
 {
 
@@ -43,7 +44,7 @@ public class ViewportContainer : NodeUI
         if (parent is IClipChildren)
         {
             var clipRect = (parent as IClipChildren)!.GetClippingArea();
-            clipRect = clipRect.InvertVerticallyIn( new(0, 0, Viewport!.Size.X, Viewport!.Size.Y) );
+            clipRect = clipRect.InvertVerticallyIn( new(0, 0, Viewport!.ViewportSize.X, Viewport!.ViewportSize.Y) );
             Engine.gl.Scissor(clipRect);
         }
         else Engine.gl.Scissor(new(Position, Size));

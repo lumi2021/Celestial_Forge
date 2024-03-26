@@ -1,12 +1,12 @@
 ﻿using GameEngine.Core;
 using GameEngine.Util.Attributes;
-using GameEngine.Util.Interfaces;
+using GameEngine.Util.Enums;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
-using System.Numerics;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/Checkbox.svg")]
 internal class Checkbox : NodeUI
 {
 
@@ -21,6 +21,8 @@ internal class Checkbox : NodeUI
 
     [Inspect]
     public Material material = new Material2D(Material2D.DrawTypes.Texture);
+
+    public readonly Signal OnValueChange = new();
 
     protected override void Init_()
     {
@@ -84,6 +86,31 @@ internal class Checkbox : NodeUI
 
         DrawService.Draw(NID);
 
+    }
+
+    protected override void OnUIInputEvent(InputEvent e)
+    {
+        if (e.Is<MouseInputEvent>())
+        {
+            if (mouseFilter == MouseFilter.Ignore) return;
+
+            if (e.Is<MouseBtnInputEvent>(out var @bEvent))
+            {
+
+                if (new Rect(Position, Size).Intersects(@bEvent.position + Viewport!.Camera2D.position))
+                {
+                    if (@bEvent.action == InputAction.Press)
+                    {
+                        value = !value;
+                        OnValueChange.Emit(this, value);
+                        OnClick.Emit(this);
+                    }
+
+                    if (mouseFilter == MouseFilter.Block)
+                        Viewport.SupressInputEvent();
+                }
+            }
+        }
     }
 
 }

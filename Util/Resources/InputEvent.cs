@@ -1,5 +1,5 @@
 using GameEngine.Util.Values;
-using Silk.NET.GLFW;
+using GameEngine.Util.Enums;
 
 namespace GameEngine.Util.Resources;
 

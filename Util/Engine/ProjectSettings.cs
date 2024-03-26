@@ -8,10 +8,6 @@ namespace GameEngine.Util.Core;
 public class ProjectSettings
 {
 
-    //public static ProjectSettings Load(FileReference path)
-    //{
-    //}
-
     public Vector2<int> canvasDefaultSize = new(800, 600);
 
     public bool projectLoaded = false;
@@ -29,6 +25,14 @@ public class ProjectSettings
 
         return serializer.Serialize(obj);
     }
+    public static object? Deserialize(string pSettings)
+    {
+        var deserializer = new DeserializerBuilder()
+            .WithTypeConverter(new ProjectSettingsSerialiser())
+            .Build();
+
+        return deserializer.Deserialize<ProjectSettings>(pSettings);
+    }
 
 }
 
@@ -38,7 +42,33 @@ class ProjectSettingsSerialiser : IYamlTypeConverter
 
     object? IYamlTypeConverter.ReadYaml(IParser parser, Type type)
     {
-        throw new NotImplementedException();
+        
+        /*
+        while(!parser.TryConsume<MappingEnd>(out var _))
+        {
+            Console.WriteLine(parser.Current);
+            parser.MoveNext();
+        }
+        */
+
+        parser.Consume<MappingStart>();
+        Console.WriteLine("Printing yaml content:");
+
+        var key1 = parser.Consume<Scalar>().Value;
+        parser.Consume<SequenceStart>();
+        var value1_x = parser.Consume<Scalar>().Value;
+        var value1_y = parser.Consume<Scalar>().Value;
+        Console.WriteLine($"- {key1}: [{value1_x}, {value1_y}];");
+        parser.Consume<SequenceEnd>();
+
+        var key2 = parser.Consume<Scalar>().Value;
+        var value2 = parser.Consume<Scalar>().Value;
+        Console.WriteLine($"- {key2}: {value2};");
+
+        while(!parser.TryConsume<MappingEnd>(out _)) parser.MoveNext();
+
+        return null;
+
     }
 
     void IYamlTypeConverter.WriteYaml(IEmitter emitter, object? value, Type type)
@@ -48,7 +78,7 @@ class ProjectSettingsSerialiser : IYamlTypeConverter
 
         emitter.Emit(new MappingStart(null, null, false, MappingStyle.Block));
 
-        emitter.Emit(new Comment("# Window & Viewport"));
+        emitter.Emit(new Comment("Window & Viewport", false));
         emitter.Emit(new Scalar("canvas-default-size"));
         emitter.Emit(new SequenceStart(null, null, true, SequenceStyle.Flow));
 
@@ -57,9 +87,9 @@ class ProjectSettingsSerialiser : IYamlTypeConverter
 
         emitter.Emit(new SequenceEnd());
 
-        emitter.Emit(new Comment("# Run"));
+        emitter.Emit(new Comment("Run", false));
         emitter.Emit(new Scalar("entry-point-scene"));
-        emitter.Emit(new Scalar(entryScene));
+        emitter.Emit(new Scalar(obj.entryScene));
 
         emitter.Emit(new MappingEnd());
 

@@ -1,7 +1,6 @@
 using System.Numerics;
 using GameEngine.Core;
 using GameEngine.Util.Attributes;
-using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 
@@ -21,7 +20,7 @@ public class TextField : NodeUI
     protected Character[][] charsList = [];
     public ColorSpan[] colorsList = [];
 
-    protected Vector2<int> TextSize = new(); 
+    protected Vector2<int> TextSize = new();
 
     [Inspect(InspectAttribute.Usage.multiline_text)]
     public virtual string Text
@@ -30,6 +29,7 @@ public class TextField : NodeUI
         set {
             _text = value;
             _textLines = _text.Split('\n');
+            LoadCharacters();
             TextEdited();
         }
     }
@@ -81,6 +81,8 @@ public class TextField : NodeUI
         }
     }
     
+    private bool _textUpdateRequested = false;
+
     protected override void Init_()
     {
 
@@ -120,6 +122,8 @@ public class TextField : NodeUI
 
     protected override void Draw(double deltaT)
     {
+        if (_textUpdateRequested) ReconfigurateDraw();
+        
         tex.Use();
         material.Use();
 
@@ -154,27 +158,26 @@ public class TextField : NodeUI
         DrawService.Draw(NID);
     }
 
-    protected virtual void TextEdited()
-    {
-        ReconfigurateDraw();
-    }
+    protected virtual void TextEdited() => _textUpdateRequested = true;
 
     protected virtual void OnFontUpdate()
     {
         TextEdited();
     }
 
-    private void ReconfigurateDraw()
+    private void LoadCharacters()
     {
         charsList = [];
 
-        // Load character information
         for (int i = 0; i < _textLines.Length; i++)
         {
             string ln = _textLines[i];
-            charsList = charsList.Append(Font.CreateStringTexture(ln)).ToArray();
+            charsList = [.. charsList, Font.CreateStringTexture(ln)];
         }
+    }
 
+    private void ReconfigurateDraw()
+    {
         // Load characters and text sizes
         TextSize = new();
         for (int i = 0; i < charsList.Length; i++)
@@ -250,8 +253,15 @@ public class TextField : NodeUI
         var size = Font.AtlasSize;
         tex.Load(Font.AtlasData, (uint) size.X, (uint) size.Y);
         tex.Filter = false;
-    }
 
+        _textUpdateRequested = false;
+    }
+    
+    public void ForceUpdateTextMesh()
+    {
+        if (_textUpdateRequested)
+            ReconfigurateDraw();
+    }
 
     #region inner types
 

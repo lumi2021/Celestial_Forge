@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using System.Reflection;
-using YamlDotNet.Core.Tokens;
 using static GameEngine.Util.Resources.Script;
 
 namespace GameEngine.Util.Resources;
@@ -238,6 +237,7 @@ public class CSharpCompiler : Resource, IScriptCompiler
             new("", "GameEngine.Core"),
             new("", "GameEngine.Util.Nodes"),
             new("", "GameEngine.Util.Values"),
+            new("", "GameEngine.Util.Enums"),
             new("", "GameEngine.Util.Attributes"),
             new("Console", "GameEngine.Debugging.Debug")
         };
@@ -331,12 +331,6 @@ public class CSharpCompiler : Resource, IScriptCompiler
             references: assembliesRefs,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );
-    }
-
-
-    private enum MySyntaxKind
-    {
-        ExtendsKeyword = 9078 + 1,
     }
 
 }

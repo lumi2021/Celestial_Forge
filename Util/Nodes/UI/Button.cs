@@ -2,6 +2,7 @@ using GameEngine.Core;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
+using GameEngine.Util.Enums;
 
 namespace GameEngine.Util.Nodes;
 
@@ -350,7 +351,7 @@ public class Button : NodeUI
 
                 if (new Rect(Position, Size).Intersects(@bEvent.position + Viewport!.Camera2D.position))
                 {
-                    if (@bEvent.action == Silk.NET.GLFW.InputAction.Press)
+                    if (@bEvent.action == InputAction.Press)
                     {
                         State = ButtonState.Active;
                         OnClick.Emit(this);
@@ -358,9 +359,9 @@ public class Button : NodeUI
 
                     if (
                         actionTrigger == ActionTrigger.press &&
-                        @bEvent.action == Silk.NET.GLFW.InputAction.Press ||
+                        @bEvent.action == InputAction.Press ||
                         actionTrigger == ActionTrigger.release &&
-                        @bEvent.action == Silk.NET.GLFW.InputAction.Release
+                        @bEvent.action == InputAction.Release
                     )
                     {
                         if (!Togleable)
@@ -396,7 +397,7 @@ public class Button : NodeUI
                     }
                 }
 
-                if (@bEvent.action == Silk.NET.GLFW.InputAction.Release)
+                if (@bEvent.action == InputAction.Release)
                 {
                     if (!Togleable || (Togleable && !active))
                     {

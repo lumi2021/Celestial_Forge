@@ -2,9 +2,11 @@ using GameEngine.Util.Attributes;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
+using GameEngine.Util.Enums;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/NodeUi.svg")]
 public class NodeUI : Node, ICanvasItem, IClipChildren
 {
     /* SIGNALS */
@@ -192,7 +194,7 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
     {
         var rect = new Rect(
             -Viewport!.Camera2D.position,
-            (Vector2<float>) Viewport!.Size
+            (Vector2<float>) Viewport!.ViewportSize
         );
         
         if (ClipChildren)
@@ -241,7 +243,7 @@ public class NodeUI : Node, ICanvasItem, IClipChildren
         {
             if (mouseFilter == MouseFilter.Ignore) return;
 
-            if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == Silk.NET.GLFW.InputAction.Press)
+            if (e.Is<MouseBtnInputEvent>(out var @event) && @event.action == InputAction.Press)
             if (new Rect(Position, Size).Intersects(@event.position + Viewport!.Camera2D.position))
             {
                 OnClick.Emit(this);

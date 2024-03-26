@@ -16,6 +16,11 @@ public class Node
     private bool _isReady = false;
     public readonly uint NID = 0;
 
+    /* Process variables */
+    public bool readyEnabled = true;
+    public bool processEnabled = true;
+    public bool inputEnabled = true;
+
     /* Tree-referent variables */
     private bool _isOnTree = false;
     private Viewport? _parentViewport = null;
@@ -80,18 +85,20 @@ public class Node
     }
 
     #region vitual methods
-    public void RunProcess(double deltaT)
+    public bool RunProcess(double deltaT)
     {
         if (Freeled) throw new ApplicationException("A already freeled node are" +
         "being referenciated and Process are being alled!");
 
-        if (!_isReady)
+        if (!_isReady && readyEnabled)
         {
             OnReady();
             Ready();
             _isReady = true;
         }
-        Process(deltaT);
+        if (processEnabled) Process(deltaT);
+
+        return processEnabled;
     }
     public void RunDraw(double deltaT)
     {
@@ -100,12 +107,14 @@ public class Node
 
         Draw(deltaT);
     }
-    public void RunInputEvent(InputEvent e)
+    public bool RunInputEvent(InputEvent e)
     {
         if (Freeled) throw new ApplicationException("A already freeled node are" +
         "being referenciated and InputEvent are being called!");
 
-        OnInputEvent(e);
+        if (inputEnabled) OnInputEvent(e);
+
+        return inputEnabled;
     }
 
     protected virtual void Init_() {}

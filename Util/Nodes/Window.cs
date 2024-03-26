@@ -2,13 +2,21 @@ using GameEngine.Core;
 using GameEngine.Util.Interfaces;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
-using Silk.NET.GLFW;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using Keys = GameEngine.Util.Enums.Keys;
+using MouseButton = GameEngine.Util.Enums.MouseButton;
+using InputAction = GameEngine.Util.Enums.InputAction;
+using Silk.NET.GLFW;
+using SilkKeys = Silk.NET.GLFW.Keys;
+using SilkMouseButton = Silk.NET.GLFW.MouseButton;
+using SilkInputAction = Silk.NET.GLFW.InputAction;
+using GameEngine.Util.Attributes;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/Window.svg")]
 public class Window : Viewport
 {
 
@@ -16,7 +24,7 @@ public class Window : Viewport
     public InputHandler input = new();
 
     private string _title = "";
-    public string Title
+    [Inspect] public string Title
     {
         get { return _title; }
         set
@@ -26,11 +34,10 @@ public class Window : Viewport
         }
     }
 
-    public override Vector2<uint> Size 
+    private Vector2<uint> _size = new(800, 600);
+    [Inspect] public Vector2<uint> Size 
     {
-        get {
-            return _size;
-        }
+        get => _size;
         set {
             _size = value;
             if (window != null)
@@ -39,7 +46,7 @@ public class Window : Viewport
     }
 
     private WindowState _state = WindowState.Normal;
-    public WindowState State
+    [Inspect] public WindowState State
     {
         get { return _state; }
         set
@@ -74,7 +81,9 @@ public class Window : Viewport
     private unsafe void OnLoad(IWindow win)
     {
         input.Start(win, OnInput);
-        Size = new((uint)win.Size.X, (uint)win.Size.Y);
+        Vector2<uint> vec2Size = new((uint)win.Size.X, (uint)win.Size.Y);
+        _size = vec2Size;
+        _containerSize = vec2Size;
     }
 
     private void OnClose()
@@ -90,13 +99,12 @@ public class Window : Viewport
 
         while (toUpdate.Count > 0)
         {
-            var children = toUpdate[0].GetAllChildren;
-            toUpdate[0].RunProcess(deltaTime);
-            
-            if (toUpdate[0] is not Window)
-                toUpdate.AddRange(children);
+            var current = toUpdate.Unqueue();
 
-            toUpdate.RemoveAt(0);
+            var chain = current.RunProcess(deltaTime);
+            
+            if (chain && current is not Window)
+                toUpdate.AddRange(current.GetAllChildren);
         }
 
         input.CallProcess();
@@ -130,7 +138,8 @@ public class Window : Viewport
             gl.VertexAttribPointer((uint)_mat.GetALocation("aTextureCoord"), 2, GLEnum.Float, false, 2*sizeof(float), (void*) 2);
         }}
 
-        Render(_size, deltaTime);
+        var fbSize = new Vector2<uint>((uint)window.FramebufferSize.X, (uint)window.FramebufferSize.Y);
+        Render(fbSize, deltaTime);
 
         /* DRAW BUFFER IN THE SCREEN */
         Engine.gl.BindVertexArray(_vao);
@@ -157,7 +166,7 @@ public class Window : Viewport
         {
             Node current = toIterate.Unqueue();
 
-            if (current is Window) continue;
+            if (current is Window || !current.inputEnabled) continue;
 
             var zindex = (current as ICanvasItem)?.GlobalZIndex ?? 0;
 
@@ -203,7 +212,9 @@ public class Window : Viewport
 
     private void OnResize(Vector2D<int> size)
     {
-        Size = new((uint)size.X, (uint)size.Y);
+        Vector2<uint> vec2Size = new((uint)size.X, (uint)size.Y);
+        _size = vec2Size;
+        _containerSize = vec2Size;
     }
 
     public override void Free()
@@ -255,32 +266,14 @@ public class Window : Viewport
 
         #region
         // KEYBOARD
-        public bool IsActionPressed(Keys key)
-        {
-            return keysPressed.Contains(key);
-        }
-        public bool IsActionJustPressed(Keys key)
-        {
-            return keysDowned.Contains(key);
-        }
-        public bool IsActionJustReleased(Keys key)
-        {
-            return keysReleased.Contains(key);
-        }
+        public bool IsActionPressed(Keys key) => keysPressed.Contains(key);
+        public bool IsActionJustPressed(Keys key) => keysDowned.Contains(key);
+        public bool IsActionJustReleased(Keys key) => keysReleased.Contains(key);
 
         // MOUSE
-        public bool IsActionPressed(MouseButton btn)
-        {
-            return mousePressed.Contains(btn);
-        }
-        public bool IsActionJustPressed(MouseButton btn)
-        {
-            return mouseDowned.Contains(btn);
-        }
-        public bool IsActionJustReleased(MouseButton btn)
-        {
-            return mouseReleased.Contains(btn);
-        }
+        public bool IsActionPressed(MouseButton btn) => mousePressed.Contains(btn);
+        public bool IsActionJustPressed(MouseButton btn) => mouseDowned.Contains(btn);
+        public bool IsActionJustReleased(MouseButton btn) => mouseReleased.Contains(btn);
         #endregion
         
         public Vector2<int> GetMousePosition()
@@ -315,8 +308,11 @@ public class Window : Viewport
         }
         
         // KEYBOARD INPUTS
-        private void KeyCallback(WindowHandle* window, Keys key, int scanCode, InputAction action, KeyModifiers mods)
+        private void KeyCallback(WindowHandle* window, SilkKeys skey, int scanCode, SilkInputAction saction, KeyModifiers mods)
         {
+            var key = (Keys)skey;
+            var action = (InputAction)saction;
+
             if (action == InputAction.Press)
             {
                 keysPressed.Add(key);
@@ -359,8 +355,11 @@ public class Window : Viewport
 
             LastInputs.Add(e);
         }
-        private void MouseButtonCallback(WindowHandle* window, MouseButton button, InputAction action, KeyModifiers mods)
+        private void MouseButtonCallback(WindowHandle* window, SilkMouseButton sbutton, SilkInputAction saction, KeyModifiers mods)
         {
+            var button = (MouseButton)sbutton;
+            var action = (InputAction)saction;
+
             if (action == InputAction.Press)
             {
                 mousePressed.Add(button);
@@ -385,6 +384,7 @@ public class Window : Viewport
 
             LastInputs.Add(e);
         }
+    
     }
 
 }

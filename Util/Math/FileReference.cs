@@ -47,7 +47,7 @@ public struct FileReference(string path)
     }
     public override readonly int GetHashCode() => base.GetHashCode();
 
-    public static explicit operator FileReference(string path)
+    public static implicit operator FileReference(string path)
         => new(path);
     public static explicit operator string(FileReference fileRef)
         => fileRef.RelativePath;

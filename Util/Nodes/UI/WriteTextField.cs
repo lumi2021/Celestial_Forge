@@ -1,10 +1,11 @@
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
-using Silk.NET.GLFW;
+using GameEngine.Util.Enums;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/WriteTextField.svg")]
 public class WriteTextField : TextField
 {
 
@@ -24,16 +25,6 @@ public class WriteTextField : TextField
 
     public delegate bool PreprocessInputHandler(InputEvent e);
     public PreprocessInputHandler? preprocessInput;
-
-    public override string Text
-    {
-        get => base.Text;
-        set
-        {
-            base.Text = value;
-            TextEdited();
-        }
-    }
 
     public bool CaretActive => Focused;
 
@@ -82,6 +73,8 @@ public class WriteTextField : TextField
     public readonly Signal OnTextEdited = new();
     public readonly Signal OnCaretMoved = new();
 
+    private bool _replaceCaretRequested = false;
+
     protected override void Init_()
     {
         base.Init_();
@@ -110,18 +103,12 @@ public class WriteTextField : TextField
         else if (_textLines[_caretLine].Length < _caretCol)
             CaretCol = (uint) _textLines[_caretLine].Length;
 
-        OnTextEdited.Emit(this, Text);
+        OnTextEdited.Emit(this, base.Text);
     }
 
     protected virtual void CaretMoved()
     {
-        int caretPosX = 0;
-        for (int i = 0; i < _caretCol; i++)
-            caretPosX += (int)charsList[_caretLine][i].Advance;
-        
-        caret.positionPixels.X = caretPosX;
-        caret.positionPixels.Y = (int)_caretLine * Font.lineheight;
-        caret.BackgroundColor = Color;
+        _replaceCaretRequested = true;
 
         OnCaretMoved.Emit(this, _caretLine, _caretCol, _lastCaretLine, _lastCaretCol);
 
@@ -203,7 +190,7 @@ public class WriteTextField : TextField
 
             if (e.Is<KeyboardKeyInputEvent>(out var @event) && @event.action != InputAction.Release)
             {
-                if (!MultiLine && @event.key == Keys.Enter)
+                if (MultiLine && @event.key == Keys.Enter)
                 {
                     AppendBeforeCursor("\n");
                     _caretLine++;
@@ -282,6 +269,24 @@ public class WriteTextField : TextField
         caret.Visible = focused;
     }
 
+    protected override void Draw(double deltaT)
+    {
+        if (_replaceCaretRequested)
+        {
+            ForceUpdateTextMesh();
+
+            int caretPosX = 0;
+            for (int i = 0; i < _caretCol; i++)
+                caretPosX += (int)charsList[_caretLine][i].Advance;
+            
+            caret.positionPixels.X = caretPosX;
+            caret.positionPixels.Y = (int)_caretLine * Font.lineheight;
+            caret.BackgroundColor = Color;
+        }
+
+        base.Draw(deltaT);
+    }
+
     public void AppendBeforeCursor(string str)
     {
         var s = str;
@@ -290,9 +295,12 @@ public class WriteTextField : TextField
         var line =  _textLines[_caretLine];
         _textLines[_caretLine] =
         line[..(int)_caretCol] + s + line[(int)_caretCol..];
+
         Text = string.Join('\n', _textLines);
 
         _caretCol += (uint) str.Replace("\n", "").Length;
+
+        Console.WriteLine($"{_textLines[_caretLine].Length}, {_caretCol}");
         CaretMoved();
     }
     public void AppendAfterCursor(string str)

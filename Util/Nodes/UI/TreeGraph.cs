@@ -29,22 +29,26 @@ public class TreeGraph : NodeUI
     {
         var p = path.Split('/').Where(e => e != "").ToArray();
         if (p[0] == "root")
-            return _root?.GetChild(p[1 ..]);
+            return _root?.GetChild(p[1 ..]) ?? _root;
         else
             return _root?.GetChild(p);
 
     }
-    public TreeGraphItem? AddItem(string path, string name, Texture? icon = null)
+    public TreeGraphItem? AddItem(string path, string name, Texture? icon = null, bool parentCollapseable = true)
     {
         var parent = path != "" ? GetItem(path) : _root;
 
         if (parent != null)
         {
+            parent.collapseable = parent.collapseable || parentCollapseable;
+
             var n = new TreeGraphItem(this);
             parent.children.Add(n);
             n.parent = parent;
             n.Icon = icon;
             n.Name = name;
+
+            n.Visible = parent.Visible && !parent.Collapsed;
 
             UpdateList();
 
@@ -61,13 +65,16 @@ public class TreeGraph : NodeUI
     {
         List<TreeGraphItem> toUpdate = !_hideRoot ? [_root] : [.. _root.children];
 
-        if (_hideRoot) _root.SelfVisible = false;
+        if (_hideRoot)
+        {
+            _root.SelfVisible = false;
+            _root.ChildrenVisibility(true);
+        }
 
         int listIndex = 0;
         while (toUpdate.Count > 0)
         {
-            TreeGraphItem current = toUpdate[0];
-            toUpdate.RemoveAt(0);
+            TreeGraphItem current = toUpdate.Unqueue();
 
             current.Update(listIndex);
             listIndex++;
@@ -75,6 +82,8 @@ public class TreeGraph : NodeUI
             if (!current.Collapsed)
                 for (int i = current.children.Count - 1; i >= 0; i--)
                     toUpdate.Insert(0,  current.children[i]);
+
+            else current.ChildrenVisibility(false);
         }
 
         RequestUpdateAllChildrens();
@@ -84,7 +93,7 @@ public class TreeGraph : NodeUI
     {
         _root.Delete();
         _root = new(this) {Name = "root"};
-        GC.Collect();
+        GC.Collect(2, GCCollectionMode.Forced, true, false);
     }
 
 
@@ -143,14 +152,16 @@ public class TreeGraph : NodeUI
             }
         }
 
-        private bool _collapsed = false;
+        public bool collapseable = false;
+
+        private bool _collapsed = true;
         public bool Collapsed
         {
-            get { return _collapsed; }
+            get => _collapsed;
             set {
                 _collapsed = value;
+                colapse.value = !value;
                 graph.UpdateList();
-                ChildrenVisibility(!value);
             }
         }
 
@@ -186,12 +197,21 @@ public class TreeGraph : NodeUI
             HoverCornerRadius = new(10, 10, 10, 10),
             ActiveBackgroundColor = new(255, 255, 255, 0.25f),
 
+            ActiveCornerRadius = new(10, 10, 10, 10),
+
             SelectedBackgroundColor = new(255, 255, 255, 0.25f),
             SelectedCornerRadius = new(10, 10, 10, 10),
             SelectedStrokeColor = new(217, 217, 217),
-            SelectedStrokeSize = 2,
+            SelectedStrokeSize = 1,
 
             ClipChildren = true
+        };
+        private readonly Checkbox colapse = new()
+        {
+            sizePercent = new(0,0),
+            sizePixels = new(16, 16),
+            positionPixels = new(8, 8),
+            Visible = false
         };
         private readonly TextureRect icon = new()
         {
@@ -217,13 +237,21 @@ public class TreeGraph : NodeUI
         {
             this.graph = graph;
 
-            graph.AddAsChild(container);
+            graph.AddAsGhostChild(container);
+            container.AddAsChild(colapse);
             container.AddAsChild(icon);
             container.AddAsChild(title);
+
+            var texA = new SvgTexture(); texA.LoadFromFile("Assets/icons/Misc/angleRight.svg", 16, 16);
+            var texB = new SvgTexture(); texB.LoadFromFile("Assets/icons/Misc/angleDown.svg", 16, 16);
+
+            colapse.unactived_texture = texA;
+            colapse.actived_texture = texB;
 
             container.ButtonGroup = graph._buttonGroup;
 
             container.OnClick.Connect((a,b) => OnClick.Emit(this));
+            colapse.OnValueChange.Connect((a,b) => Collapsed = !b![0]);
         }
 
         public TreeGraphItem? GetChild(string[] path)
@@ -245,14 +273,18 @@ public class TreeGraph : NodeUI
 
             if (_icon != null)
             {
-                title.positionPixels.X = 32;
+                title.positionPixels.X = collapseable ? 72 : 40;
+                icon.positionPixels.X = collapseable ? 40 : 0;
                 icon.Show();
             }
             else
             {
-                title.positionPixels.X = 0;
+                title.positionPixels.X = collapseable ? 40 : 0;
                 icon.Hide();
             }
+
+            if (collapseable) colapse.Show();
+            else colapse.Hide();
 
             icon.texture = _icon;
 

@@ -2,7 +2,7 @@ using GameEngine.Util.Nodes;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
 using static GameEngine.Util.Nodes.TextField;
-using Silk.NET.GLFW;
+using GameEngine.Util.Enums;
 
 namespace GameEngineEditor.EditorNodes;
 
@@ -33,7 +33,8 @@ internal class CodeEditor : NodeUI
     private WriteTextField _textField = new()
     {
         Color = new(225, 225, 225),
-        anchor = ANCHOR.TOP_RIGHT
+        anchor = ANCHOR.TOP_RIGHT,
+        MultiLine = true
     };
     private TextField _lineCount = new()
     {
@@ -114,21 +115,19 @@ internal class CodeEditor : NodeUI
     private void OnTextUpdate(string text)
     {
         var linesNumber = (uint) text.Split('\n').Length;
-
         if (linesNumber != _lastLineCount)
         {
-            _lastLineCount = linesNumber;
-
             _lineCount.Text = "";
             for (uint i = 0; i < linesNumber; i++)
-            {
                 _lineCount.Text += $"{i+1}\n";
-            }
 
+            _lineCount.ForceUpdateTextMesh();
+
+            _textField.sizePixels.X = (int) -(_lineCount.Size.X + 10);
+            _textField.RequestUpdateAllChildrens();
+
+            _lastLineCount = linesNumber;
         }
-    
-        _textField.sizePixels.X = (int) -_lineCount.Size.X - 10;
-        _textField.RequestUpdateAllChildrens();
     }
 
     private void OnTextFieldFocusChanged(bool focused)

@@ -4,6 +4,7 @@ using GameEngine.Util.Values;
 
 namespace GameEngine.Util.Nodes;
 
+[Icon("./Assets/icons/Nodes/Node2D.svg")]
 public class Node2D : Node, ICanvasItem
 {
 
@@ -18,4 +19,5 @@ public class Node2D : Node, ICanvasItem
 
     public void Hide() => Visible = false;
     public void Show() => Visible = true;
+
 }

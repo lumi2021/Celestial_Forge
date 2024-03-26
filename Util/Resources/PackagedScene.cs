@@ -48,7 +48,7 @@ public class PackagedScene : Resource
 
         var res = root.CreateNodeInstance( [.. resRepository] );
 
-        GC.Collect();
+        GC.Collect(2, GCCollectionMode.Forced, true, false);
 
         return res;
     }

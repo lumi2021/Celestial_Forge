@@ -47,6 +47,7 @@ public class NodeMananger
     }
     public void LoadSceneNodes(Node sceneRoot)
     {
+
         this.sceneRoot = sceneRoot;
 
         _nodesList.ClearGraph();
@@ -68,7 +69,7 @@ public class NodeMananger
             {
                 var nTexture = new SvgTexture() { Filter = false };
                 IconAttribute nodeIconAtrib = (IconAttribute)node.GetType().GetCustomAttribute(typeof(IconAttribute))!;
-                nTexture.LoadFromFile(nodeIconAtrib.path, 20, 20);
+                nTexture.LoadFromFile(nodeIconAtrib.path, 16, 16);
                 IconsBuffer.Add(node.GetType().Name, nTexture);
                 nodeIcon = nTexture;
             }

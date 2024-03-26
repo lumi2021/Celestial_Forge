@@ -1,12 +1,9 @@
 using System.Diagnostics;
-using GameEngine.Util;
 using GameEngine.Util.Core;
 using GameEngine.Util.Nodes;
 using GameEngineEditor.Editor;
-using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-
 
 namespace GameEngine.Core;
 
@@ -41,12 +38,7 @@ public class Engine
         projectSettings.projectPath = @"C:/Users/Leo/Documents/projetos/myEngine/";
 
         projectSettings.entryScene = @"res://testScene.sce";
-
         projectSettings.canvasDefaultSize = new(800, 600);
-
-        Console.WriteLine(ProjectSettings.Serialize(projectSettings));
-
-        //CascadingStyleSheet.Load("Data/Styles/Editor.css");
 
         /* START EDITOR */
         Editor.StartEditor(projectSettings, mainWin);
@@ -57,7 +49,7 @@ public class Engine
         /* END PROGRAM */
         _root.Free();
         gl.Dispose();
-        Glfw.GetApi().Dispose();
+        //Glfw.GetApi().Dispose();
     }
 
     private void Run()
@@ -134,4 +126,5 @@ public class Engine
 
         }
     }
+
 }

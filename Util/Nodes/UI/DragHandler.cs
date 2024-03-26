@@ -1,9 +1,8 @@
-using System.Numerics;
 using GameEngine.Core;
 using GameEngine.Util.Attributes;
 using GameEngine.Util.Resources;
 using GameEngine.Util.Values;
-using Silk.NET.GLFW;
+using GameEngine.Util.Enums;
 
 namespace GameEngine.Util.Nodes;
 
@@ -76,11 +75,11 @@ public class DragHandler : NodeUI
                 switch (dragAxis)
                 {
                     case Axis.any:
-                        Input.SetCursorShape(CursorShape.Crosshair); break;
+                        Input.SetCursorShape(Silk.NET.GLFW.CursorShape.Crosshair); break;
                     case Axis.XAxis:
-                        Input.SetCursorShape(CursorShape.HResize); break;
+                        Input.SetCursorShape(Silk.NET.GLFW.CursorShape.HResize); break;
                     case Axis.YAxis:
-                        Input.SetCursorShape(CursorShape.VResize); break;
+                        Input.SetCursorShape(Silk.NET.GLFW.CursorShape.VResize); break;
                 }
             }
 
@@ -93,7 +92,7 @@ public class DragHandler : NodeUI
         if (holding && Input.IsActionJustReleased(MouseButton.Left))
         {
             holding = false;
-            Input.SetCursorShape(CursorShape.Arrow);
+            Input.SetCursorShape(Silk.NET.GLFW.CursorShape.Arrow);
         }
         
         if (holding)
